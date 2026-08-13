@@ -240,21 +240,21 @@ export default function ProductosPage() {
   return (
     <div className="p-4 flex flex-col gap-6 max-w-lg mx-auto w-full">
       <div className="pt-2">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-1">
+        <h1 className="text-2xl font-bold tracking-tight text-ofit-text mb-1">
           Listado de Precios
         </h1>
       </div>
 
       {/* Formulario */}
       {editingId && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="card border-none p-5">
+          <h2 className="text-lg font-semibold text-ofit-text mb-4">
             Editar Precios
           </h2>
         
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5" htmlFor="name">
+            <label className="input-label mb-1.5" htmlFor="name">
               Nombre <span className="text-red-500">*</span>
             </label>
             <input
@@ -264,11 +264,11 @@ export default function ProductosPage() {
               placeholder="Ej. Remera Oversize"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full h-12 px-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-gray-50 focus:bg-white"
+              className="w-full h-12 px-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-ofit-pink focus:border-blue-500 outline-none transition-all bg-gray-50 focus:bg-white"
             />
           </div>
 
-          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md mb-1 mt-1">
+          <div className="bg-ofit-pink-soft border-l-4 border-blue-500 p-4 rounded-md mb-1 mt-1">
             <div className="flex items-start">
               <div className="flex-shrink-0">
                 <span className="text-xl">💡</span>
@@ -277,7 +277,7 @@ export default function ProductosPage() {
                 <h3 className="text-sm font-bold text-blue-800">
                   ¿Cómo funcionan los precios?
                 </h3>
-                <div className="mt-1 text-sm text-blue-700">
+                <div className="mt-1 text-sm text-ofit-pink">
                   Vos solo elegí cuánto querés ganar en Efectivo. El sistema le sumará automáticamente un porcentaje de cobertura para crear tu "Precio de Lista", asegurando que no pierdas dinero cuando te paguen con Tarjeta o QR.
                 </div>
                 <div className="mt-3 flex items-center gap-2">
@@ -286,9 +286,9 @@ export default function ProductosPage() {
                     <input
                       type="number" step="1" min="0"
                       value={listMarkup} onChange={(e) => setListMarkup(e.target.value)}
-                      className="w-full h-8 pl-3 pr-6 rounded-md border border-blue-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm font-bold text-blue-700 bg-white"
+                      className="w-full h-8 pl-3 pr-6 rounded-md border border-blue-200 focus:ring-2 focus:ring-ofit-pink outline-none text-sm font-bold text-ofit-pink bg-white"
                     />
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-500 text-xs font-bold">%</span>
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-ofit-pink text-xs font-bold">%</span>
                   </div>
                 </div>
               </div>
@@ -298,17 +298,17 @@ export default function ProductosPage() {
           <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex flex-col gap-5">
             {/* Costo */}
             <div>
-              <label className="block text-sm font-bold text-gray-800 mb-1.5">
+              <label className="block text-sm font-bold text-ofit-text mb-1.5">
                 Costo Base
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ofit-text-soft">
                   <DollarSign size={16} />
                 </span>
                 <input
                   type="number" step="0.01" min="0" placeholder="0.00"
                   value={costPrice} onChange={(e) => handleCostChange(e.target.value)}
-                  className="w-full h-12 pl-10 pr-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-semibold"
+                  className="w-full h-12 !pl-10 pr-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-ofit-pink focus:border-blue-500 outline-none transition-all font-semibold"
                 />
               </div>
             </div>
@@ -320,34 +320,34 @@ export default function ProductosPage() {
               <label className="block text-sm font-bold text-blue-800 mb-2">Venta Minorista</label>
               <div className="flex gap-4">
                 <div className="w-1/3">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Margen</label>
+                  <label className="block text-xs font-medium text-ofit-text-soft mb-1">Margen</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ofit-text-soft">
                       <Percent size={14} />
                     </span>
                     <input
                       type="number" step="0.1" placeholder="0.0"
                       value={retailMargin} onChange={(e) => handleRetailMarginChange(e.target.value)}
-                      className="w-full h-10 pl-8 pr-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm"
+                      className="w-full h-10 pl-8 pr-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-ofit-pink focus:border-blue-500 outline-none transition-all text-sm"
                     />
                   </div>
                 </div>
                 <div className="flex-1">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Precio Final</label>
+                  <label className="block text-xs font-medium text-ofit-text-soft mb-1">Precio Final</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ofit-text-soft">
                       <DollarSign size={14} />
                     </span>
                     <input
                       type="number" step="0.01" min="0" placeholder="0.00"
                       value={retailPrice} onChange={(e) => handleRetailPriceChange(e.target.value)}
-                      className="w-full h-10 pl-8 pr-3 rounded-lg border border-blue-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-bold text-blue-700 bg-blue-50/30"
+                      className="w-full h-10 pl-8 pr-3 rounded-lg border border-ofit-border focus:ring-2 focus:ring-ofit-pink focus:border-blue-500 outline-none transition-all font-bold text-ofit-pink bg-ofit-pink-soft/30"
                     />
                   </div>
                 </div>
               </div>
               {retailPrice && !isNaN(parseFloat(retailPrice)) && parseFloat(retailPrice) > 0 && (
-                <div className="mt-2 text-xs font-medium text-gray-500">
+                <div className="mt-2 text-xs font-medium text-ofit-text-soft">
                   Precio de Lista Sugerido (Tarjeta): ${(parseFloat(retailPrice) * (1 + (parseFloat(listMarkup) || 0) / 100)).toFixed(2)}
                 </div>
               )}
@@ -358,9 +358,9 @@ export default function ProductosPage() {
               <label className="block text-sm font-bold text-purple-800 mb-2">Venta Mayorista</label>
               <div className="flex gap-4">
                 <div className="w-1/3">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Margen</label>
+                  <label className="block text-xs font-medium text-ofit-text-soft mb-1">Margen</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ofit-text-soft">
                       <Percent size={14} />
                     </span>
                     <input
@@ -371,9 +371,9 @@ export default function ProductosPage() {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Precio Final</label>
+                  <label className="block text-xs font-medium text-ofit-text-soft mb-1">Precio Final</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ofit-text-soft">
                       <DollarSign size={14} />
                     </span>
                     <input
@@ -385,7 +385,7 @@ export default function ProductosPage() {
                 </div>
               </div>
               {wholesalePrice && !isNaN(parseFloat(wholesalePrice)) && parseFloat(wholesalePrice) > 0 && (
-                <div className="mt-2 text-xs font-medium text-gray-500">
+                <div className="mt-2 text-xs font-medium text-ofit-text-soft">
                   Precio de Lista Sugerido (Tarjeta): ${(parseFloat(wholesalePrice) * (1 + (parseFloat(listMarkup) || 0) / 100)).toFixed(2)}
                 </div>
               )}
@@ -414,7 +414,7 @@ export default function ProductosPage() {
                 type="button"
                 onClick={cancelEdit}
                 disabled={isSubmitting}
-                className="w-full h-12 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-semibold rounded-xl transition-colors disabled:opacity-50"
+                className="w-full h-12 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-ofit-text font-semibold rounded-xl transition-colors disabled:opacity-50"
               >
                 Cancelar
               </button>
@@ -429,12 +429,12 @@ export default function ProductosPage() {
         
         {loading ? (
           <div className="flex justify-center py-8">
-            <Loader2 size={32} className="animate-spin text-blue-600" />
+            <Loader2 size={32} className="animate-spin text-ofit-pink" />
           </div>
         ) : products.length === 0 ? (
           <div className="text-center py-8 bg-white rounded-2xl border border-gray-100 shadow-sm border-dashed">
             <Package className="mx-auto text-gray-300 mb-2" size={40} />
-            <p className="text-gray-500">No hay productos registrados.</p>
+            <p className="text-ofit-text-soft">No hay productos registrados.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -447,20 +447,20 @@ export default function ProductosPage() {
               >
                 <div className="flex justify-between items-start">
                   <div className="flex flex-col pr-16">
-                    <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider">{product.sku}</span>
-                    <h3 className="font-semibold text-gray-900 text-base leading-tight mb-1">{product.name}</h3>
+                    <span className="text-[10px] font-mono text-ofit-text-soft uppercase tracking-wider">{product.sku}</span>
+                    <h3 className="font-semibold text-ofit-text text-base leading-tight mb-1">{product.name}</h3>
                   </div>
                   
                   <div className="absolute top-3 right-3 flex gap-1">
                     <button 
                       onClick={() => handleEdit(product)}
-                      className="text-gray-400 hover:text-amber-500 active:text-amber-600 transition-colors p-1.5 rounded-lg hover:bg-amber-50"
+                      className="text-ofit-text-soft hover:text-amber-500 active:text-amber-600 transition-colors p-1.5 rounded-lg hover:bg-amber-50"
                     >
                       <Pencil size={18} />
                     </button>
                     <button 
                       onClick={() => handleDelete(product.id)}
-                      className="text-gray-400 hover:text-red-500 active:text-red-600 transition-colors p-1.5 rounded-lg hover:bg-red-50"
+                      className="text-ofit-text-soft hover:text-red-500 active:text-red-600 transition-colors p-1.5 rounded-lg hover:bg-red-50"
                     >
                       <Trash2 size={18} />
                     </button>
@@ -469,19 +469,19 @@ export default function ProductosPage() {
 
                 <div className="grid grid-cols-3 gap-2 bg-gray-50 rounded-xl p-3 border border-gray-100/50 text-center">
                   <div className="flex flex-col">
-                    <span className="text-[10px] uppercase text-gray-500 font-semibold mb-0.5">Costo</span>
-                    <span className="font-medium text-gray-700">
+                    <span className="text-[10px] uppercase text-ofit-text-soft font-semibold mb-0.5">Costo</span>
+                    <span className="font-medium text-ofit-text">
                       {product.cost_price !== null ? `$${(product.cost_price / 100).toLocaleString('es-AR')}` : '-'}
                     </span>
                   </div>
                   <div className="flex flex-col border-l border-r border-gray-200">
-                    <span className="text-[10px] uppercase text-gray-500 font-semibold mb-0.5">Unidad</span>
-                    <span className="font-bold text-blue-600">
+                    <span className="text-[10px] uppercase text-ofit-text-soft font-semibold mb-0.5">Unidad</span>
+                    <span className="font-bold text-ofit-pink">
                       {product.retail_price !== null ? `$${(product.retail_price / 100).toLocaleString('es-AR')}` : '-'}
                     </span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[10px] uppercase text-gray-500 font-semibold mb-0.5">Mayorista</span>
+                    <span className="text-[10px] uppercase text-ofit-text-soft font-semibold mb-0.5">Mayorista</span>
                     <span className="font-bold text-purple-600">
                       {product.wholesale_price !== null ? `$${(product.wholesale_price / 100).toLocaleString('es-AR')}` : '-'}
                     </span>

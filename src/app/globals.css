@@ -1,8 +1,30 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Outfit Shop Palette */
+  --bg-main: #FFF9F7;
+  --bg-card: #FFFFFF;
+  
+  --pink-main: #D98FA0;
+  --pink-hover: #C97F92;
+  --pink-soft: #F7E4E9;
+  --pink-bg: #FDF1F4;
+  
+  --text-main: #30282A;
+  --text-secondary: #75666A;
+  
+  --border-soft: #EEDDE1;
+  
+  /* Status Colors */
+  --status-success-bg: #DDEFE4;
+  --status-success-text: #367A50;
+  --status-warning-bg: #FFF0D8;
+  --status-warning-text: #9A641D;
+  --status-error-bg: #F7DEDE;
+  --status-error-text: #A44848;
+
+  --background: var(--bg-main);
+  --foreground: var(--text-main);
 }
 
 @theme inline {
@@ -10,17 +32,174 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  
+  /* Extending Tailwind Colors */
+  --color-ofit-bg: var(--bg-main);
+  --color-ofit-pink: var(--pink-main);
+  --color-ofit-pink-hover: var(--pink-hover);
+  --color-ofit-pink-soft: var(--pink-soft);
+  --color-ofit-text: var(--text-main);
+  --color-ofit-text-soft: var(--text-secondary);
+  --color-ofit-border: var(--border-soft);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom UI Components */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: 20px;
+  box-shadow: 0 4px 18px rgba(70, 40, 48, 0.05);
+}
+
+/* Buttons */
+.btn-primary {
+  background: var(--pink-main);
+  color: white;
+  border-radius: 12px;
+  min-height: 44px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0 16px;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--pink-hover);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: var(--pink-soft);
+  color: #6D4650;
+  border-radius: 12px;
+  min-height: 44px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0 16px;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #EEDDE1;
+}
+
+.btn-secondary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-tertiary {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  min-height: 44px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0 16px;
+}
+
+.btn-tertiary:hover:not(:disabled) {
+  background: var(--bg-main);
+  color: var(--text-main);
+  border-color: #D4C3C7;
+}
+
+.btn-tertiary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-tertiary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Form Inputs */
+.input-field {
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  min-height: 44px;
+  padding: 0 14px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--pink-main);
+  box-shadow: 0 0 0 3px rgba(217, 143, 160, 0.15);
+}
+
+.input-field::placeholder {
+  color: #A09396;
+}
+
+.input-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+
+/* Scrollbar hiding util */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Modals */
+.modal-content {
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+}
+
+/* Badges */
+.badge-success {
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
+}
+.badge-warning {
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
+}
+.badge-error {
+  background: var(--status-error-bg);
+  color: var(--status-error-text);
+}
+.badge-neutral {
+  background: var(--bg-main);
+  color: var(--text-secondary);
 }

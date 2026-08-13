@@ -53,12 +53,12 @@ export default function DashboardPage() {
   const balance = ingresos - egresos;
 
   return (
-    <div className="p-4 flex flex-col gap-6 max-w-lg mx-auto w-full">
+    <div className="p-4 flex flex-col gap-6 max-w-7xl mx-auto w-full">
       <div className="pt-2">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-1">
+        <h1 className="text-2xl font-bold tracking-tight text-ofit-text mb-1">
           Hola, Camila 👋
         </h1>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-ofit-text-soft">
           Este es el resumen financiero de tu negocio
         </p>
       </div>
@@ -70,53 +70,57 @@ export default function DashboardPage() {
       ) : (
         <div className="flex flex-col gap-4">
           
-          {/* Tarjeta de Balance Principal */}
-          <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-6 opacity-10">
-              <Wallet size={80} />
-            </div>
-            <div className="relative z-10">
-              <h2 className="text-blue-100 font-medium mb-1">Balance Actual</h2>
-              <div className="text-4xl font-bold tracking-tight">
-                ${(balance / 100).toLocaleString('es-AR')}
+          {/* Grid de Métricas */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            
+            {/* Tarjeta de Balance Principal */}
+            <div className="col-span-2 md:col-span-1 bg-ofit-pink rounded-2xl p-5 text-white shadow-sm relative overflow-hidden flex flex-col justify-center">
+              <div className="absolute top-0 right-0 p-4 opacity-20">
+                <Wallet size={64} />
+              </div>
+              <div className="relative z-10">
+                <h2 className="text-pink-50 font-medium mb-1">Balance Actual</h2>
+                <div className="text-3xl font-bold tracking-tight">
+                  ${(balance / 100).toLocaleString('es-AR')}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Grid de Ingresos y Egresos */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-emerald-100 flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-emerald-600 mb-1">
+            {/* Ingresos */}
+            <div className="card bg-[#DDEFE4] p-4 flex flex-col justify-center gap-2 border-none">
+              <div className="flex items-center gap-2 text-[#367A50] mb-1">
                 <ArrowUpCircle size={20} />
-                <span className="font-medium text-sm">Ingresos</span>
+                <span className="font-semibold text-sm">Ingresos</span>
               </div>
-              <div className="text-xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-[#367A50]">
                 ${(ingresos / 100).toLocaleString('es-AR')}
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-red-100 flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-red-600 mb-1">
+            {/* Egresos */}
+            <div className="card bg-[#F7DEDE] p-4 flex flex-col justify-center gap-2 border-none">
+              <div className="flex items-center gap-2 text-[#A44848] mb-1">
                 <ArrowDownCircle size={20} />
-                <span className="font-medium text-sm">Egresos</span>
+                <span className="font-semibold text-sm">Egresos</span>
               </div>
-              <div className="text-xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-[#A44848]">
                 ${(egresos / 100).toLocaleString('es-AR')}
               </div>
             </div>
 
-            <div className="col-span-2 bg-orange-50 rounded-2xl p-4 shadow-sm border border-orange-200 flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-orange-600 mb-1">
+            {/* Por cobrar */}
+            <div className="card bg-[#FFF0D8] p-4 flex flex-col justify-center gap-2 border-none">
+              <div className="flex items-center gap-2 text-[#9A641D] mb-1">
                 <TrendingDown size={20} />
-                <span className="font-medium text-sm">Plata en la Calle (Por cobrar)</span>
+                <span className="font-semibold text-sm">Plata en la Calle</span>
               </div>
-              <div className="text-xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-[#9A641D]">
                 ${(deuda / 100).toLocaleString('es-AR')}
               </div>
             </div>
           </div>
 
-          <Link href="/finanzas" className="mt-4 bg-gray-900 text-white font-semibold rounded-xl h-14 flex items-center justify-center gap-2 shadow-md hover:bg-gray-800 active:bg-gray-700 transition-colors">
+          <Link href="/finanzas" className="btn-primary mt-4 max-w-sm w-full shadow-md gap-2 mx-auto md:mx-0">
             <Wallet size={20} />
             Registrar Movimiento
           </Link>

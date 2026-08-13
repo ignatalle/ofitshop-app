@@ -26,12 +26,12 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 text-gray-900 min-h-screen relative`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen relative`}
       >
         <Sidebar />
         
         {/* Main content with padding top for the fixed top bar */}
-        <main className="pt-16 pb-6 min-h-screen">
+        <main className="pt-[calc(4rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))] min-h-[100dvh]">
           {children}
         </main>
       </body>

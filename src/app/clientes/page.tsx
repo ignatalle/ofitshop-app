@@ -301,7 +301,7 @@ export default function ClientesPage() {
   return (
     <div className="p-4 flex flex-col gap-6 max-w-lg mx-auto w-full">
       <div className="pt-2">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-1">
+        <h1 className="text-2xl font-bold tracking-tight text-ofit-text mb-1">
           Fichas de Clientes
         </h1>
       </div>
@@ -313,14 +313,14 @@ export default function ClientesPage() {
           FORMULARIO SUPERIOR DE CLIENTES (Crear/Editar)
           ------------------------------------------------------ */}
       {editingId && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="card p-5 border-none">
+          <h2 className="text-lg font-semibold text-ofit-text mb-4">
             Editar Cliente
           </h2>
         <form onSubmit={handleSubmitCustomer} className="flex flex-col gap-4">
           <div className="flex gap-4">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5" htmlFor="name">
+              <label className="input-label mb-1.5" htmlFor="name">
                 Nombre <span className="text-red-500">*</span>
               </label>
               <input
@@ -330,18 +330,18 @@ export default function ClientesPage() {
                 placeholder="Ej. Juan Pérez"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full h-12 px-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-gray-50 focus:bg-white"
+                className="w-full h-12 px-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-ofit-pink focus:border-blue-500 outline-none transition-all bg-gray-50 focus:bg-white"
               />
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5" htmlFor="type">
+              <label className="input-label mb-1.5" htmlFor="type">
                 Tipo
               </label>
               <select
                 id="type"
                 value={type}
                 onChange={(e) => setType(e.target.value)}
-                className="w-full h-12 px-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-gray-50 focus:bg-white font-medium text-gray-700"
+                className="w-full h-12 px-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-ofit-pink focus:border-blue-500 outline-none transition-all bg-gray-50 focus:bg-white font-medium text-ofit-text"
               >
                 <option value="MINORISTA">Minorista</option>
                 <option value="MAYORISTA">Mayorista</option>
@@ -350,11 +350,11 @@ export default function ClientesPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5" htmlFor="phone">
+            <label className="input-label mb-1.5" htmlFor="phone">
               Teléfono (WhatsApp) <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ofit-text-soft">
                 <Phone size={18} />
               </span>
               <input
@@ -364,7 +364,7 @@ export default function ClientesPage() {
                 placeholder="Ej. 11 1234-5678"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full h-12 pl-11 pr-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-gray-50 focus:bg-white"
+                className="w-full h-12 pl-11 pr-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-ofit-pink focus:border-blue-500 outline-none transition-all bg-gray-50 focus:bg-white"
               />
             </div>
           </div>
@@ -387,7 +387,7 @@ export default function ClientesPage() {
                 type="button"
                 onClick={cancelEditCustomer}
                 disabled={isSubmitting}
-                className="w-full h-12 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors disabled:opacity-50"
+                className="w-full h-12 bg-gray-100 hover:bg-gray-200 text-ofit-text font-semibold rounded-xl transition-colors disabled:opacity-50"
               >
                 Cancelar
               </button>
@@ -404,11 +404,11 @@ export default function ClientesPage() {
         
         {loading ? (
           <div className="flex justify-center py-8">
-            <Loader2 size={32} className="animate-spin text-blue-600" />
+            <Loader2 size={32} className="animate-spin text-ofit-pink" />
           </div>
         ) : customers.length === 0 ? (
-          <div className="text-center py-8 bg-white rounded-2xl border border-gray-100 shadow-sm border-dashed">
-            <p className="text-gray-500">No hay clientes en la agenda.</p>
+          <div className="text-center py-8 card border-none border-dashed">
+            <p className="text-ofit-text-soft">No hay clientes en la agenda.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -421,7 +421,7 @@ export default function ClientesPage() {
                 <div 
                   key={customer.id} 
                   className={`bg-white rounded-2xl shadow-sm border transition-all overflow-hidden ${
-                    isExpanded ? 'border-blue-300 ring-2 ring-blue-50' : 'border-gray-100 hover:border-blue-100'
+                    isExpanded ? 'border-ofit-border ring-2 ring-blue-50' : 'border-gray-100 hover:border-blue-100'
                   }`}
                 >
                   {/* Tarjeta Principal (Clickable) */}
@@ -431,17 +431,17 @@ export default function ClientesPage() {
                   >
                     <div className="flex flex-col flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-bold text-gray-900 text-lg leading-tight">{customer.name}</h3>
+                        <h3 className="font-bold text-ofit-text text-lg leading-tight">{customer.name}</h3>
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider ${
-                          customer.type === 'MAYORISTA' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                          customer.type === 'MAYORISTA' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-ofit-pink'
                         }`}>
                           {customer.type}
                         </span>
                       </div>
                       
                       <div className="flex items-center gap-3">
-                        <span className="text-sm text-gray-500 font-medium flex items-center gap-1">
-                          <Phone size={14} className="text-gray-400" />
+                        <span className="text-sm text-ofit-text-soft font-medium flex items-center gap-1">
+                          <Phone size={14} className="text-ofit-text-soft" />
                           {customer.phone}
                         </span>
                       </div>
@@ -462,7 +462,7 @@ export default function ClientesPage() {
                         )}
                       </div>
                       
-                      <div className="text-gray-400">
+                      <div className="text-ofit-text-soft">
                         {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                       </div>
                     </div>
@@ -490,12 +490,12 @@ export default function ClientesPage() {
                       <div className="p-4">
                         <div className="flex flex-col gap-3">
                           <div className="flex items-center justify-between mb-2">
-                            <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Historial del Cliente</h4>
+                            <h4 className="text-sm font-bold text-ofit-text uppercase tracking-wider">Historial del Cliente</h4>
                             <div className="flex gap-1">
-                              <button onClick={(e) => handleEditCustomer(customer, e)} className="p-1.5 text-gray-400 hover:text-amber-500 hover:bg-white rounded-lg border border-transparent hover:border-amber-100 shadow-sm transition-all" aria-label="Editar">
+                              <button onClick={(e) => handleEditCustomer(customer, e)} className="p-1.5 text-ofit-text-soft hover:text-amber-500 hover:bg-white rounded-lg border border-transparent hover:border-amber-100 shadow-sm transition-all" aria-label="Editar">
                                 <Pencil size={14} />
                               </button>
-                              <button onClick={(e) => handleDeleteCustomer(customer.id, e)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-white rounded-lg border border-transparent hover:border-red-100 shadow-sm transition-all" aria-label="Eliminar">
+                              <button onClick={(e) => handleDeleteCustomer(customer.id, e)} className="p-1.5 text-ofit-text-soft hover:text-red-500 hover:bg-white rounded-lg border border-transparent hover:border-red-100 shadow-sm transition-all" aria-label="Eliminar">
                                 <Trash2 size={14} />
                               </button>
                             </div>
@@ -509,7 +509,7 @@ export default function ClientesPage() {
                               if (customerOrders.length === 0) return null;
                               return (
                                 <div className="mt-2">
-                                  <h5 className="text-xs font-bold text-gray-500 mb-2">PEDIDOS / ENCARGOS</h5>
+                                  <h5 className="text-xs font-bold text-ofit-text-soft mb-2">PEDIDOS / ENCARGOS</h5>
                                   <div className="flex flex-col gap-3">
                                     {customerOrders.map(order => {
                                       const pending = order.total_amount - order.advance_payment;
@@ -520,20 +520,20 @@ export default function ClientesPage() {
                                               {order.items && Array.isArray(order.items) && order.items.length > 0 ? (
                                                 <div className="flex flex-col gap-1 pr-4">
                                                   {order.items.map((it: any, i: number) => (
-                                                    <span key={i} className="font-semibold text-gray-900 leading-tight">
+                                                    <span key={i} className="font-semibold text-ofit-text leading-tight">
                                                       {it.quantity}x {it.productName} - ${(it.subtotal / 100).toLocaleString('es-AR')}
                                                     </span>
                                                   ))}
                                                 </div>
                                               ) : (
-                                                <p className="font-semibold text-gray-900 pr-6 leading-tight">{order.details}</p>
+                                                <p className="font-semibold text-ofit-text pr-6 leading-tight">{order.details}</p>
                                               )}
                                             </div>
                                             <div className="flex flex-col items-end gap-2">
                                               <select
                                                 value={order.status}
                                                 onChange={(e) => handleStatusChange(order.id, order.status, e.target.value)}
-                                                className="text-[10px] font-bold px-1.5 py-1 rounded-md bg-blue-100 text-blue-700 outline-none border border-blue-200 cursor-pointer focus:ring-2 focus:ring-blue-400 uppercase"
+                                                className="text-[10px] font-bold px-1.5 py-1 rounded-md bg-blue-100 text-ofit-pink outline-none border border-blue-200 cursor-pointer focus:ring-2 focus:ring-blue-400 uppercase"
                                               >
                                                 <option value="PENDIENTE">PENDIENTE</option>
                                                 <option value="RECIBIDO">RECIBIDO</option>
@@ -553,7 +553,7 @@ export default function ClientesPage() {
                                             </div>
                                           </div>
                                           
-                                          <div className="flex items-center justify-between text-xs text-gray-500 font-medium">
+                                          <div className="flex items-center justify-between text-xs text-ofit-text-soft font-medium">
                                             <span>{new Date(order.created_at).toLocaleDateString('es-AR')}</span>
                                             <span>Total: ${(order.total_amount / 100).toLocaleString('es-AR')}</span>
                                           </div>
@@ -576,7 +576,7 @@ export default function ClientesPage() {
                             })()}
 
                             {orders.filter(o => o.customer_id === customer.id).length === 0 && (
-                              <p className="text-sm text-gray-500 italic text-center py-4">Este cliente aún no tiene pedidos ni encargos registrados.</p>
+                              <p className="text-sm text-ofit-text-soft italic text-center py-4">Este cliente aún no tiene pedidos ni encargos registrados.</p>
                             )}
                         </div>
                       </div>
