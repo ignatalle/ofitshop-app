@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Users, Package, Wallet, Menu, X, ClipboardList } from 'lucide-react';
+import { Home, Users, Package, Wallet, Menu, X, ClipboardList, Calculator } from 'lucide-react';
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,8 +14,9 @@ export default function Sidebar() {
   const navItems = [
     { name: 'Inicio', href: '/', icon: Home },
     { name: 'Clientes', href: '/clientes', icon: Users },
-    { name: 'Productos', href: '/productos', icon: Package },
     { name: 'Armar Pedidos', href: '/pedidos', icon: ClipboardList },
+    { name: 'Presupuestos', href: '/presupuestos', icon: Calculator },
+    { name: 'Catálogo Histórico', href: '/productos', icon: Package },
     { name: 'Finanzas', href: '/finanzas', icon: Wallet },
   ];
 

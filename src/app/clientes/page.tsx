@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
-import { Phone, AtSign, Loader2, Mail, FileText, Trash2, Pencil, ChevronDown, ChevronUp, DollarSign, CheckCircle2, History, MessageCircle } from 'lucide-react';
+import { Phone, AtSign, Loader2, Mail, FileText, Trash2, Pencil, ChevronDown, ChevronUp, DollarSign, CheckCircle2, History, MessageCircle, Plus } from 'lucide-react';
+import Link from 'next/link';
 
 interface Customer {
   id: string;
@@ -64,6 +66,7 @@ export default function ClientesPage() {
   const [sales, setSales] = useState<Sale[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   
   // Estados Formulario Cliente
   const [name, setName] = useState('');
@@ -76,7 +79,9 @@ export default function ClientesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Estados Ficha Cliente (Acordeón)
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const expandParam = searchParams.get('expand');
+  const [expandedId, setExpandedId] = useState<string | null>(expandParam);
 
   const fetchData = async () => {
     try {
@@ -488,6 +493,15 @@ export default function ClientesPage() {
                       )}
 
                       <div className="p-4">
+                        <div className="mb-4">
+                          <Link 
+                            href={`/pedidos/nuevo?clienteId=${customer.id}`}
+                            className="btn-primary w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-white shadow-sm transition-transform active:scale-95 hover:-translate-y-0.5"
+                          >
+                            <Plus size={18} />
+                            Nuevo Pedido
+                          </Link>
+                        </div>
                         <div className="flex flex-col gap-3">
                           <div className="flex items-center justify-between mb-2">
                             <h4 className="text-sm font-bold text-ofit-text uppercase tracking-wider">Historial del Cliente</h4>
@@ -513,8 +527,10 @@ export default function ClientesPage() {
                                   <div className="flex flex-col gap-3">
                                     {customerOrders.map(order => {
                                       const pending = order.total_amount - order.advance_payment;
+                                      const hasMissingCost = order.items && order.items.some((it: any) => (!it.wholesaleCost || it.wholesaleCost === 0) && !it.productId);
+                                      
                                       return (
-                                        <div key={order.id} className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm flex flex-col gap-2 relative">
+                                        <div key={order.id} className={`bg-white border rounded-xl p-3 shadow-sm flex flex-col gap-2 relative ${hasMissingCost ? 'border-amber-300/50' : 'border-gray-200'}`}>
                                           <div className="flex justify-between items-start">
                                             <div>
                                               {order.items && Array.isArray(order.items) && order.items.length > 0 ? (
@@ -555,7 +571,14 @@ export default function ClientesPage() {
                                           
                                           <div className="flex items-center justify-between text-xs text-ofit-text-soft font-medium">
                                             <span>{new Date(order.created_at).toLocaleDateString('es-AR')}</span>
-                                            <span>Total: ${(order.total_amount / 100).toLocaleString('es-AR')}</span>
+                                            <div className="flex items-center gap-2">
+                                              {hasMissingCost && (
+                                                <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 rounded border border-amber-100 flex items-center">
+                                                  ⚠️ Costo
+                                                </span>
+                                              )}
+                                              <span>Total: ${(order.total_amount / 100).toLocaleString('es-AR')}</span>
+                                            </div>
                                           </div>
                                           
                                           <div className="mt-1 pt-2 border-t border-gray-100 flex items-center justify-between">

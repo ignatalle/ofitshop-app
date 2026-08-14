@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Loader2, ArrowUpCircle, ArrowDownCircle, Trash2, Wallet, X, PlusCircle, MinusCircle } from 'lucide-react';
+import { Loader2, ArrowUpCircle, ArrowDownCircle, Wallet, X, MinusCircle, ArrowRightLeft, Trash2 } from 'lucide-react';
 
 interface Transaction {
   id: string;
   type: string;
   amount: number;
   description: string;
+  cuenta: 'EFECTIVO' | 'VIRTUAL';
   created_at: string;
 }
 
@@ -19,18 +20,17 @@ export default function FinanzasPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
+  const [cuenta, setCuenta] = useState<'EFECTIVO' | 'VIRTUAL'>('VIRTUAL');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data: txRes, error: txError } = await supabase.from('transactions').select('*').order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setTransactions(data || []);
+      if (txError) throw txError;
+      
+      setTransactions(txRes || []);
     } catch (error: any) {
       alert('Error al cargar movimientos: ' + error.message);
     } finally {
@@ -46,6 +46,55 @@ export default function FinanzasPage() {
   const totalExpenseCents = transactions.filter(t => t.type === 'EGRESO').reduce((acc, t) => acc + t.amount, 0);
   const balanceCents = totalIncomeCents - totalExpenseCents;
 
+  const efectivoIncome = transactions.filter(t => t.type === 'INGRESO' && t.cuenta === 'EFECTIVO').reduce((acc, t) => acc + t.amount, 0);
+  const efectivoExpense = transactions.filter(t => t.type === 'EGRESO' && t.cuenta === 'EFECTIVO').reduce((acc, t) => acc + t.amount, 0);
+  const efectivoTransfer = transactions.filter(t => t.type === 'TRANSFER' && t.cuenta === 'EFECTIVO').reduce((acc, t) => acc + t.amount, 0);
+  const balanceEfectivo = efectivoIncome - efectivoExpense + efectivoTransfer;
+
+  const virtualIncome = transactions.filter(t => t.type === 'INGRESO' && (t.cuenta === 'VIRTUAL' || !t.cuenta)).reduce((acc, t) => acc + t.amount, 0);
+  const virtualExpense = transactions.filter(t => t.type === 'EGRESO' && (t.cuenta === 'VIRTUAL' || !t.cuenta)).reduce((acc, t) => acc + t.amount, 0);
+  const virtualTransfer = transactions.filter(t => t.type === 'TRANSFER' && (t.cuenta === 'VIRTUAL' || !t.cuenta)).reduce((acc, t) => acc + t.amount, 0);
+  const balanceVirtual = virtualIncome - virtualExpense + virtualTransfer;
+
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [transferOrigin, setTransferOrigin] = useState<'EFECTIVO' | 'VIRTUAL'>('VIRTUAL');
+  const [transferAmount, setTransferAmount] = useState('');
+
+  const handleTransferSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!transferAmount) return;
+    try {
+      setIsSubmitting(true);
+      const amountCents = Math.round(parseFloat(transferAmount) * 100);
+      const transferDest = transferOrigin === 'VIRTUAL' ? 'EFECTIVO' : 'VIRTUAL';
+      
+      const outTx = {
+        type: 'TRANSFER',
+        amount: -amountCents,
+        description: `Transferencia hacia ${transferDest === 'EFECTIVO' ? 'Efectivo' : 'Virtual'}`,
+        cuenta: transferOrigin
+      };
+      
+      const inTx = {
+        type: 'TRANSFER',
+        amount: amountCents,
+        description: `Transferencia desde ${transferOrigin === 'EFECTIVO' ? 'Efectivo' : 'Virtual'}`,
+        cuenta: transferDest
+      };
+
+      const { error } = await supabase.from('transactions').insert([outTx, inTx]);
+      if (error) throw error;
+      
+      setTransferAmount('');
+      setIsTransferModalOpen(false);
+      fetchTransactions(); 
+    } catch (error: any) {
+      alert('Error al transferir: ' + error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!amount || !description.trim()) return;
@@ -56,7 +105,8 @@ export default function FinanzasPage() {
       const newTransaction = {
         type: 'EGRESO',
         amount: Math.round(parseFloat(amount) * 100),
-        description: description.trim()
+        description: description.trim(),
+        cuenta: cuenta
       };
 
       const { data, error } = await supabase
@@ -112,48 +162,68 @@ export default function FinanzasPage() {
       </div>
 
       {/* Tarjetas de Resumen */}
-      <div className="flex gap-4 overflow-x-auto pb-2 snap-x -mx-4 px-4 hide-scrollbar">
+      <div className="grid grid-cols-2 gap-4">
         {/* Balance en Caja */}
-        <div className="shrink-0 w-48 bg-ofit-pink rounded-2xl p-4 text-white shadow-md snap-start">
+        <div className="col-span-2 bg-ofit-pink rounded-2xl p-4 text-white shadow-md">
           <div className="flex items-center gap-2 mb-2 opacity-90">
             <Wallet size={18} />
             <span className="text-sm font-medium">Balance en Caja</span>
           </div>
-          <div className="text-2xl font-bold">
+          <div className="text-3xl font-bold truncate mb-3">
             ${(balanceCents / 100).toLocaleString('es-AR')}
+          </div>
+          <div className="flex items-center gap-4 text-xs font-semibold bg-white/10 rounded-lg p-2.5">
+            <div className="flex items-center gap-1.5 flex-1">
+              <span>💵</span> 
+              <span>Efectivo: ${(balanceEfectivo / 100).toLocaleString('es-AR')}</span>
+            </div>
+            <div className="w-px h-4 bg-white/20"></div>
+            <div className="flex items-center gap-1.5 flex-1">
+              <span>📱</span> 
+              <span>Virtual: ${(balanceVirtual / 100).toLocaleString('es-AR')}</span>
+            </div>
           </div>
         </div>
 
         {/* Ingresos Totales */}
-        <div className="shrink-0 w-40 bg-white rounded-2xl p-4 shadow-sm border border-none bg-[#DDEFE4] snap-start">
+        <div className="bg-[#DDEFE4] rounded-2xl p-4 shadow-sm border-none">
           <div className="flex items-center gap-2 mb-2 text-[#367A50]">
             <ArrowUpCircle size={18} />
-            <span className="text-sm font-medium">Ingresos</span>
+            <span className="text-xs font-bold uppercase tracking-wider">Ingresos</span>
           </div>
-          <div className="text-xl font-bold text-ofit-text">
+          <div className="text-lg sm:text-xl font-bold text-ofit-text truncate">
             +${(totalIncomeCents / 100).toLocaleString('es-AR')}
           </div>
         </div>
 
         {/* Egresos Totales */}
-        <div className="shrink-0 w-40 bg-white rounded-2xl p-4 shadow-sm border border-none bg-[#F7DEDE] snap-start">
+        <div className="bg-[#F7DEDE] rounded-2xl p-4 shadow-sm border-none">
           <div className="flex items-center gap-2 mb-2 text-[#A44848]">
             <ArrowDownCircle size={18} />
-            <span className="text-sm font-medium">Egresos</span>
+            <span className="text-xs font-bold uppercase tracking-wider">Egresos</span>
           </div>
-          <div className="text-xl font-bold text-ofit-text">
+          <div className="text-lg sm:text-xl font-bold text-ofit-text truncate">
             -${(totalExpenseCents / 100).toLocaleString('es-AR')}
           </div>
         </div>
       </div>
 
-      <button
-        onClick={() => setIsModalOpen(true)}
-        className="w-full h-14 bg-red-50 hover:bg-[#F7DEDE] active:bg-red-200 text-[#A44848] border border-red-200 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-sm"
-      >
-        <MinusCircle size={22} />
-        Registrar Gasto
-      </button>
+      <div className="flex gap-4">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex-1 h-14 bg-red-50 hover:bg-[#F7DEDE] active:bg-red-200 text-[#A44848] border border-red-200 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-sm"
+        >
+          <MinusCircle size={22} />
+          Egreso
+        </button>
+        <button
+          onClick={() => setIsTransferModalOpen(true)}
+          className="flex-1 h-14 bg-gray-50 hover:bg-gray-100 active:bg-gray-200 text-gray-700 border border-gray-200 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-sm"
+        >
+          <ArrowRightLeft size={22} />
+          Mover Plata
+        </button>
+      </div>
 
       {/* Lista */}
       <div className="flex flex-col gap-4">
@@ -172,17 +242,18 @@ export default function FinanzasPage() {
           <div className="flex flex-col gap-3">
             {transactions.map((transaction) => {
               const isIngreso = transaction.type === 'INGRESO';
+              const isTransfer = transaction.type === 'TRANSFER';
+              
+              let bgColor = isIngreso ? 'bg-[#DDEFE4]' : (isTransfer ? 'bg-gray-100' : 'bg-[#F7DEDE]');
+              let iconColor = isIngreso ? 'text-[#367A50]' : (isTransfer ? 'text-gray-500' : 'text-[#A44848]');
+              
               return (
                 <div 
                   key={transaction.id} 
-                  className={`card p-4 border-none flex items-center gap-4 relative transition-all ${
-                    isIngreso ? 'border-none bg-[#DDEFE4]' : 'border-none bg-[#F7DEDE]'
-                  }`}
+                  className={`card p-4 border-none flex items-center gap-4 relative transition-all ${bgColor}`}
                 >
-                  <div className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
-                    isIngreso ? 'bg-[#DDEFE4] text-[#367A50]' : 'bg-[#F7DEDE] text-[#A44848]'
-                  }`}>
-                    {isIngreso ? <ArrowUpCircle size={24} /> : <ArrowDownCircle size={24} />}
+                  <div className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${bgColor} ${iconColor} opacity-80 mix-blend-multiply`}>
+                    {isIngreso ? <ArrowUpCircle size={24} /> : (isTransfer ? <ArrowRightLeft size={24} /> : <ArrowDownCircle size={24} />)}
                   </div>
                   
                   <div className="flex flex-col flex-1 pr-8">
@@ -264,6 +335,28 @@ export default function FinanzasPage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-semibold text-ofit-text mb-1.5">
+                  ¿De dónde salió la plata?
+                </label>
+                <div className="flex bg-gray-200 p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setCuenta('VIRTUAL')}
+                    className={`flex-1 py-1.5 text-sm font-bold rounded-lg transition-all ${cuenta === 'VIRTUAL' ? 'bg-white shadow-sm text-ofit-text' : 'text-ofit-text-soft hover:text-ofit-text'}`}
+                  >
+                    📱 Virtual
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCuenta('EFECTIVO')}
+                    className={`flex-1 py-1.5 text-sm font-bold rounded-lg transition-all ${cuenta === 'EFECTIVO' ? 'bg-white shadow-sm text-ofit-text' : 'text-ofit-text-soft hover:text-ofit-text'}`}
+                  >
+                    💵 Efectivo
+                  </button>
+                </div>
+              </div>
+
               <div className="pt-2">
                 <button
                   type="submit"
@@ -278,6 +371,67 @@ export default function FinanzasPage() {
           </div>
         </div>
       )}
+      {/* Modal Transferencia */}
+      {isTransferModalOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 shadow-xl">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-ofit-text flex items-center gap-2">
+                <ArrowRightLeft size={24} className="text-gray-500" /> Transferencia
+              </h2>
+              <button onClick={() => setIsTransferModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full text-ofit-text-soft transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleTransferSubmit} className="flex flex-col gap-5">
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="input-label mb-1.5">Origen</label>
+                  <select 
+                    value={transferOrigin}
+                    onChange={(e) => setTransferOrigin(e.target.value as any)}
+                    className="input-field font-semibold"
+                  >
+                    <option value="VIRTUAL">📱 Virtual</option>
+                    <option value="EFECTIVO">💵 Efectivo</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="input-label mb-1.5 opacity-60">Destino (Automático)</label>
+                  <div className="input-field font-semibold bg-gray-50 text-gray-500 flex items-center">
+                    {transferOrigin === 'VIRTUAL' ? '💵 Efectivo' : '📱 Virtual'}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="input-label mb-1.5">Monto a mover</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ofit-text-soft font-bold">$</span>
+                  <input
+                    required type="number" min="0" step="0.01"
+                    value={transferAmount} onChange={(e) => setTransferAmount(e.target.value)}
+                    className="input-field !pl-8 font-semibold" placeholder="0.00"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-4">
+                <button type="button" onClick={() => setIsTransferModalOpen(false)} className="btn-secondary flex-1 py-3 text-base">
+                  Cancelar
+                </button>
+                <button type="submit" disabled={isSubmitting} className="flex-1 py-3 bg-gray-900 hover:bg-black text-white font-bold rounded-xl shadow-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                  {isSubmitting && <Loader2 size={18} className="animate-spin" />}
+                  Confirmar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
