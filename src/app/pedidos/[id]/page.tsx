@@ -49,6 +49,10 @@ export default function FichaPedidoPage() {
   const [tempCostValue, setTempCostValue] = useState<string>('');
   const [productsMap, setProductsMap] = useState<Record<string, number>>({});
 
+  // Price editing state
+  const [editingPriceIndex, setEditingPriceIndex] = useState<number | null>(null);
+  const [tempPriceValue, setTempPriceValue] = useState<string>('');
+
   useEffect(() => {
     fetchOrderDetails();
   }, [orderId]);
@@ -264,6 +268,43 @@ export default function FichaPedidoPage() {
     }
   };
 
+  const handleEditPriceClick = (item: any, index: number) => {
+    setEditingPriceIndex(index);
+    setTempPriceValue((item.unitPrice / 100).toString());
+  };
+
+  const handleSavePrice = async (index: number) => {
+    if (!order || !order.items) return;
+    
+    try {
+      const newItems = [...order.items];
+      const newPriceCents = tempPriceValue ? Math.round(parseFloat(tempPriceValue) * 100) : 0;
+      
+      newItems[index] = {
+        ...newItems[index],
+        unitPrice: newPriceCents
+      };
+
+      // Recalcular total del pedido iterando sobre los items
+      const newTotalCents = newItems.reduce((sum, currentItem) => {
+        return sum + (currentItem.unitPrice * currentItem.quantity);
+      }, 0);
+
+      // Actualizar en base de datos items y total
+      const { error } = await supabase.from('orders')
+        .update({ items: newItems, total_amount: newTotalCents })
+        .eq('id', order.id);
+        
+      if (error) throw error;
+
+      // Actualizar UI optimistamente
+      setOrder({ ...order, items: newItems, total_amount: newTotalCents });
+      setEditingPriceIndex(null);
+    } catch (error: any) {
+      alert("Error al actualizar precio: " + error.message);
+    }
+  };
+
   const handleDeleteOrder = async () => {
     if (!order) return;
     if (!window.confirm("¿Seguro que querés eliminar este pedido? Se borrarán también las transacciones de caja asociadas.")) return;
@@ -368,7 +409,31 @@ export default function FichaPedidoPage() {
                   </div>
                   
                   <div className="flex flex-wrap items-center gap-2 mt-1">
-                    <span className="text-xs text-ofit-text-soft">${(item.unitPrice / 100).toLocaleString('es-AR')} u.</span>
+                    {editingPriceIndex === idx ? (
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs font-bold text-gray-500">$</span>
+                        <input 
+                          type="number" min="0" step="0.01" 
+                          value={tempPriceValue}
+                          onChange={(e) => setTempPriceValue(e.target.value)}
+                          className="w-16 h-6 px-1 text-xs border border-gray-300 rounded font-bold"
+                          autoFocus
+                        />
+                        <button onClick={() => handleSavePrice(idx)} className="p-1 text-green-600 hover:bg-green-50 rounded ml-1" title="Guardar Precio">
+                          <CheckCircle2 size={14} />
+                        </button>
+                        <button onClick={() => setEditingPriceIndex(null)} className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded" title="Cancelar">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs font-bold text-ofit-text-soft">${(item.unitPrice / 100).toLocaleString('es-AR')} u.</span>
+                        <button onClick={() => handleEditPriceClick(item, idx)} className="p-1 text-gray-400 hover:text-ofit-pink transition-colors">
+                          <Edit size={12} />
+                        </button>
+                      </div>
+                    )}
                     
                     <div className="flex items-center gap-1 border-l border-gray-200 pl-2 ml-1">
                       {isEditing ? (
