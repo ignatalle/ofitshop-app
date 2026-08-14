@@ -1,27 +1,32 @@
 @import "tailwindcss";
 
 :root {
-  /* Outfit Shop Palette */
+  /* Outfit Shop Palette - Soft UI Premium */
   --bg-main: #FFF9F7;
   --bg-card: #FFFFFF;
   
   --pink-main: #D98FA0;
   --pink-hover: #C97F92;
-  --pink-soft: #F7E4E9;
-  --pink-bg: #FDF1F4;
+  --pink-soft: #FDF1F4; /* Even softer for backgrounds */
+  --pink-bg: #F7E4E9;
+  
+  --navy-main: #1C2B4B; /* Azul profundo del logo */
+  --rose-gold: #B78482; /* Detalle Rose Gold */
+  --sage-green: #E8F3EE; /* Verde salvia para positivos */
+  --sage-green-text: #4A7A61;
   
   --text-main: #30282A;
   --text-secondary: #75666A;
   
-  --border-soft: #EEDDE1;
+  --border-soft: #F2E6E8; /* Más sutil */
   
   /* Status Colors */
-  --status-success-bg: #DDEFE4;
-  --status-success-text: #367A50;
-  --status-warning-bg: #FFF0D8;
-  --status-warning-text: #9A641D;
-  --status-error-bg: #F7DEDE;
-  --status-error-text: #A44848;
+  --status-success-bg: var(--sage-green);
+  --status-success-text: var(--sage-green-text);
+  --status-warning-bg: #FFF5E5;
+  --status-warning-text: #B87A24;
+  --status-error-bg: #FBEFEF;
+  --status-error-text: #B55656;
 
   --background: var(--bg-main);
   --foreground: var(--text-main);
@@ -38,6 +43,8 @@
   --color-ofit-pink: var(--pink-main);
   --color-ofit-pink-hover: var(--pink-hover);
   --color-ofit-pink-soft: var(--pink-soft);
+  --color-ofit-navy: var(--navy-main);
+  --color-ofit-rose: var(--rose-gold);
   --color-ofit-text: var(--text-main);
   --color-ofit-text-soft: var(--text-secondary);
   --color-ofit-border: var(--border-soft);
@@ -55,26 +62,30 @@ body {
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border-soft);
-  border-radius: 20px;
-  box-shadow: 0 4px 18px rgba(70, 40, 48, 0.05);
+  border-radius: 24px;
+  box-shadow: 0 8px 30px rgba(48, 40, 42, 0.04);
+  transition: all 0.3s ease;
 }
 
 /* Buttons */
 .btn-primary {
   background: var(--pink-main);
   color: white;
-  border-radius: 12px;
-  min-height: 44px;
-  font-weight: 600;
+  border-radius: 16px;
+  min-height: 56px;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  padding: 0 16px;
+  padding: 0 24px;
+  box-shadow: 0 4px 15px rgba(217, 143, 160, 0.25);
 }
 
 .btn-primary:hover:not(:disabled) {
   background: var(--pink-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(217, 143, 160, 0.3);
 }
 
 .btn-primary:active:not(:disabled) {
@@ -84,19 +95,21 @@ body {
 .btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .btn-secondary {
-  background: var(--pink-soft);
-  color: #6D4650;
-  border-radius: 12px;
-  min-height: 44px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+  min-height: 50px;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  padding: 0 16px;
+  padding: 0 20px;
 }
 
 .btn-secondary:hover:not(:disabled) {

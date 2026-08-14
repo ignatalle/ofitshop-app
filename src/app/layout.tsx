@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Sidebar from "../components/Sidebar";
+import BottomNav from "../components/BottomNav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,10 +31,12 @@ export default function RootLayout({
       >
         <Sidebar />
         
-        {/* Main content with padding top for the fixed top bar */}
-        <main className="pt-[calc(4rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))] min-h-[100dvh]">
+        {/* Main content with padding top for the fixed top bar and padding bottom for BottomNav */}
+        <main className="pt-[calc(4rem+env(safe-area-inset-top))] pb-[calc(90px+env(safe-area-inset-bottom))] md:pb-[calc(1.5rem+env(safe-area-inset-bottom))] min-h-[100dvh]">
           {children}
         </main>
+
+        <BottomNav />
       </body>
     </html>
   );

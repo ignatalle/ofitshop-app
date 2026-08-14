@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Home, Users, Package, Wallet, Menu, X, ClipboardList, Calculator } from 'lucide-react';
 
@@ -31,9 +32,18 @@ export default function Sidebar() {
         >
           <Menu size={24} />
         </button>
-        <h1 className="text-lg font-bold text-ofit-text absolute left-1/2 -translate-x-1/2">
-          Outfit Shop
-        </h1>
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+          <Image
+            src="/img/LOGO.png"
+            alt="Outfit Shop Logo"
+            width={36}
+            height={36}
+            className="object-contain rounded-full"
+          />
+          <h1 className="text-lg font-bold text-ofit-text">
+            Outfit Shop
+          </h1>
+        </div>
         <div className="w-11"></div> {/* Espaciador para centrar título */}
       </header>
 
@@ -52,7 +62,15 @@ export default function Sidebar() {
         }`}
       >
         <div className="h-16 flex items-center justify-between px-4 border-b border-ofit-border">
-          <h2 className="text-xl font-bold text-ofit-text">Menú</h2>
+          <div className="w-[160px] flex items-center">
+            <Image
+              src="/img/BANNER.png"
+              alt="Outfit Shop Banner"
+              width={160}
+              height={40}
+              className="object-contain"
+            />
+          </div>
           <button 
             onClick={closeSidebar}
             className="w-11 h-11 -mr-2 text-ofit-text-soft hover:bg-ofit-pink-soft rounded-xl transition-colors flex items-center justify-center"
