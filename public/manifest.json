@@ -1,0 +1,21 @@
+{
+  "name": "Outfit Shop Admin",
+  "short_name": "Outfit Shop",
+  "description": "Gestión de inventario y finanzas para tu tienda de ropa",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF9F7",
+  "theme_color": "#D98FA0",
+  "icons": [
+    {
+      "src": "/img/LOGO.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/img/LOGO.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

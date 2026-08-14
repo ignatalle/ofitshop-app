@@ -17,6 +17,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Outfit Shop - Admin",
   description: "Gestión de inventario y finanzas para tu tienda de ropa",
+  icons: {
+    icon: '/img/LOGO.png',
+    apple: '/img/LOGO.png',
+  },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
