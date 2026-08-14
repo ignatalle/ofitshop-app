@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
 import { Loader2, Plus, X, PackageOpen, DollarSign, Minus, ChevronLeft } from 'lucide-react';
@@ -22,7 +22,7 @@ interface CartItem {
   subtotal: number;
 }
 
-export default function NuevoPedidoPage() {
+function NuevoPedidoContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const clienteIdUrl = searchParams.get('clienteId');
@@ -600,5 +600,17 @@ export default function NuevoPedidoPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function NuevoPedidoPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center py-20">
+        <Loader2 size={32} className="animate-spin text-ofit-pink" />
+      </div>
+    }>
+      <NuevoPedidoContent />
+    </Suspense>
   );
 }

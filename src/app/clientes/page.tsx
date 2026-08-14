@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
 import { Phone, AtSign, Loader2, Mail, FileText, Trash2, Pencil, ChevronDown, ChevronUp, DollarSign, CheckCircle2, History, MessageCircle, Plus } from 'lucide-react';
@@ -61,7 +61,7 @@ const generateWhatsAppLink = (order: Order, customer: Customer) => {
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
 };
 
-export default function ClientesPage() {
+function ClientesContent() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -612,5 +612,17 @@ export default function ClientesPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ClientesPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center py-20">
+        <Loader2 size={32} className="animate-spin text-ofit-pink" />
+      </div>
+    }>
+      <ClientesContent />
+    </Suspense>
   );
 }
