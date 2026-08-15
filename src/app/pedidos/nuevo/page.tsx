@@ -324,24 +324,24 @@ function NuevoPedidoContent() {
             <div key={item.id} className="bg-white p-3 rounded-xl shadow-sm mb-3 flex flex-col gap-2 relative group border border-gray-100">
               
               {/* Row 1: Quantity, Product, Trash */}
-              <div className="flex gap-2 items-center">
+              <div className="flex flex-row w-full gap-2 items-center">
                 <input 
                   type="number" min="1" step="1" inputMode="numeric"
                   value={item.quantity}
                   onChange={(e) => handleRowChange(item.id, 'quantity', e.target.value === '' ? '' : parseInt(e.target.value))}
                   placeholder="1"
-                  className="w-16 h-10 px-1 text-center font-bold text-gray-700 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-ofit-pink transition-all"
+                  className="w-16 shrink-0 h-10 px-1 text-center font-bold text-gray-700 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-ofit-pink transition-all"
                 />
                 <input 
                   type="text" 
                   value={item.productName}
                   onChange={(e) => handleRowChange(item.id, 'productName', e.target.value)}
                   placeholder="Ej: Conjunto Nike"
-                  className="flex-1 h-10 px-3 text-sm font-medium text-ofit-text bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-ofit-pink transition-all"
+                  className="flex-1 min-w-0 w-full h-10 px-3 text-sm font-medium text-ofit-text bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-ofit-pink transition-all"
                 />
                 <button 
                   onClick={() => removeRow(item.id)}
-                  className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all"
+                  className="shrink-0 p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all"
                   title="Eliminar fila"
                 >
                   <Trash2 size={18} />
