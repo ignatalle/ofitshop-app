@@ -191,7 +191,7 @@ export default function FinanzasPage() {
             <ArrowUpCircle size={18} />
             <span className="text-xs font-bold uppercase tracking-wider">Ingresos</span>
           </div>
-          <div className="text-lg sm:text-xl font-bold text-ofit-text truncate">
+          <div className="text-lg md:text-2xl font-bold text-ofit-text break-words whitespace-normal">
             +${(totalIncomeCents / 100).toLocaleString('es-AR')}
           </div>
         </div>
@@ -202,7 +202,7 @@ export default function FinanzasPage() {
             <ArrowDownCircle size={18} />
             <span className="text-xs font-bold uppercase tracking-wider">Egresos</span>
           </div>
-          <div className="text-lg sm:text-xl font-bold text-ofit-text truncate">
+          <div className="text-lg md:text-2xl font-bold text-ofit-text break-words whitespace-normal">
             -${(totalExpenseCents / 100).toLocaleString('es-AR')}
           </div>
         </div>
@@ -256,7 +256,7 @@ export default function FinanzasPage() {
                     {isIngreso ? <ArrowUpCircle size={24} /> : (isTransfer ? <ArrowRightLeft size={24} /> : <ArrowDownCircle size={24} />)}
                   </div>
                   
-                  <div className="flex flex-col flex-1 pr-8">
+                  <div className="flex flex-col flex-1 pr-6 min-w-0">
                     <span className="font-semibold text-ofit-text leading-tight mb-1">{transaction.description}</span>
                     <span className="text-[11px] text-ofit-text-soft font-medium uppercase tracking-wider">
                       {new Date(transaction.created_at).toLocaleDateString('es-AR', {
@@ -265,7 +265,7 @@ export default function FinanzasPage() {
                     </span>
                   </div>
                   
-                  <div className={`font-bold text-lg whitespace-nowrap ${
+                  <div className={`font-bold text-base md:text-lg whitespace-nowrap text-right shrink-0 ${
                     isIngreso ? 'text-[#367A50]' : 'text-[#A44848]'
                   }`}>
                     {isIngreso ? '+' : '-'}${(transaction.amount / 100).toLocaleString('es-AR')}

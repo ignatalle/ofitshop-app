@@ -15,8 +15,8 @@ export default function Sidebar() {
   const navItems = [
     { name: 'Inicio', href: '/', icon: Home },
     { name: 'Clientes', href: '/clientes', icon: Users },
-    { name: 'Armar Pedidos', href: '/pedidos', icon: ClipboardList },
-    { name: 'Presupuestos', href: '/presupuestos', icon: Calculator },
+    { name: 'Pedidos', href: '/pedidos', icon: ClipboardList },
+    { name: 'Carga Rápida', href: '/pedidos/nuevo', icon: Calculator },
     { name: 'Catálogo Histórico', href: '/productos', icon: Package },
     { name: 'Finanzas', href: '/finanzas', icon: Wallet },
   ];

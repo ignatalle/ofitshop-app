@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
-import { Loader2, Plus, X, PackageOpen, DollarSign, Minus, ChevronLeft } from 'lucide-react';
+import { Loader2, Plus, X, PackageOpen, DollarSign, ChevronLeft, Trash2, CheckCircle2, Copy } from 'lucide-react';
 import Link from 'next/link';
 
 interface Customer {
@@ -13,13 +13,13 @@ interface Customer {
   phone: string | null;
 }
 
-interface CartItem {
+interface DraftItem {
   id: string;
+  quantity: number | '';
   productName: string;
-  quantity: number;
-  unitPrice: number;
-  wholesaleCost?: number;
-  subtotal: number;
+  wholesaleCost: string;
+  margin: string;
+  unitPrice: string;
 }
 
 function NuevoPedidoContent() {
@@ -32,22 +32,23 @@ function NuevoPedidoContent() {
 
   // Form states
   const [selectedCustomerId, setSelectedCustomerId] = useState(clienteIdUrl || '');
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [draftItems, setDraftItems] = useState<DraftItem[]>([{
+    id: Date.now().toString(),
+    quantity: 1,
+    productName: '',
+    wholesaleCost: '',
+    margin: '',
+    unitPrice: ''
+  }]);
   
-  // Payment states (Initial)
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Payment and Closing states
   const [clientPayment, setClientPayment] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('EFECTIVO');
   const [cuenta, setCuenta] = useState<'EFECTIVO' | 'VIRTUAL'>('VIRTUAL');
   const [hasCommission, setHasCommission] = useState(false);
   const [realIncome, setRealIncome] = useState('');
-
-  // Item form states
-  const [itemName, setItemName] = useState('');
-  const [itemQuantity, setItemQuantity] = useState<number | ''>(1);
-  const [itemPrice, setItemPrice] = useState('');
-  const [itemCost, setItemCost] = useState('');
-  const [itemMargin, setItemMargin] = useState('');
 
   // Quick Create Customer states
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
@@ -71,75 +72,83 @@ function NuevoPedidoContent() {
     fetchCustomers();
   }, []);
 
-  const handleCostChange = (val: string) => {
-    setItemCost(val);
-    const costNum = parseFloat(val);
-    const marginNum = parseFloat(itemMargin);
-    if (!isNaN(costNum) && costNum > 0 && !isNaN(marginNum)) {
-      setItemPrice((costNum * (1 + marginNum / 100)).toFixed(2));
-    } else if (!val || isNaN(costNum)) {
-      setItemMargin('');
-    }
-  };
+  const totalAmountCents = draftItems.reduce((acc, item) => {
+    const qty = typeof item.quantity === 'number' ? item.quantity : 1;
+    const price = parseFloat(item.unitPrice) || 0;
+    return acc + Math.round(price * qty * 100);
+  }, 0);
 
-  const handleMarginChange = (val: string) => {
-    setItemMargin(val);
-    const marginNum = parseFloat(val);
-    const costNum = parseFloat(itemCost);
-    if (!isNaN(costNum) && costNum > 0 && !isNaN(marginNum)) {
-      setItemPrice((costNum * (1 + marginNum / 100)).toFixed(2));
-    }
-  };
+  const handleRowChange = (id: string, field: keyof DraftItem, value: string | number) => {
+    setDraftItems(prev => prev.map(item => {
+      if (item.id !== id) return item;
 
-  const handlePriceChange = (val: string) => {
-    setItemPrice(val);
-    const priceNum = parseFloat(val);
-    const costNum = parseFloat(itemCost);
-    if (!isNaN(costNum) && costNum > 0 && !isNaN(priceNum)) {
-      setItemMargin((((priceNum - costNum) / costNum) * 100).toFixed(1));
-    }
-  };
+      const newItem = { ...item, [field]: value };
 
-  const subtotalCents = cart.reduce((acc, item) => acc + item.subtotal, 0);
-  const totalAmountCents = subtotalCents;
-
-  const handleAddCustomItem = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!itemName || !itemPrice || !itemQuantity) return;
-
-    const unitPrice = Math.round(parseFloat(itemPrice) * 100);
-    const quantity = itemQuantity as number;
-    const wholesaleCost = itemCost ? Math.round(parseFloat(itemCost) * 100) : undefined;
-
-    const newItem: CartItem = {
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      productName: itemName,
-      quantity,
-      unitPrice,
-      wholesaleCost,
-      subtotal: unitPrice * quantity
-    };
-
-    setCart([...cart, newItem]);
-    setItemName('');
-    setItemQuantity(1);
-    setItemPrice('');
-    setItemCost('');
-    setItemMargin('');
-  };
-
-  const updateQuantity = (id: string, delta: number) => {
-    setCart(cart.map(item => {
-      if (item.id === id) {
-        const newQ = Math.max(1, item.quantity + delta);
-        return { ...item, quantity: newQ, subtotal: newQ * item.unitPrice };
+      if (field === 'wholesaleCost') {
+        const costNum = parseFloat(value as string);
+        const marginNum = parseFloat(newItem.margin);
+        if (!isNaN(costNum) && costNum > 0 && !isNaN(marginNum)) {
+          newItem.unitPrice = (costNum * (1 + marginNum / 100)).toFixed(2);
+        } else if (!value || isNaN(costNum)) {
+          newItem.margin = '';
+        }
       }
-      return item;
+
+      if (field === 'margin') {
+        const marginNum = parseFloat(value as string);
+        const costNum = parseFloat(newItem.wholesaleCost);
+        if (!isNaN(costNum) && costNum > 0 && !isNaN(marginNum)) {
+          newItem.unitPrice = (costNum * (1 + marginNum / 100)).toFixed(2);
+        }
+      }
+
+      if (field === 'unitPrice') {
+        const priceNum = parseFloat(value as string);
+        const costNum = parseFloat(newItem.wholesaleCost);
+        if (!isNaN(costNum) && costNum > 0 && !isNaN(priceNum)) {
+          newItem.margin = (((priceNum - costNum) / costNum) * 100).toFixed(1);
+        }
+      }
+
+      return newItem;
     }));
   };
 
-  const removeItem = (id: string) => {
-    setCart(cart.filter(item => item.id !== id));
+  const addRow = () => {
+    setDraftItems(prev => [
+      ...prev,
+      {
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+        quantity: 1,
+        productName: '',
+        wholesaleCost: '',
+        margin: '',
+        unitPrice: ''
+      }
+    ]);
+  };
+
+  const removeRow = (id: string) => {
+    setDraftItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  const cleanItemsForSave = () => {
+    // Filter out rows with no product name or no price
+    return draftItems.filter(item => item.productName.trim() !== '' && parseFloat(item.unitPrice) > 0).map(item => {
+      const unitPriceCents = Math.round(parseFloat(item.unitPrice) * 100);
+      const wholesaleCostNum = parseFloat(item.wholesaleCost);
+      const wholesaleCostCents = (!isNaN(wholesaleCostNum) && wholesaleCostNum > 0) ? Math.round(wholesaleCostNum * 100) : 0;
+      const quantity = typeof item.quantity === 'number' ? item.quantity : 1;
+
+      return {
+        id: item.id,
+        productName: item.productName,
+        quantity,
+        unitPrice: unitPriceCents,
+        wholesaleCost: wholesaleCostCents,
+        subtotal: unitPriceCents * quantity
+      };
+    });
   };
 
   const handleCreateCustomer = async (e: React.FormEvent) => {
@@ -180,282 +189,246 @@ function NuevoPedidoContent() {
     }
   };
 
-  const handleSubmitOrder = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedCustomerId || cart.length === 0) return;
-
-    const hasItemsWithoutCost = cart.some(item => !item.wholesaleCost || item.wholesaleCost === 0);
-    if (hasItemsWithoutCost) {
-      const confirmSave = window.confirm("¡Ojo! Tenés prendas en este pedido sin costo cargado. Si lo guardás así, tu ganancia neta del mes no será exacta. ¿Querés guardar el pedido de todas formas?");
-      if (!confirmSave) return;
+  const handleCopyBudget = async () => {
+    const cleanItems = cleanItemsForSave();
+    if (cleanItems.length === 0) {
+      alert("Agregá al menos un ítem válido con nombre y precio.");
+      return;
     }
 
+    const totalAmountCents = cleanItems.reduce((acc, it) => acc + it.subtotal, 0);
+    const totalFormatted = (totalAmountCents / 100).toLocaleString('es-AR', { minimumFractionDigits: 0 });
+
+    const lines = cleanItems.map(it => {
+      const priceFormatted = (it.unitPrice / 100).toLocaleString('es-AR', { minimumFractionDigits: 0 });
+      return `▫️ ${it.quantity}x ${it.productName} - $${priceFormatted}`;
+    });
+
+    const textToCopy = `¡Hola! ✨ Te paso el detalle de tu pedido:\n\n${lines.join('\n')}\n\nTotal: $${totalFormatted}`;
+
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      alert("Presupuesto copiado. ¡Listo para pegar en WhatsApp!");
+    } catch (err) {
+      alert("No se pudo copiar al portapapeles. Intentá copiando manualmente.");
+    }
+  };
+
+  const handleFinalOrderSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanItems = cleanItemsForSave();
+    
     try {
       setIsSubmitting(true);
       const advanceCents = clientPayment ? Math.round(parseFloat(clientPayment) * 100) : 0;
+      const calculatedTotalCents = cleanItems.reduce((acc, it) => acc + it.subtotal, 0);
       
-      const detailsText = cart.map(i => `${i.quantity}x ${i.productName}`).join(', ');
+      const detailsText = cleanItems.map(i => `${i.quantity}x ${i.productName}`).join(', ');
 
       const newOrder = {
         customer_id: selectedCustomerId,
         details: detailsText,
-        items: cart,
-        total_amount: totalAmountCents,
+        items: cleanItems,
+        total_amount: calculatedTotalCents,
         advance_payment: advanceCents,
-        status: 'PENDIENTE'
+        status: advanceCents >= calculatedTotalCents ? 'ENTREGADO' : 'PENDIENTE'
       };
 
       const { data: orderData, error: orderError } = await supabase.from('orders').insert([newOrder]).select();
       if (orderError) throw orderError;
 
-      if (orderData && orderData.length > 0) {
-        if (advanceCents > 0) {
-          const transaction = {
-            order_id: orderData[0].id,
-            type: 'INGRESO',
-            amount: advanceCents,
-            description: `Pago inicial pedido (${paymentMethod}): ${customers.find(c => c.id === selectedCustomerId)?.name || 'Cliente'}`,
-            cuenta: cuenta
-          };
-          const { error: txError } = await supabase.from('transactions').insert([transaction]);
-          if (txError) console.error("Error al registrar pago inicial:", txError);
-          
-          if (hasCommission && realIncome) {
-            const realIncomeCents = Math.round(parseFloat(realIncome) * 100);
-            const comisionCents = advanceCents - realIncomeCents;
-            if (comisionCents > 0) {
-              const comisionTx = {
-                order_id: orderData[0].id,
-                type: 'EGRESO',
-                amount: comisionCents,
-                description: `Comisión de tarjeta (Pedido automático)`,
-                cuenta: cuenta
-              };
-              await supabase.from('transactions').insert([comisionTx]);
-            }
+      if (orderData && orderData.length > 0 && advanceCents > 0) {
+        const transaction = {
+          order_id: orderData[0].id,
+          type: 'INGRESO',
+          amount: advanceCents,
+          description: `Pago inicial pedido (${paymentMethod}): ${customers.find(c => c.id === selectedCustomerId)?.name || 'Cliente'}`,
+          cuenta: cuenta
+        };
+        const { error: txError } = await supabase.from('transactions').insert([transaction]);
+        if (txError) console.error("Error al registrar pago inicial:", txError);
+        
+        if (hasCommission && realIncome) {
+          const realIncomeCents = Math.round(parseFloat(realIncome) * 100);
+          const comisionCents = advanceCents - realIncomeCents;
+          if (comisionCents > 0) {
+            const comisionTx = {
+              order_id: orderData[0].id,
+              type: 'EGRESO',
+              amount: comisionCents,
+              description: `Comisión de tarjeta (Pedido automático)`,
+              cuenta: cuenta
+            };
+            await supabase.from('transactions').insert([comisionTx]);
           }
         }
-        
-        if (clienteIdUrl) {
-          router.push(`/clientes?expand=${clienteIdUrl}`);
-        } else {
-          router.push(`/pedidos/${orderData[0].id}`);
-        }
       }
+      
+      alert(advanceCents > 0 ? "¡Pedido creado y caja actualizada exitosamente!" : "¡Pedido creado exitosamente!");
+      router.push(`/clientes?expand=${selectedCustomerId}`);
     } catch (error: any) {
-      alert("Error al guardar pedido: " + error.message);
-    } finally {
+      alert("Error al crear pedido: " + error.message);
       setIsSubmitting(false);
     }
   };
 
+
+
   return (
-    <div className="p-4 flex flex-col gap-6 max-w-lg mx-auto w-full pb-24">
+    <div className="p-4 flex flex-col gap-6 max-w-2xl mx-auto w-full pb-24">
       <div className="flex items-center gap-3 pt-2">
         <Link href={clienteIdUrl ? `/clientes?expand=${clienteIdUrl}` : "/pedidos"} className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
           <ChevronLeft size={24} className="text-ofit-text" />
         </Link>
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-ofit-text mb-1">
-            Nuevo Pedido
+            Carga Rápida
           </h1>
           <p className="text-sm text-ofit-text-soft">
-            Cargá los ítems y registrá la seña
+            Armador de presupuestos y pedidos
           </p>
         </div>
       </div>
 
-      <div className="card p-5 border-none">
-        <h2 className="text-lg font-semibold text-ofit-text mb-4 flex items-center gap-2">
-          <PackageOpen size={20} className="text-ofit-pink" />
-          Anotar Pedido Exprés
-        </h2>
-        
-        <form onSubmit={handleSubmitOrder} className="flex flex-col gap-4">
-          <div>
-            <label className="input-label mb-1.5">
-              Cliente <span className="text-red-500">*</span>
-            </label>
-            <div className="flex gap-2">
-              <select
-                required
-                value={selectedCustomerId}
-                onChange={(e) => setSelectedCustomerId(e.target.value)}
-                className="flex-1 h-12 px-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-ofit-pink focus:border-blue-500 outline-none transition-all bg-gray-50 focus:bg-white text-ofit-text"
-              >
-                <option value="">Seleccionar cliente...</option>
-                {customers.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={() => setIsCustomerModalOpen(true)}
-                className="btn-secondary w-12 h-12 p-0 shadow-none text-ofit-text shrink-0"
-                title="Nuevo cliente rápido"
-              >
-                <Plus size={20} />
-              </button>
-            </div>
-          </div>
-
-          {/* CART LIST */}
-          {cart.length > 0 && (
-            <div className="flex flex-col gap-3 mt-2 border-t pt-4">
-              <h3 className="font-semibold text-ofit-text text-sm">Detalle del Pedido</h3>
-              {cart.map(item => (
-                <div key={item.id} className="flex flex-col sm:flex-row gap-3 sm:items-center p-3 bg-ofit-bg rounded-xl border border-ofit-border relative group">
-                  <div className="flex-1">
-                    <p className="font-bold text-ofit-text text-sm leading-tight pr-8">{item.productName}</p>
-                    <div className="flex items-center gap-3 mt-1.5 text-xs">
-                      <span className="text-ofit-text-soft">${(item.unitPrice / 100).toLocaleString('es-AR')} u.</span>
-                      {item.wholesaleCost && item.wholesaleCost > 0 && (
-                        <span className="text-gray-400 ml-2">Costo: ${(item.wholesaleCost / 100).toLocaleString('es-AR')}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
-                    <div className="flex items-center bg-white border border-gray-200 rounded-lg">
-                      <button type="button" onClick={() => updateQuantity(item.id, -1)} className="p-1.5 text-ofit-text-soft hover:text-ofit-pink hover:bg-ofit-pink-soft rounded-l-lg"><Minus size={14} /></button>
-                      <span className="w-8 text-center text-sm font-bold">{item.quantity}</span>
-                      <button type="button" onClick={() => updateQuantity(item.id, 1)} className="p-1.5 text-ofit-text-soft hover:text-ofit-pink hover:bg-ofit-pink-soft rounded-r-lg"><Plus size={14} /></button>
-                    </div>
-                    
-                    <div className="font-bold text-ofit-text w-24 text-right">
-                      ${(item.subtotal / 100).toLocaleString('es-AR')}
-                    </div>
-                  </div>
-                  
-                  <button 
-                    type="button"
-                    onClick={() => removeItem(item.id)}
-                    className="absolute top-2 right-2 p-1.5 text-ofit-text-soft hover:text-red-500 bg-white sm:bg-transparent rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all shadow-sm sm:shadow-none"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
+      <div className="card p-5 border-none shadow-sm">
+        <div className="mb-6">
+          <label className="input-label mb-1.5">
+            Cliente <span className="text-red-500">*</span>
+          </label>
+          <div className="flex gap-2">
+            <select
+              required
+              value={selectedCustomerId}
+              onChange={(e) => setSelectedCustomerId(e.target.value)}
+              className="flex-1 h-12 px-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-ofit-pink focus:border-ofit-pink outline-none transition-all bg-gray-50 focus:bg-white text-ofit-text font-medium"
+            >
+              <option value="">Seleccionar cliente...</option>
+              {customers.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
               ))}
-            </div>
-          )}
+            </select>
+            <button
+              type="button"
+              onClick={() => setIsCustomerModalOpen(true)}
+              className="btn-secondary w-12 h-12 p-0 shadow-none text-ofit-text shrink-0"
+              title="Nuevo cliente rápido"
+            >
+              <Plus size={20} />
+            </button>
+          </div>
+        </div>
 
-          <div className="bg-white p-4 rounded-xl border border-ofit-border flex flex-col gap-3">
-            <h3 className="font-semibold text-ofit-text flex items-center gap-2">
-              <Plus size={16} className="text-ofit-pink" /> Agregar Ítem
-            </h3>
-            
-            <div className="flex flex-col gap-3">
-              <div>
-                <label className="input-label mb-1">Descripción / Prenda</label>
+        {/* Dynamic Items List */}
+        <div>
+          {draftItems.map((item, index) => (
+            <div key={item.id} className="bg-white p-3 rounded-xl shadow-sm mb-3 flex flex-col gap-2 relative group border border-gray-100">
+              
+              {/* Row 1: Quantity, Product, Trash */}
+              <div className="flex gap-2 items-center">
+                <input 
+                  type="number" min="1" step="1" inputMode="numeric"
+                  value={item.quantity}
+                  onChange={(e) => handleRowChange(item.id, 'quantity', e.target.value === '' ? '' : parseInt(e.target.value))}
+                  placeholder="1"
+                  className="w-16 h-10 px-1 text-center font-bold text-gray-700 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-ofit-pink transition-all"
+                />
                 <input 
                   type="text" 
-                  value={itemName} 
-                  onChange={e => setItemName(e.target.value)}
-                  placeholder="Ej: Vestido Zara"
-                  className="input-field"
+                  value={item.productName}
+                  onChange={(e) => handleRowChange(item.id, 'productName', e.target.value)}
+                  placeholder="Ej: Conjunto Nike"
+                  className="flex-1 h-10 px-3 text-sm font-medium text-ofit-text bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-ofit-pink transition-all"
                 />
+                <button 
+                  onClick={() => removeRow(item.id)}
+                  className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all"
+                  title="Eliminar fila"
+                >
+                  <Trash2 size={18} />
+                </button>
               </div>
 
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <label className="input-label mb-1">Precio Cobrado</label>
+              {/* Row 2: Cost, Margin, Price */}
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1 block ml-1">Costo</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ofit-text-soft">$</span>
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
                     <input 
-                      type="number" min="0" step="0.01"
-                      value={itemPrice} 
-                      onChange={e => handlePriceChange(e.target.value)}
+                      type="number" min="0" step="0.01" inputMode="decimal"
+                      value={item.wholesaleCost}
+                      onChange={(e) => handleRowChange(item.id, 'wholesaleCost', e.target.value)}
                       placeholder="0.00"
-                      className="input-field !pl-7"
+                      className="w-full h-10 pl-7 pr-1 text-sm text-slate-900 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-400 transition-all"
                     />
                   </div>
                 </div>
-
-                <div className="w-24">
-                  <label className="input-label mb-1">Cant.</label>
-                  <input 
-                    type="number" min="1" step="1"
-                    value={itemQuantity} 
-                    onChange={e => setItemQuantity(e.target.value ? parseInt(e.target.value) : '')}
-                    className="input-field text-center font-bold"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <label className="input-label mb-1">Costo unitario (Opcional)</label>
+                
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1 block ml-1">Margen</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ofit-text-soft">$</span>
                     <input 
-                      type="number" min="0" step="0.01"
-                      value={itemCost} 
-                      onChange={e => handleCostChange(e.target.value)}
+                      type="number" min="0" step="0.1" inputMode="decimal"
+                      value={item.margin}
+                      onChange={(e) => handleRowChange(item.id, 'margin', e.target.value)}
+                      placeholder="0"
+                      className="w-full h-10 pr-4 text-center text-sm font-semibold text-slate-900 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                    />
+                    <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] font-bold">%</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1 block ml-1">Precio</label>
+                  <div className="relative">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">$</span>
+                    <input 
+                      type="number" min="0" step="0.01" inputMode="decimal"
+                      value={item.unitPrice}
+                      onChange={(e) => handleRowChange(item.id, 'unitPrice', e.target.value)}
                       placeholder="0.00"
-                      className="input-field !pl-7 text-sm"
+                      className="w-full h-10 pl-7 pr-1 text-sm font-bold text-slate-900 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-ofit-pink transition-all"
                     />
-                  </div>
-                  {(!itemCost || parseFloat(itemCost) <= 0) && (
-                    <p className="text-[10px] text-amber-600 font-medium flex items-start gap-1 mt-1.5 leading-tight">
-                      ⚠️ Sin costo, la ganancia de esta prenda no se sumará a tus estadísticas.
-                    </p>
-                  )}
-                </div>
-
-                <div className="w-24">
-                  <label className="input-label mb-1">Margen %</label>
-                  <div className="relative">
-                    <input 
-                      type="number" min="0" step="0.1"
-                      value={itemMargin} 
-                      onChange={e => handleMarginChange(e.target.value)}
-                      placeholder={itemCost ? "0.0" : "-"}
-                      disabled={!itemCost}
-                      className="input-field pr-6 text-center font-bold disabled:opacity-50 disabled:bg-gray-100"
-                    />
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-ofit-text-soft text-xs">%</span>
                   </div>
                 </div>
               </div>
-              <p className="text-[10px] text-gray-400 -mt-1">El costo y margen calculan automáticamente tu ganancia.</p>
-
-              <button
-                type="button"
-                onClick={handleAddCustomItem}
-                disabled={!itemName || !itemPrice || !itemQuantity || !selectedCustomerId}
-                className="btn-secondary w-full py-2.5 mt-1 disabled:opacity-50"
-              >
-                Agregar al Carrito
-              </button>
             </div>
-          </div>
+          ))}
 
-          {/* TOTAL & ADVANCE */}
-          <div className="mt-4 flex flex-col justify-end">
-             <span className="block text-sm font-medium text-ofit-text-soft mb-1">Total del Pedido</span>
-             <div className="h-12 flex items-center px-4 rounded-xl bg-ofit-bg border border-ofit-border font-bold text-xl text-ofit-text">
-               ${(totalAmountCents / 100).toLocaleString('es-AR')}
-             </div>
-          </div>
+          <button 
+            onClick={addRow}
+            className="mt-2 py-3 px-4 w-full border-2 border-dashed border-gray-200 hover:border-ofit-pink/50 hover:bg-ofit-pink/5 text-gray-500 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
+          >
+            <Plus size={18} /> Agregar Prenda
+          </button>
+        </div>
 
-          <div className="mt-2 flex gap-3">
+        <div className="mt-8 flex flex-col items-end border-t border-gray-100 pt-4">
+          <span className="text-xs uppercase font-bold tracking-wider text-gray-400 mb-1">Total General</span>
+          <span className="text-3xl font-black text-ofit-text">${(totalAmountCents / 100).toLocaleString('es-AR')}</span>
+        </div>
+
+        {/* Formulario de Pago y Cierre */}
+        <div className="mt-6 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h2 className="text-lg font-bold text-ofit-text mb-4">Cierre y Pago</h2>
+          
+          <div className="flex gap-4 mb-4">
             <div className="flex-1">
-              <label className="input-label mb-1.5">
-                💰 Pago inicial (Seña o Total)
-              </label>
+              <label className="input-label mb-2">💰 Seña o Pago Inicial</label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ofit-text-soft">
-                  <DollarSign size={16} />
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                  <DollarSign size={18} />
                 </span>
                 <input
-                  type="number" min="0" step="0.01" placeholder="0.00"
+                  type="number" min="0" step="0.01" inputMode="decimal" placeholder="0.00"
                   value={clientPayment} onChange={(e) => setClientPayment(e.target.value)}
-                  className="input-field !pl-10 font-semibold"
+                  className="w-full h-12 pl-10 pr-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-ofit-pink text-lg font-bold text-ofit-text transition-all"
                 />
               </div>
             </div>
 
             <div className="flex-1">
-              <label className="input-label mb-1.5">Medio de Pago</label>
+              <label className="input-label mb-2">Medio de Pago</label>
               <select
                 value={paymentMethod}
                 onChange={(e) => {
@@ -464,78 +437,86 @@ function NuevoPedidoContent() {
                   if (val === 'EFECTIVO') setCuenta('EFECTIVO');
                   else setCuenta('VIRTUAL');
                 }}
-                className="input-field font-semibold text-sm cursor-pointer"
+                className="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-ofit-pink font-semibold text-gray-700 transition-all cursor-pointer"
               >
                 <option value="EFECTIVO">💵 Efectivo</option>
-                <option value="TRANSFERENCIA">🏦 Transferencia</option>
+                <option value="TRANSFERENCIA">🏦 Transf.</option>
                 <option value="TARJETA">💳 Tarjeta</option>
               </select>
             </div>
           </div>
 
-
-
-          <div className="mt-2 flex flex-col gap-2">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
+          <div className="flex flex-col gap-3 mb-6">
+            <label className="flex items-center gap-3 cursor-pointer select-none bg-gray-50 p-3 rounded-xl border border-gray-100">
               <input
                 type="checkbox"
                 checked={hasCommission}
                 onChange={(e) => setHasCommission(e.target.checked)}
-                className="w-4 h-4 rounded text-ofit-pink focus:ring-ofit-pink border-gray-300"
+                className="w-5 h-5 rounded text-ofit-pink focus:ring-ofit-pink border-gray-300"
               />
-              <span className="text-sm font-semibold text-ofit-text">💳 Me cobraron comisión de plataforma</span>
+              <span className="text-sm font-semibold text-gray-700">Me cobraron comisión de plataforma</span>
             </label>
 
             {hasCommission && (
-              <div className="mt-1 ml-6 relative">
-                 <label className="block text-xs font-semibold text-ofit-text-soft mb-1">
-                   Plata real que te llegó al banco/app
-                 </label>
-                 <div className="relative">
-                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ofit-text-soft text-sm font-bold">
-                     $
-                   </span>
-                   <input
-                     type="number" min="0" step="0.01" placeholder="0.00"
-                     value={realIncome} onChange={(e) => setRealIncome(e.target.value)}
-                     className="input-field !pl-8 h-10 font-semibold"
-                   />
-                 </div>
-                 {(() => {
-                   const cPay = parseFloat(clientPayment) || 0;
-                   const rInc = parseFloat(realIncome) || 0;
-                   if (realIncome === '') return null;
-                   if (rInc > cPay) {
-                     return <p className="text-xs font-bold text-[#A44848] mt-1.5">❌ El ingreso real no puede ser mayor al pago del cliente.</p>;
-                   }
-                   if (cPay > rInc) {
-                     return <p className="text-xs font-bold text-[#A44848] opacity-90 mt-1.5">⚠️ Comisión descontada: -${(cPay - rInc).toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>;
-                   }
-                   return null;
-                 })()}
+              <div className="p-4 bg-amber-50/50 rounded-xl border border-amber-100">
+                  <label className="block text-xs font-bold text-amber-800 uppercase tracking-wide mb-2">
+                    Plata real que te llegó al banco/app
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">
+                      $
+                    </span>
+                    <input
+                      type="number" min="0" step="0.01" inputMode="decimal" placeholder="0.00"
+                      value={realIncome} onChange={(e) => setRealIncome(e.target.value)}
+                      className="w-full h-12 pl-10 pr-4 bg-white border border-amber-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-400 font-bold"
+                    />
+                  </div>
+                  {(() => {
+                    const cPay = parseFloat(clientPayment) || 0;
+                    const rInc = parseFloat(realIncome) || 0;
+                    if (realIncome === '') return null;
+                    if (rInc > cPay) {
+                      return <p className="text-xs font-bold text-red-500 mt-2">❌ El ingreso real no puede ser mayor al pago del cliente.</p>;
+                    }
+                    if (cPay > rInc) {
+                      return <p className="text-xs font-bold text-amber-600 mt-2">⚠️ Comisión descontada: -${(cPay - rInc).toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>;
+                    }
+                    return null;
+                  })()}
               </div>
             )}
           </div>
 
-          <div className="flex flex-col gap-2 mt-4">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
-              type="submit"
-              disabled={isSubmitting || !selectedCustomerId || cart.length === 0}
-              className={`w-full h-12 font-bold text-white rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 btn-primary`}
+              type="button"
+              onClick={handleCopyBudget}
+              disabled={draftItems.length === 0}
+              className="flex-1 py-3.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50"
             >
-              {isSubmitting && <Loader2 size={18} className="animate-spin" />}
-              {isSubmitting ? 'Guardando...' : 'Crear Pedido'}
+              <Copy size={18} className="text-gray-500" />
+              Copiar para WhatsApp
+            </button>
+            <button
+              type="button"
+              onClick={(e) => handleFinalOrderSubmit(e as unknown as React.FormEvent)}
+              disabled={isSubmitting || totalAmountCents === 0}
+              className="flex-[1.5] py-3.5 px-4 bg-ofit-pink hover:bg-ofit-pink-dark text-white font-bold rounded-xl shadow-[0_4px_14px_0_rgba(240,98,146,0.39)] hover:-translate-y-0.5 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:hover:translate-y-0"
+            >
+              {isSubmitting ? <Loader2 size={24} className="animate-spin" /> : <CheckCircle2 size={24} />}
+              Aprobar y Crear Pedido
             </button>
           </div>
-        </form>
+        </div>
       </div>
 
       {/* Customer Modal */}
       {isCustomerModalOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 animate-in fade-in duration-200">
-          <div className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 shadow-xl">
+          <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 pb-10 sm:pb-6 animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 shadow-xl">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-ofit-text">Nuevo Cliente</h2>
+              <h2 className="text-xl font-bold text-ofit-text">Nuevo Cliente Rápido</h2>
               <button onClick={() => setIsCustomerModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full text-ofit-text-soft transition-colors">
                 <X size={20} />
               </button>
@@ -547,7 +528,7 @@ function NuevoPedidoContent() {
                 <input
                   required type="text"
                   value={newCustomerName} onChange={(e) => setNewCustomerName(e.target.value)}
-                  className="input-field" placeholder="Ej: Camila Outfit"
+                  className="input-field h-12" placeholder="Ej: Camila Outfit"
                 />
               </div>
               <div>
@@ -555,7 +536,7 @@ function NuevoPedidoContent() {
                 <input
                   required type="tel"
                   value={newCustomerPhone} onChange={(e) => setNewCustomerPhone(e.target.value)}
-                  className="input-field" placeholder="Ej: 1122334455"
+                  className="input-field h-12" placeholder="Ej: 1122334455"
                 />
               </div>
               <div>
@@ -582,17 +563,17 @@ function NuevoPedidoContent() {
                 <button
                   type="button"
                   onClick={() => setIsCustomerModalOpen(false)}
-                  className="btn-tertiary flex-1"
+                  className="btn-tertiary flex-1 h-12"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingCustomer}
-                  className="btn-primary flex-1 flex items-center justify-center gap-2"
+                  className="btn-primary flex-1 h-12 flex items-center justify-center gap-2"
                 >
                   {isSubmittingCustomer && <Loader2 size={18} className="animate-spin" />}
-                  {isSubmittingCustomer ? 'Guardando...' : 'Guardar Cliente'}
+                  {isSubmittingCustomer ? 'Guardando...' : 'Guardar'}
                 </button>
               </div>
             </form>

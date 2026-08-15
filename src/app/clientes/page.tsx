@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
-import { Phone, AtSign, Loader2, Mail, FileText, Trash2, Pencil, ChevronDown, ChevronUp, DollarSign, CheckCircle2, History, MessageCircle, Plus } from 'lucide-react';
+import { Phone, AtSign, Loader2, Mail, FileText, Trash2, Pencil, ChevronDown, ChevronUp, DollarSign, CheckCircle2, History, MessageCircle, Plus, Check, X } from 'lucide-react';
 import Link from 'next/link';
 
 interface Customer {
@@ -61,10 +61,491 @@ const generateWhatsAppLink = (order: Order, customer: Customer) => {
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
 };
 
+function CustomerProfileCard({
+  customer,
+  orders,
+  setOrders,
+  debt,
+  productsMap,
+  isExpanded,
+  onToggleAccordion,
+  handleAbonarGlobal,
+  isSubmitting,
+  handleEditCustomer,
+  handleDeleteCustomer,
+  handleStatusChange
+}: any) {
+  const [activeTab, setActiveTab] = useState<'pendientes' | 'completados'>('pendientes');
+  const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({});
+  const [visibleCount, setVisibleCount] = useState(5);
+  const [editingItem, setEditingItem] = useState<{orderId: string, itemIndex: number} | null>(null);
+  const [editItemQuantity, setEditItemQuantity] = useState('1');
+  const [editItemName, setEditItemName] = useState('');
+  const [editItemCost, setEditItemCost] = useState('');
+  const [editItemPrice, setEditItemPrice] = useState('');
+  const [isSavingItem, setIsSavingItem] = useState(false);
+
+  const customerOrdersAll = orders.filter((o: any) => o.customer_id === customer.id && o.status !== 'CANCELADO' && o.status !== 'Cancelado');
+  
+  let totalFacturado = 0;
+  let costoTotal = 0;
+
+  customerOrdersAll.forEach((order: any) => {
+    totalFacturado += order.total_amount;
+    if (order.items && Array.isArray(order.items)) {
+      order.items.forEach((item: any) => {
+        const itemCost = item.wholesaleCost || (item.productId ? productsMap[item.productId] : 0) || 0;
+        costoTotal += itemCost * (item.quantity || 1);
+      });
+    }
+  });
+
+  const gananciaNeta = totalFacturado - costoTotal;
+
+  const pendientes = customerOrdersAll.filter((o: any) => o.status !== 'ENTREGADO' || (o.total_amount - o.advance_payment) > 0);
+  const completados = customerOrdersAll.filter((o: any) => o.status === 'ENTREGADO' && (o.total_amount - o.advance_payment) <= 0);
+
+  const displayedCompletados = completados.slice(0, visibleCount);
+
+  const handleEditClick = (orderId: string, itemIndex: number, it: any, defaultCost: number) => {
+    setEditingItem({ orderId, itemIndex });
+    setEditItemQuantity((it.quantity || 1).toString());
+    setEditItemName(it.productName || '');
+    setEditItemCost((it.wholesaleCost ? it.wholesaleCost / 100 : defaultCost / 100).toString());
+    const unitPrice = it.unitPrice || (it.subtotal / (it.quantity || 1));
+    setEditItemPrice((unitPrice / 100).toString());
+  };
+
+  const cancelEdit = () => {
+    setEditingItem(null);
+  };
+
+  const handleSaveItemEdit = async (order: any, itemIndex: number) => {
+    setIsSavingItem(true);
+    try {
+      const newItems = [...order.items];
+      const parsedCost = Math.max(0, parseFloat(editItemCost) || 0) * 100;
+      const parsedPrice = Math.max(0, parseFloat(editItemPrice) || 0) * 100;
+      const parsedQuantity = Math.max(1, parseInt(editItemQuantity) || 1);
+
+      newItems[itemIndex] = {
+        ...newItems[itemIndex],
+        productName: editItemName || 'Producto',
+        wholesaleCost: parsedCost,
+        unitPrice: parsedPrice,
+        quantity: parsedQuantity,
+        subtotal: parsedPrice * parsedQuantity
+      };
+
+      const newTotal = newItems.reduce((acc, it) => acc + (it.subtotal || 0), 0);
+
+      const { error } = await supabase
+        .from('orders')
+        .update({ items: newItems, total_amount: newTotal })
+        .eq('id', order.id);
+
+      if (error) throw error;
+
+      setOrders((prev: any[]) => prev.map(o => 
+        o.id === order.id ? { ...o, items: newItems, total_amount: newTotal } : o
+      ));
+      setEditingItem(null);
+    } catch (err: any) {
+      alert('Error guardando ítem: ' + err.message);
+    } finally {
+      setIsSavingItem(false);
+    }
+  };
+
+  const handleDeleteItem = async (order: any, itemIndex: number) => {
+    if (!window.confirm('¿Seguro que querés eliminar este artículo del pedido?')) return;
+    setIsSavingItem(true);
+    try {
+      const newItems = [...order.items];
+      newItems.splice(itemIndex, 1);
+      
+      if (newItems.length === 0) {
+        const { error } = await supabase
+          .from('orders')
+          .delete()
+          .eq('id', order.id);
+        
+        if (error) throw error;
+        
+        setOrders((prev: any[]) => prev.filter(o => o.id !== order.id));
+      } else {
+        const newTotal = newItems.reduce((acc, it) => acc + (it.subtotal || 0), 0);
+        
+        const { error } = await supabase
+          .from('orders')
+          .update({ items: newItems, total_amount: newTotal })
+          .eq('id', order.id);
+
+        if (error) throw error;
+
+        setOrders((prev: any[]) => prev.map(o => 
+          o.id === order.id ? { ...o, items: newItems, total_amount: newTotal } : o
+        ));
+      }
+    } catch (err: any) {
+      alert('Error eliminando ítem: ' + err.message);
+    } finally {
+      setIsSavingItem(false);
+    }
+  };
+
+  const toggleOrderAccordion = (orderId: string) => {
+    setExpandedOrders(prev => ({ ...prev, [orderId]: !prev[orderId] }));
+  };
+
+  const renderOrderTicket = (order: any, isCollapsedByDefault: boolean) => {
+    const pending = order.total_amount - order.advance_payment;
+    const hasMissingCost = order.items && order.items.some((it: any) => (!it.wholesaleCost || it.wholesaleCost === 0) && !it.productId);
+    const isOrderExpanded = isCollapsedByDefault ? expandedOrders[order.id] : true;
+
+    return (
+      <div key={order.id} className={`bg-white border rounded-xl p-0 shadow-[0_2px_10px_rgba(48,40,42,0.02)] flex flex-col relative overflow-hidden ${hasMissingCost ? 'border-amber-300/50' : 'border-gray-200'}`}>
+        {isCollapsedByDefault && !isOrderExpanded ? (
+          <div 
+            onClick={() => toggleOrderAccordion(order.id)}
+            className="px-4 py-3 cursor-pointer flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-ofit-text-soft">
+                {new Date(order.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}
+              </span>
+              <span className="text-sm font-bold text-ofit-text">${(order.total_amount / 100).toLocaleString('es-AR')}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] font-bold px-2 py-1 rounded bg-gray-100 text-gray-500 uppercase">
+                {order.status}
+              </span>
+              <ChevronDown size={18} className="text-gray-400" />
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Cabecera Ticket */}
+            <div className="bg-gray-50/80 px-4 py-2.5 border-b border-gray-100 flex justify-between items-center cursor-pointer hover:bg-gray-100/80 transition-colors" onClick={() => isCollapsedByDefault && toggleOrderAccordion(order.id)}>
+              <span className="text-xs font-bold text-ofit-text-soft">
+                {new Date(order.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}
+              </span>
+              <div className="flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
+                 {customer.phone && (
+                  <a 
+                    href={generateWhatsAppLink(order, customer)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-1 bg-[#25D366] text-white rounded-full shadow-sm hover:bg-[#1ebd5a] transition-colors"
+                    title="Enviar ticket por WhatsApp"
+                  >
+                    <MessageCircle size={14} />
+                  </a>
+                )}
+                <select
+                  value={order.status}
+                  onChange={(e) => handleStatusChange(order.id, order.status, e.target.value)}
+                  className="text-[10px] font-bold px-2 py-1 rounded bg-blue-100 text-ofit-pink outline-none border border-blue-200 cursor-pointer focus:ring-2 focus:ring-blue-400 uppercase"
+                >
+                  <option value="PENDIENTE">PENDIENTE</option>
+                  <option value="RECIBIDO">RECIBIDO</option>
+                  <option value="ENTREGADO">ENTREGADO</option>
+                </select>
+                {isCollapsedByDefault && (
+                  <ChevronUp size={18} className="text-gray-400 ml-1" />
+                )}
+              </div>
+            </div>
+            
+            {/* Cuerpo Ticket: Lista de items */}
+            <div className="px-4 py-3">
+              {order.items && Array.isArray(order.items) && order.items.length > 0 ? (
+                <div className="w-full text-sm">
+                  {/* Header tabla */}
+                  <div className="grid grid-cols-[32px_1fr_60px_60px_40px] gap-2 pb-1.5 border-b border-dashed border-gray-200 text-[10px] uppercase font-bold text-gray-400 mb-2">
+                    <div className="text-center">Cant</div>
+                    <div>Producto</div>
+                    <div className="text-right">Costo</div>
+                    <div className="text-right">Precio</div>
+                    <div></div>
+                  </div>
+                  {/* Filas */}
+                  <div className="flex flex-col gap-2">
+                    {order.items.map((it: any, i: number) => {
+                      const itemCost = it.wholesaleCost || (it.productId ? productsMap[it.productId] : 0) || 0;
+                      const unitPrice = it.unitPrice || (it.subtotal / (it.quantity || 1));
+                      const isEditing = editingItem?.orderId === order.id && editingItem?.itemIndex === i;
+
+                      return (
+                        <div key={i} className="group grid grid-cols-[32px_1fr_60px_60px_40px] gap-2 items-center text-xs font-medium text-ofit-text">
+                          {isEditing ? (
+                            <>
+                              <input
+                                type="number"
+                                min="1"
+                                value={editItemQuantity}
+                                onChange={(e) => setEditItemQuantity(e.target.value)}
+                                className="w-full bg-white border border-blue-200 rounded px-1 py-0.5 text-[10px] text-center font-bold text-gray-600 outline-none focus:ring-1 focus:ring-blue-400"
+                                disabled={isSavingItem}
+                              />
+                              <input
+                                type="text"
+                                value={editItemName}
+                                onChange={(e) => setEditItemName(e.target.value)}
+                                className="w-full bg-white border border-blue-200 rounded px-1.5 py-0.5 text-xs outline-none focus:ring-1 focus:ring-blue-400"
+                                disabled={isSavingItem}
+                              />
+                              <input
+                                type="number"
+                                min="0"
+                                value={editItemCost}
+                                onChange={(e) => setEditItemCost(e.target.value)}
+                                className="w-full bg-white border border-blue-200 rounded px-1.5 py-0.5 text-xs text-right outline-none focus:ring-1 focus:ring-blue-400"
+                                disabled={isSavingItem}
+                              />
+                              <input
+                                type="number"
+                                min="0"
+                                value={editItemPrice}
+                                onChange={(e) => setEditItemPrice(e.target.value)}
+                                className="w-full bg-white border border-blue-200 rounded px-1.5 py-0.5 text-xs font-bold text-right outline-none focus:ring-1 focus:ring-blue-400"
+                                disabled={isSavingItem}
+                              />
+                              <div className="flex items-center justify-end gap-1">
+                                <button onClick={() => handleSaveItemEdit(order, i)} disabled={isSavingItem} className="p-1 text-emerald-600 hover:bg-emerald-50 rounded transition-colors disabled:opacity-50">
+                                  <Check size={14} />
+                                </button>
+                                <button onClick={cancelEdit} disabled={isSavingItem} className="p-1 text-gray-400 hover:bg-gray-100 rounded transition-colors disabled:opacity-50">
+                                  <X size={14} />
+                                </button>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="text-center bg-gray-100 rounded text-[10px] h-fit px-1 py-0.5 font-bold text-gray-600">x{it.quantity}</div>
+                              <div className="leading-tight truncate pr-1" title={it.productName || order.details}>{it.productName || order.details}</div>
+                              <div className={`text-right ${!itemCost ? 'text-amber-500 font-bold' : 'text-gray-400'}`}>
+                                ${(itemCost / 100).toLocaleString('es-AR')}
+                              </div>
+                              <div className="text-right font-semibold">
+                                ${(unitPrice / 100).toLocaleString('es-AR')}
+                              </div>
+                              <div className="flex items-center justify-end gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                <button onClick={() => handleEditClick(order.id, i, it, itemCost)} disabled={isSavingItem} className="p-1 text-blue-500 hover:bg-blue-50 rounded transition-colors">
+                                  <Pencil size={14} />
+                                </button>
+                                <button onClick={() => handleDeleteItem(order, i)} disabled={isSavingItem} className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors">
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm font-semibold text-ofit-text py-1 leading-tight">{order.details}</p>
+              )}
+            </div>
+
+            {/* Pie Ticket: Resumen */}
+            <div className="bg-[#fcfcfa] border-t border-gray-100 px-4 py-3 flex items-center justify-between mt-auto">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Abono</span>
+                <span className="text-xs font-bold text-gray-600">${(order.advance_payment / 100).toLocaleString('es-AR')}</span>
+              </div>
+              <div className="flex flex-col gap-0.5 items-center">
+                <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Total</span>
+                <span className="text-xs font-bold text-gray-800">${(order.total_amount / 100).toLocaleString('es-AR')}</span>
+              </div>
+              <div className="flex flex-col gap-0.5 items-end">
+                <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Pendiente</span>
+                <span className={`text-sm font-black ${pending > 0 ? 'text-[#A44848]' : 'text-[#367A50]'}`}>
+                  ${(pending / 100).toLocaleString('es-AR')}
+                </span>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className={`bg-white rounded-2xl shadow-sm border transition-all overflow-hidden ${
+      isExpanded ? 'border-ofit-border ring-2 ring-blue-50' : 'border-gray-100 hover:border-blue-100'
+    }`}>
+      {/* Tarjeta Principal (Clickable) */}
+      <div 
+        onClick={() => onToggleAccordion(customer.id)}
+        className="p-4 flex items-center justify-between cursor-pointer select-none relative"
+      >
+        <div className="flex flex-col flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="font-bold text-ofit-text text-lg leading-tight">{customer.name}</h3>
+            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider ${
+              customer.type === 'MAYORISTA' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-ofit-pink'
+            }`}>
+              {customer.type}
+            </span>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-ofit-text-soft font-medium flex items-center gap-1">
+              <Phone size={14} className="text-ofit-text-soft" />
+              {customer.phone}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Badge de Deuda */}
+          <div className={`px-3 py-1.5 rounded-xl flex flex-col items-center justify-center border ${
+            debt > 0 ? 'bg-red-50 border-red-100 text-red-700' : 'bg-emerald-50 border-emerald-100 text-emerald-700'
+          }`}>
+            <span className="text-[10px] font-bold uppercase tracking-wider leading-none mb-0.5">
+              {debt > 0 ? 'Debe' : 'Al Día'}
+            </span>
+            {debt > 0 && (
+              <span className="font-black leading-none text-sm">
+                ${(debt / 100).toLocaleString('es-AR')}
+              </span>
+            )}
+          </div>
+          
+          <div className="text-ofit-text-soft">
+            {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+          </div>
+        </div>
+      </div>
+
+      {/* Contenido Expandido (Ficha del Cliente) */}
+      {isExpanded && (
+        <div className="border-t border-gray-100 bg-gray-50/50">
+          
+          {/* Financial Metrics Dashboard */}
+          <div className="p-4 bg-white/50 border-b border-gray-100">
+            <h4 className="text-[11px] font-bold text-ofit-text-soft uppercase tracking-wider mb-3">Valor Comercial</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="bg-white p-3 rounded-2xl shadow-[0_2px_10px_rgba(48,40,42,0.02)] border border-gray-50 flex flex-col justify-center">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-ofit-text-soft mb-1">Total Comprado</span>
+                <span className="text-lg font-black text-ofit-text">${(totalFacturado / 100).toLocaleString('es-AR')}</span>
+              </div>
+              <div className="bg-white p-3 rounded-2xl shadow-[0_2px_10px_rgba(48,40,42,0.02)] border border-gray-50 flex flex-col justify-center">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-ofit-text-soft mb-1">Costo Mercadería</span>
+                <span className="text-lg font-black text-gray-400">${(costoTotal / 100).toLocaleString('es-AR')}</span>
+              </div>
+              <div className="bg-emerald-50/30 p-3 rounded-2xl shadow-[0_2px_10px_rgba(48,40,42,0.02)] border border-emerald-100/50 flex flex-col justify-center">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-600/80 mb-1">Ganancia Neta</span>
+                <span className="text-lg font-black text-emerald-600">${(gananciaNeta / 100).toLocaleString('es-AR')}</span>
+              </div>
+            </div>
+          </div>
+        
+          {/* Botón Global de Abono */}
+          {debt > 0 && (
+            <div className="px-4 py-3 bg-red-50/70 border-b border-red-100 flex items-center justify-between">
+              <span className="text-sm text-red-800 font-semibold">Saldo Pendiente: ${(debt / 100).toLocaleString('es-AR')}</span>
+              <button 
+                onClick={() => handleAbonarGlobal(customer.id, customer.name)}
+                disabled={isSubmitting}
+                className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition-colors disabled:opacity-50"
+              >
+                <DollarSign size={16} />
+                Abonar a la Cuenta
+              </button>
+            </div>
+          )}
+
+          <div className="p-4">
+            <div className="mb-4">
+              <Link 
+                href={`/pedidos/nuevo?clienteId=${customer.id}`}
+                className="btn-primary w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-white shadow-sm transition-transform active:scale-95 hover:-translate-y-0.5"
+              >
+                <Plus size={18} />
+                Nuevo Pedido
+              </Link>
+            </div>
+            
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-sm font-bold text-ofit-text uppercase tracking-wider">Historial del Cliente</h4>
+                <div className="flex gap-1">
+                  <button onClick={(e) => handleEditCustomer(customer, e)} className="p-1.5 text-ofit-text-soft hover:text-amber-500 hover:bg-white rounded-lg border border-transparent hover:border-amber-100 shadow-sm transition-all" aria-label="Editar">
+                    <Pencil size={14} />
+                  </button>
+                  <button onClick={(e) => handleDeleteCustomer(customer.id, e)} className="p-1.5 text-ofit-text-soft hover:text-red-500 hover:bg-white rounded-lg border border-transparent hover:border-red-100 shadow-sm transition-all" aria-label="Eliminar">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+
+              {/* TABS */}
+              {customerOrdersAll.length > 0 ? (
+                <>
+                  <div className="flex bg-gray-200 p-1 rounded-xl mb-2">
+                    <button
+                      onClick={() => setActiveTab('pendientes')}
+                      className={`flex-1 py-1.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'pendientes' ? 'bg-white shadow-sm text-ofit-text' : 'text-ofit-text-soft hover:text-ofit-text'}`}
+                    >
+                      Pendientes ({pendientes.length})
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('completados')}
+                      className={`flex-1 py-1.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'completados' ? 'bg-white shadow-sm text-ofit-text' : 'text-ofit-text-soft hover:text-ofit-text'}`}
+                    >
+                      Completados ({completados.length})
+                    </button>
+                  </div>
+
+                  {activeTab === 'pendientes' && (
+                    <div className="flex flex-col gap-3">
+                      {pendientes.length === 0 ? (
+                        <p className="text-sm text-ofit-text-soft italic text-center py-4">No hay pedidos pendientes.</p>
+                      ) : (
+                        pendientes.map((order: any) => renderOrderTicket(order, false))
+                      )}
+                    </div>
+                  )}
+
+                  {activeTab === 'completados' && (
+                    <div className="flex flex-col gap-3">
+                      {displayedCompletados.length === 0 ? (
+                        <p className="text-sm text-ofit-text-soft italic text-center py-4">No hay pedidos completados.</p>
+                      ) : (
+                        displayedCompletados.map((order: any) => renderOrderTicket(order, true))
+                      )}
+                      
+                      {visibleCount < completados.length && (
+                        <button
+                          onClick={() => setVisibleCount(prev => prev + 5)}
+                          className="w-full py-2.5 mt-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-sm rounded-xl transition-colors"
+                        >
+                          Cargar más historial
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-ofit-text-soft italic text-center py-4">Este cliente aún no tiene pedidos ni encargos registrados.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ClientesContent() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [productsMap, setProductsMap] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   
@@ -86,15 +567,25 @@ function ClientesContent() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [customersResponse, salesResponse, ordersResponse] = await Promise.all([
+      const [customersResponse, salesResponse, ordersResponse, productsResponse] = await Promise.all([
         supabase.from('customers').select('*').order('created_at', { ascending: false }),
         supabase.from('sales').select('*').order('created_at', { ascending: false }),
-        supabase.from('orders').select('*').order('created_at', { ascending: false })
+        supabase.from('orders').select('*').order('created_at', { ascending: false }),
+        supabase.from('products').select('id, cost_price')
       ]);
 
       if (customersResponse.error) throw customersResponse.error;
       if (salesResponse.error) throw salesResponse.error;
       if (ordersResponse.error) throw ordersResponse.error;
+      if (productsResponse.error) throw productsResponse.error;
+
+      const pMap: Record<string, number> = {};
+      if (productsResponse.data) {
+        productsResponse.data.forEach((p: any) => {
+          if (p.cost_price) pMap[p.id] = p.cost_price;
+        });
+      }
+      setProductsMap(pMap);
 
       setCustomers(customersResponse.data || []);
       setSales(salesResponse.data || []);
@@ -420,192 +911,22 @@ function ClientesContent() {
             {customers.map((customer) => {
               const debt = getCustomerDebt(customer.id);
               const isExpanded = expandedId === customer.id;
-              const customerSales = sales.filter(s => s.customer_id === customer.id);
-              
               return (
-                <div 
-                  key={customer.id} 
-                  className={`bg-white rounded-2xl shadow-sm border transition-all overflow-hidden ${
-                    isExpanded ? 'border-ofit-border ring-2 ring-blue-50' : 'border-gray-100 hover:border-blue-100'
-                  }`}
-                >
-                  {/* Tarjeta Principal (Clickable) */}
-                  <div 
-                    onClick={() => toggleAccordion(customer.id)}
-                    className="p-4 flex items-center justify-between cursor-pointer select-none relative"
-                  >
-                    <div className="flex flex-col flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-bold text-ofit-text text-lg leading-tight">{customer.name}</h3>
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider ${
-                          customer.type === 'MAYORISTA' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-ofit-pink'
-                        }`}>
-                          {customer.type}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-ofit-text-soft font-medium flex items-center gap-1">
-                          <Phone size={14} className="text-ofit-text-soft" />
-                          {customer.phone}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      {/* Badge de Deuda */}
-                      <div className={`px-3 py-1.5 rounded-xl flex flex-col items-center justify-center border ${
-                        debt > 0 ? 'bg-red-50 border-red-100 text-red-700' : 'bg-emerald-50 border-emerald-100 text-emerald-700'
-                      }`}>
-                        <span className="text-[10px] font-bold uppercase tracking-wider leading-none mb-0.5">
-                          {debt > 0 ? 'Debe' : 'Al Día'}
-                        </span>
-                        {debt > 0 && (
-                          <span className="font-black leading-none text-sm">
-                            ${(debt / 100).toLocaleString('es-AR')}
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className="text-ofit-text-soft">
-                        {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Contenido Expandido (Ficha del Cliente) */}
-                  {isExpanded && (
-                    <div className="border-t border-gray-100 bg-gray-50/50">
-                      
-                      {/* Botón Global de Abono */}
-                      {debt > 0 && (
-                        <div className="px-4 py-3 bg-red-50/70 border-b border-red-100 flex items-center justify-between">
-                          <span className="text-sm text-red-800 font-semibold">Saldo Pendiente: ${(debt / 100).toLocaleString('es-AR')}</span>
-                          <button 
-                            onClick={() => handleAbonarGlobal(customer.id, customer.name)}
-                            disabled={isSubmitting}
-                            className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition-colors disabled:opacity-50"
-                          >
-                            <DollarSign size={16} />
-                            Abonar a la Cuenta
-                          </button>
-                        </div>
-                      )}
-
-                      <div className="p-4">
-                        <div className="mb-4">
-                          <Link 
-                            href={`/pedidos/nuevo?clienteId=${customer.id}`}
-                            className="btn-primary w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-white shadow-sm transition-transform active:scale-95 hover:-translate-y-0.5"
-                          >
-                            <Plus size={18} />
-                            Nuevo Pedido
-                          </Link>
-                        </div>
-                        <div className="flex flex-col gap-3">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="text-sm font-bold text-ofit-text uppercase tracking-wider">Historial del Cliente</h4>
-                            <div className="flex gap-1">
-                              <button onClick={(e) => handleEditCustomer(customer, e)} className="p-1.5 text-ofit-text-soft hover:text-amber-500 hover:bg-white rounded-lg border border-transparent hover:border-amber-100 shadow-sm transition-all" aria-label="Editar">
-                                <Pencil size={14} />
-                              </button>
-                              <button onClick={(e) => handleDeleteCustomer(customer.id, e)} className="p-1.5 text-ofit-text-soft hover:text-red-500 hover:bg-white rounded-lg border border-transparent hover:border-red-100 shadow-sm transition-all" aria-label="Eliminar">
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
-                          </div>
-
-
-
-                            {/* ENCARGOS */}
-                            {(() => {
-                              const customerOrders = orders.filter(o => o.customer_id === customer.id);
-                              if (customerOrders.length === 0) return null;
-                              return (
-                                <div className="mt-2">
-                                  <h5 className="text-xs font-bold text-ofit-text-soft mb-2">PEDIDOS / ENCARGOS</h5>
-                                  <div className="flex flex-col gap-3">
-                                    {customerOrders.map(order => {
-                                      const pending = order.total_amount - order.advance_payment;
-                                      const hasMissingCost = order.items && order.items.some((it: any) => (!it.wholesaleCost || it.wholesaleCost === 0) && !it.productId);
-                                      
-                                      return (
-                                        <div key={order.id} className={`bg-white border rounded-xl p-3 shadow-sm flex flex-col gap-2 relative ${hasMissingCost ? 'border-amber-300/50' : 'border-gray-200'}`}>
-                                          <div className="flex justify-between items-start">
-                                            <div>
-                                              {order.items && Array.isArray(order.items) && order.items.length > 0 ? (
-                                                <div className="flex flex-col gap-1 pr-4">
-                                                  {order.items.map((it: any, i: number) => (
-                                                    <span key={i} className="font-semibold text-ofit-text leading-tight">
-                                                      {it.quantity}x {it.productName} - ${(it.subtotal / 100).toLocaleString('es-AR')}
-                                                    </span>
-                                                  ))}
-                                                </div>
-                                              ) : (
-                                                <p className="font-semibold text-ofit-text pr-6 leading-tight">{order.details}</p>
-                                              )}
-                                            </div>
-                                            <div className="flex flex-col items-end gap-2">
-                                              <select
-                                                value={order.status}
-                                                onChange={(e) => handleStatusChange(order.id, order.status, e.target.value)}
-                                                className="text-[10px] font-bold px-1.5 py-1 rounded-md bg-blue-100 text-ofit-pink outline-none border border-blue-200 cursor-pointer focus:ring-2 focus:ring-blue-400 uppercase"
-                                              >
-                                                <option value="PENDIENTE">PENDIENTE</option>
-                                                <option value="RECIBIDO">RECIBIDO</option>
-                                                <option value="ENTREGADO">ENTREGADO</option>
-                                              </select>
-                                              {customer.phone && (
-                                                <a 
-                                                  href={generateWhatsAppLink(order, customer)}
-                                                  target="_blank"
-                                                  rel="noopener noreferrer"
-                                                  className="p-1.5 bg-[#25D366] text-white rounded-full shadow-sm hover:bg-[#1ebd5a] transition-colors"
-                                                  title="Enviar ticket por WhatsApp"
-                                                >
-                                                  <MessageCircle size={14} />
-                                                </a>
-                                              )}
-                                            </div>
-                                          </div>
-                                          
-                                          <div className="flex items-center justify-between text-xs text-ofit-text-soft font-medium">
-                                            <span>{new Date(order.created_at).toLocaleDateString('es-AR')}</span>
-                                            <div className="flex items-center gap-2">
-                                              {hasMissingCost && (
-                                                <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 rounded border border-amber-100 flex items-center">
-                                                  ⚠️ Costo
-                                                </span>
-                                              )}
-                                              <span>Total: ${(order.total_amount / 100).toLocaleString('es-AR')}</span>
-                                            </div>
-                                          </div>
-                                          
-                                          <div className="mt-1 pt-2 border-t border-gray-100 flex items-center justify-between">
-                                            <div className={`flex items-center gap-1.5 font-semibold text-sm ${pending <= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                              {pending <= 0 ? (
-                                                <><CheckCircle2 size={16} /> Pagado</>
-                                              ) : (
-                                                <><DollarSign size={16} /> Saldo ${(pending / 100).toLocaleString('es-AR')}</>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              );
-                            })()}
-
-                            {orders.filter(o => o.customer_id === customer.id).length === 0 && (
-                              <p className="text-sm text-ofit-text-soft italic text-center py-4">Este cliente aún no tiene pedidos ni encargos registrados.</p>
-                            )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <CustomerProfileCard
+                  key={customer.id}
+                  customer={customer}
+                  orders={orders}
+                  setOrders={setOrders}
+                  debt={debt}
+                  productsMap={productsMap}
+                  isExpanded={isExpanded}
+                  onToggleAccordion={toggleAccordion}
+                  handleAbonarGlobal={handleAbonarGlobal}
+                  isSubmitting={isSubmitting}
+                  handleEditCustomer={handleEditCustomer}
+                  handleDeleteCustomer={handleDeleteCustomer}
+                  handleStatusChange={handleStatusChange}
+                />
               );
             })}
           </div>

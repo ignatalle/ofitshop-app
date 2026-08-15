@@ -115,7 +115,7 @@ export default function PedidosDashboardPage() {
           className="btn-primary py-2.5 px-4 rounded-xl flex items-center gap-2 text-sm font-bold text-white shadow-sm transition-transform active:scale-95 hover:-translate-y-0.5"
         >
           <Plus size={18} />
-          Nuevo Pedido
+          Carga Rápida
         </Link>
       </div>
 
