@@ -275,7 +275,7 @@ function NuevoPedidoContent() {
 
 
   return (
-    <div className="p-4 flex flex-col gap-6 max-w-2xl mx-auto w-full pb-24">
+    <div className="p-4 flex flex-col gap-6 max-w-2xl mx-auto w-full">
       <div className="flex items-center gap-3 pt-2">
         <Link href={clienteIdUrl ? `/clientes?expand=${clienteIdUrl}` : "/pedidos"} className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
           <ChevronLeft size={24} className="text-ofit-text" />
@@ -334,6 +334,8 @@ function NuevoPedidoContent() {
                 />
                 <input 
                   type="text" 
+                  spellCheck={false}
+                  autoComplete="off"
                   value={item.productName}
                   onChange={(e) => handleRowChange(item.id, 'productName', e.target.value)}
                   placeholder="Ej: Conjunto Nike"
@@ -527,6 +529,8 @@ function NuevoPedidoContent() {
                 <label className="input-label mb-1.5">Nombre y Apellido *</label>
                 <input
                   required type="text"
+                  spellCheck={false}
+                  autoComplete="off"
                   value={newCustomerName} onChange={(e) => setNewCustomerName(e.target.value)}
                   className="input-field h-12" placeholder="Ej: Camila Outfit"
                 />

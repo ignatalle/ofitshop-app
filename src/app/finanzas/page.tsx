@@ -151,7 +151,7 @@ export default function FinanzasPage() {
   };
 
   return (
-    <div className="p-4 flex flex-col gap-6 max-w-lg mx-auto w-full pb-24">
+    <div className="p-4 flex flex-col gap-6 max-w-lg mx-auto w-full">
       <div className="pt-2">
         <h1 className="text-2xl font-bold tracking-tight text-ofit-text mb-1 flex items-center gap-2">
           Finanzas
@@ -169,7 +169,7 @@ export default function FinanzasPage() {
             <Wallet size={18} />
             <span className="text-sm font-medium">Balance en Caja</span>
           </div>
-          <div className="text-3xl font-bold truncate mb-3">
+          <div className="text-3xl md:text-4xl font-bold truncate tracking-tighter mb-3">
             ${(balanceCents / 100).toLocaleString('es-AR')}
           </div>
           <div className="flex items-center gap-4 text-xs font-semibold bg-white/10 rounded-lg p-2.5">
@@ -186,23 +186,23 @@ export default function FinanzasPage() {
         </div>
 
         {/* Ingresos Totales */}
-        <div className="bg-[#DDEFE4] rounded-2xl p-4 shadow-sm border-none">
+        <div className="bg-[#DDEFE4] rounded-2xl p-4 shadow-sm border-none min-w-0">
           <div className="flex items-center gap-2 mb-2 text-[#367A50]">
             <ArrowUpCircle size={18} />
             <span className="text-xs font-bold uppercase tracking-wider">Ingresos</span>
           </div>
-          <div className="text-lg md:text-2xl font-bold text-ofit-text break-words whitespace-normal">
+          <div className="text-xl md:text-2xl font-bold text-ofit-text tracking-tighter truncate">
             +${(totalIncomeCents / 100).toLocaleString('es-AR')}
           </div>
         </div>
 
         {/* Egresos Totales */}
-        <div className="bg-[#F7DEDE] rounded-2xl p-4 shadow-sm border-none">
+        <div className="bg-[#F7DEDE] rounded-2xl p-4 shadow-sm border-none min-w-0">
           <div className="flex items-center gap-2 mb-2 text-[#A44848]">
             <ArrowDownCircle size={18} />
             <span className="text-xs font-bold uppercase tracking-wider">Egresos</span>
           </div>
-          <div className="text-lg md:text-2xl font-bold text-ofit-text break-words whitespace-normal">
+          <div className="text-xl md:text-2xl font-bold text-ofit-text tracking-tighter truncate">
             -${(totalExpenseCents / 100).toLocaleString('es-AR')}
           </div>
         </div>
@@ -265,7 +265,7 @@ export default function FinanzasPage() {
                     </span>
                   </div>
                   
-                  <div className={`font-bold text-base md:text-lg whitespace-nowrap text-right shrink-0 ${
+                  <div className={`font-bold text-base md:text-lg whitespace-nowrap text-right shrink-0 tracking-tighter truncate ${
                     isIngreso ? 'text-[#367A50]' : 'text-[#A44848]'
                   }`}>
                     {isIngreso ? '+' : '-'}${(transaction.amount / 100).toLocaleString('es-AR')}

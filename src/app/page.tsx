@@ -250,7 +250,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col w-full max-w-4xl mx-auto pb-24 animate-fade-in p-4 sm:p-6 lg:p-8 gap-8">
+    <div className="flex flex-col w-full max-w-4xl mx-auto animate-fade-in p-4 sm:p-6 lg:p-8 gap-8">
       
       {/* 1. HEADER */}
       <div className="flex flex-col gap-1">
@@ -273,11 +273,11 @@ export default function DashboardPage() {
       {/* 3. PLATA EN LA CALLE */}
       <div className="card bg-[#FFF8ED] p-6 border-none relative overflow-hidden flex flex-col gap-4">
         <div className="absolute -right-4 -top-4 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
-        <div className="flex flex-col gap-1 relative z-10">
+        <div className="flex flex-col gap-1 relative z-10 min-w-0">
           <h2 className="text-amber-800/80 font-bold text-sm uppercase tracking-wider flex items-center gap-1.5">
             <TrendingDown size={16} /> Plata en la Calle
           </h2>
-          <div className="text-4xl sm:text-5xl font-black text-amber-900 tracking-tighter">
+          <div className="text-3xl sm:text-5xl font-black text-amber-900 tracking-tighter truncate">
             ${(deuda / 100).toLocaleString('es-AR')}
           </div>
           <p className="text-amber-800/70 font-medium text-sm mt-1">
@@ -329,17 +329,17 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-3">
         <h3 className="font-bold text-lg text-ofit-text px-1">Mi Plata</h3>
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
-          <div className="card p-5 border-none bg-emerald-50/50 flex flex-col gap-1 shadow-sm">
-            <div className="flex items-center gap-1.5 text-emerald-700/70 font-bold text-xs uppercase tracking-wider mb-1">
+          <div className="card p-5 border-none bg-emerald-50/50 flex flex-col gap-1 shadow-sm min-w-0">
+            <div className="flex items-center gap-1.5 text-emerald-700/70 font-bold text-xs uppercase tracking-wider mb-1 whitespace-nowrap">
               <Banknote size={16} /> Efectivo
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-emerald-800">${(totalEfectivo / 100).toLocaleString('es-AR')}</div>
+            <div className="text-xl sm:text-3xl font-black text-emerald-800 tracking-tighter truncate">${(totalEfectivo / 100).toLocaleString('es-AR')}</div>
           </div>
-          <div className="card p-5 border-none bg-blue-50/50 flex flex-col gap-1 shadow-sm">
-            <div className="flex items-center gap-1.5 text-blue-700/70 font-bold text-xs uppercase tracking-wider mb-1">
+          <div className="card p-5 border-none bg-blue-50/50 flex flex-col gap-1 shadow-sm min-w-0">
+            <div className="flex items-center gap-1.5 text-blue-700/70 font-bold text-xs uppercase tracking-wider mb-1 whitespace-nowrap">
               <CreditCard size={16} /> Virtual
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-blue-800">${(totalVirtual / 100).toLocaleString('es-AR')}</div>
+            <div className="text-xl sm:text-3xl font-black text-blue-800 tracking-tighter truncate">${(totalVirtual / 100).toLocaleString('es-AR')}</div>
           </div>
         </div>
       </div>
