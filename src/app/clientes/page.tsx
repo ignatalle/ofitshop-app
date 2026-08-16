@@ -231,17 +231,6 @@ function CustomerProfileCard({
                 {new Date(order.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}
               </span>
               <div className="flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
-                 {customer.phone && (
-                  <a 
-                    href={generateWhatsAppLink(order, customer)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-1 bg-[#25D366] text-white rounded-full shadow-sm hover:bg-[#1ebd5a] transition-colors"
-                    title="Enviar ticket por WhatsApp"
-                  >
-                    <MessageCircle size={14} />
-                  </a>
-                )}
                 <select
                   value={order.status}
                   onChange={(e) => handleStatusChange(order.id, order.status, e.target.value)}
@@ -444,18 +433,31 @@ function CustomerProfileCard({
             </div>
           </div>
         
-          {/* Botón Global de Abono */}
+          {/* Botón Global de Abono y Cobranza */}
           {debt > 0 && (
-            <div className="px-4 py-3 bg-red-50/70 border-b border-red-100 flex items-center justify-between">
+            <div className="px-4 py-3 bg-red-50/70 border-b border-red-100 flex flex-wrap items-center justify-between gap-3">
               <span className="text-sm text-red-800 font-semibold">Saldo Pendiente: ${(debt / 100).toLocaleString('es-AR')}</span>
-              <button 
-                onClick={() => handleAbonarGlobal(customer.id, customer.name)}
-                disabled={isSubmitting}
-                className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition-colors disabled:opacity-50"
-              >
-                <DollarSign size={16} />
-                Abonar a la Cuenta
-              </button>
+              <div className="flex items-center gap-2">
+                {customer.phone && (
+                  <a 
+                    href={`https://wa.me/${customer.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`¡Hola ${customer.name}! Te escribo para pasarte el detalle de tu saldo pendiente en Outfit Shop que es de $${(debt / 100).toLocaleString('es-AR')}. ¡Gracias!`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#25D366] hover:bg-[#1ebd5a] text-white p-2 rounded-xl shadow-sm flex items-center justify-center transition-colors"
+                    title="Cobrar por WhatsApp"
+                  >
+                    <MessageCircle size={20} />
+                  </a>
+                )}
+                <button 
+                  onClick={() => handleAbonarGlobal(customer.id, customer.name)}
+                  disabled={isSubmitting}
+                  className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition-colors disabled:opacity-50"
+                >
+                  <DollarSign size={16} />
+                  Abonar a la Cuenta
+                </button>
+              </div>
             </div>
           )}
 
