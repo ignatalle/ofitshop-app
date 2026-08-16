@@ -168,20 +168,26 @@ export default function DashboardPage() {
 
     if (itemsArr && Array.isArray(itemsArr)) {
       itemsArr.forEach((item: any) => {
-        let rawCost = item.wholesaleCost || item.costo || item.costoUnitario || item.cost || item.wholesaleCostCents || item.costCents || 0;
-        if (typeof rawCost === 'string') rawCost = parseFloat(rawCost.replace(/[^0-9.-]+/g,""));
-        let cost = Number(rawCost) || 0;
+        // Find cost value. Some old structures use costCents, others use wholesaleCost (pesos).
+        let rawCost = item.wholesaleCost || item.costo || item.costoUnitario || item.cost || 0;
+        let costCents = item.wholesaleCostCents || item.costCents || 0;
         
-        if (cost === 0 && item.productId && productsMap[item.productId]) {
-          cost = Number(productsMap[item.productId]) || 0;
+        if (!costCents && rawCost) {
+          if (typeof rawCost === 'string') rawCost = parseFloat(rawCost.replace(/[^0-9.-]+/g,""));
+          // Convert pesos to cents
+          costCents = Math.round((Number(rawCost) || 0) * 100);
+        }
+        
+        if (costCents === 0 && item.productId && productsMap[item.productId]) {
+          costCents = Math.round((Number(productsMap[item.productId]) || 0) * 100);
         }
         
         let rawQty = item.quantity || item.cantidad || item.qty || 1;
         if (typeof rawQty === 'string') rawQty = parseInt(rawQty, 10);
         const qty = Number(rawQty) || 1;
         
-        if (cost > 0) {
-          costoMercaderiaCents += (cost * qty);
+        if (costCents > 0) {
+          costoMercaderiaCents += (costCents * qty);
         } else {
           orderHasMissingCost = true;
         }
