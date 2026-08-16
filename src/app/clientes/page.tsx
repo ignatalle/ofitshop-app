@@ -105,6 +105,40 @@ function CustomerProfileCard({
   const pendientes = customerOrdersAll.filter((o: any) => o.status !== 'ENTREGADO' || (o.total_amount - o.advance_payment) > 0);
   const completados = customerOrdersAll.filter((o: any) => o.status === 'ENTREGADO' && (o.total_amount - o.advance_payment) <= 0);
 
+  const generateGlobalWhatsAppMessage = () => {
+    if (!customer.phone) return '#';
+    let text = `¡Hola ${customer.name}! 👋 Te escribo de Outfit Shop para pasarte el detalle de tus compras pendientes:\n\n`;
+
+    const pendingOrders = pendientes.filter((o: any) => (o.total_amount - o.advance_payment) > 0);
+    
+    pendingOrders.forEach((order: any) => {
+      const orderDate = new Date(order.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      text += `🛍️ Pedido (${orderDate}):\n`;
+      
+      if (order.items && Array.isArray(order.items) && order.items.length > 0) {
+        order.items.forEach((item: any) => {
+          const unitPrice = item.unitPrice || (item.subtotal / (item.quantity || 1));
+          text += `• ${item.quantity || 1}x ${item.productName || 'Producto'} - $${(unitPrice / 100).toLocaleString('es-AR')}\n`;
+        });
+      } else {
+        text += `• ${order.details}\n`;
+      }
+
+      const subtotal = order.total_amount;
+      const abono = order.advance_payment;
+      const pendiente = subtotal - abono;
+
+      text += `Subtotal: $${(subtotal / 100).toLocaleString('es-AR')} | Abonaste: $${(abono / 100).toLocaleString('es-AR')} | Pendiente: $${(pendiente / 100).toLocaleString('es-AR')}\n\n`;
+    });
+
+    text += `----------------------------------\n`;
+    text += `💰 TOTAL GENERAL A PAGAR: $${(debt / 100).toLocaleString('es-AR')}\n\n`;
+    text += `¡Muchas gracias! ✨`;
+
+    const cleanPhone = customer.phone.replace(/\D/g, '');
+    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+  };
+
   const displayedCompletados = completados.slice(0, visibleCount);
 
   const handleEditClick = (orderId: string, itemIndex: number, it: any, defaultCost: number) => {
@@ -440,7 +474,7 @@ function CustomerProfileCard({
               <div className="flex items-center gap-2">
                 {customer.phone && (
                   <a 
-                    href={`https://wa.me/${customer.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`¡Hola ${customer.name}! Te escribo para pasarte el detalle de tu saldo pendiente en Outfit Shop que es de $${(debt / 100).toLocaleString('es-AR')}. ¡Gracias!`)}`}
+                    href={generateGlobalWhatsAppMessage()}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="bg-[#25D366] hover:bg-[#1ebd5a] text-white p-2 rounded-xl shadow-sm flex items-center justify-center transition-colors"
