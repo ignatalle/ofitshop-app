@@ -209,9 +209,9 @@ export default function DashboardPage() {
 
   const totalCostosGastos = costoMercaderiaCents + comisionesCents + otrosEgresosCents;
   let gananciaNetaCents = facturacionTotalCents - totalCostosGastos;
-  if (gananciaNetaCents < 0) gananciaNetaCents = 0;
   
-  const netProfitCurrentMonthCents = gananciaNetaCents;
+  // La ganancia a distribuir no puede ser negativa
+  const netProfitCurrentMonthCents = Math.max(0, gananciaNetaCents);
 
   // 4. Qué necesita tu atención
   const atencionItems = [];
@@ -407,8 +407,8 @@ export default function DashboardPage() {
         <div className="card p-6 border-none shadow-sm flex flex-col gap-6">
           <div className="flex flex-col gap-1 items-center justify-center text-center">
             <span className="text-sm font-bold text-ofit-text-soft uppercase tracking-widest">Ganancia Neta</span>
-            <div className="text-[40px] leading-none sm:text-5xl font-black text-ofit-text tracking-tighter">
-              ${(gananciaNetaCents / 100).toLocaleString('es-AR')}
+            <div className={`text-[40px] leading-none sm:text-5xl font-black tracking-tighter ${gananciaNetaCents < 0 ? 'text-[#A44848]' : 'text-ofit-text'}`}>
+              {gananciaNetaCents < 0 ? '-' : ''}${(Math.abs(gananciaNetaCents) / 100).toLocaleString('es-AR')}
             </div>
           </div>
 
