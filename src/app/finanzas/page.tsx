@@ -69,14 +69,14 @@ export default function FinanzasPage() {
       const transferDest = transferOrigin === 'VIRTUAL' ? 'EFECTIVO' : 'VIRTUAL';
       
       const outTx = {
-        type: 'TRANSFER',
-        amount: -amountCents,
+        type: 'EGRESO',
+        amount: amountCents,
         description: `Transferencia hacia ${transferDest === 'EFECTIVO' ? 'Efectivo' : 'Virtual'}`,
         cuenta: transferOrigin
       };
       
       const inTx = {
-        type: 'TRANSFER',
+        type: 'INGRESO',
         amount: amountCents,
         description: `Transferencia desde ${transferOrigin === 'EFECTIVO' ? 'Efectivo' : 'Virtual'}`,
         cuenta: transferDest
