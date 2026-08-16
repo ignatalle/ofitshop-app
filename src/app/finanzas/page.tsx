@@ -21,6 +21,7 @@ export default function FinanzasPage() {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [cuenta, setCuenta] = useState<'EFECTIVO' | 'VIRTUAL'>('VIRTUAL');
+  const [egresoCategory, setEgresoCategory] = useState<'MERCADERIA' | 'OPERATIVO' | 'RETIRO'>('OPERATIVO');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchTransactions = async () => {
@@ -102,10 +103,15 @@ export default function FinanzasPage() {
     try {
       setIsSubmitting(true);
       
+      let finalDescription = description.trim();
+      if (egresoCategory === 'RETIRO') finalDescription = `[RETIRO/AJUSTE] ${finalDescription}`;
+      else if (egresoCategory === 'MERCADERIA') finalDescription = `[MERCADERIA] ${finalDescription}`;
+      else if (egresoCategory === 'OPERATIVO') finalDescription = `[OPERATIVO] ${finalDescription}`;
+
       const newTransaction = {
         type: 'EGRESO',
         amount: Math.round(parseFloat(amount) * 100),
-        description: description.trim(),
+        description: finalDescription,
         cuenta: cuenta
       };
 
@@ -118,6 +124,7 @@ export default function FinanzasPage() {
       
       setAmount('');
       setDescription('');
+      setEgresoCategory('OPERATIVO');
       setIsModalOpen(false);
       
       if (data && data.length > 0) {
@@ -257,7 +264,16 @@ export default function FinanzasPage() {
                   </div>
                   
                   <div className="flex flex-col flex-1 pr-6 min-w-0">
-                    <span className="font-semibold text-ofit-text leading-tight mb-1">{transaction.description}</span>
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className="font-semibold text-ofit-text leading-tight">
+                        {transaction.description.replace(/^\[.*?\]\s*/, '')}
+                      </span>
+                      {transaction.description.includes('[RETIRO/AJUSTE]') && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-600 uppercase tracking-wider">
+                          Retiro / Ajuste
+                        </span>
+                      )}
+                    </div>
                     <span className="text-[11px] text-ofit-text-soft font-medium uppercase tracking-wider">
                       {new Date(transaction.created_at).toLocaleDateString('es-AR', {
                         day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
@@ -333,6 +349,22 @@ export default function FinanzasPage() {
                   onChange={(e) => setDescription(e.target.value)}
                   className="input-field focus:ring-ofit-pink focus:border-ofit-pink"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-ofit-text mb-1.5" htmlFor="category">
+                  Categoría <span className="text-[#A44848]">*</span>
+                </label>
+                <select
+                  id="category"
+                  value={egresoCategory}
+                  onChange={(e) => setEgresoCategory(e.target.value as any)}
+                  className="input-field focus:ring-ofit-pink focus:border-ofit-pink font-medium text-ofit-text"
+                >
+                  <option value="OPERATIVO">Gastos Operativos (Envíos, etc)</option>
+                  <option value="MERCADERIA">Mercadería</option>
+                  <option value="RETIRO">Retiro de Socio / Ajuste</option>
+                </select>
               </div>
 
               <div>

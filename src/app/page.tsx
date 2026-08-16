@@ -196,7 +196,7 @@ export default function DashboardPage() {
     .reduce((acc, t) => acc + t.amount, 0);
 
   const otrosEgresosCents = currentMonthTransactions
-    .filter(t => t.type === 'EGRESO' && !t.description.toLowerCase().includes('comisión'))
+    .filter(t => t.type === 'EGRESO' && !t.description.toLowerCase().includes('comisión') && !t.description.includes('[RETIRO/AJUSTE]'))
     .reduce((acc, t) => acc + t.amount, 0);
 
   const totalCostosGastos = costoMercaderiaCents + comisionesCents + otrosEgresosCents;
