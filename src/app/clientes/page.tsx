@@ -133,7 +133,17 @@ function CustomerProfileCard({
 
     text += `----------------------------------\n`;
     text += `💰 TOTAL GENERAL A PAGAR: $${(debt / 100).toLocaleString('es-AR')}\n\n`;
-    text += `¡Muchas gracias! ✨`;
+    
+    const alias = typeof window !== 'undefined' ? localStorage.getItem('ofitshop_alias') : null;
+    const titular = typeof window !== 'undefined' ? localStorage.getItem('ofitshop_titular') : null;
+    
+    if (alias) {
+      text += `📲 Podes transferir a nuestro Alias:\nAlias: ${alias}\n`;
+      if (titular) text += `Titular: ${titular}\n`;
+      text += `¡No te olvides de mandarnos el comprobante por acá! ✨\n\n`;
+    }
+
+    text += `¡Muchas gracias!`;
 
     const cleanPhone = customer.phone.replace(/\D/g, '');
     return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;

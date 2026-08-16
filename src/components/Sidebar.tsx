@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Home, Users, Package, Wallet, Menu, X, ClipboardList, Calculator } from 'lucide-react';
+import { Home, Users, Package, Wallet, Menu, X, ClipboardList, Calculator, Settings } from 'lucide-react';
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,6 +19,7 @@ export default function Sidebar() {
     { name: 'Carga Rápida', href: '/pedidos/nuevo', icon: Calculator },
     { name: 'Catálogo Histórico', href: '/productos', icon: Package },
     { name: 'Finanzas', href: '/finanzas', icon: Wallet },
+    { name: 'Ajustes', href: '/ajustes', icon: Settings },
   ];
 
   return (
