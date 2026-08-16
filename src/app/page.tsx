@@ -192,11 +192,19 @@ export default function DashboardPage() {
   });
 
   const comisionesCents = currentMonthTransactions
-    .filter(t => t.type === 'EGRESO' && t.description.toLowerCase().includes('comisión'))
+    .filter(t => t.type === 'EGRESO' && (t.description.toLowerCase().includes('comisión') || t.description.toLowerCase().includes('comision')))
     .reduce((acc, t) => acc + t.amount, 0);
 
   const otrosEgresosCents = currentMonthTransactions
-    .filter(t => t.type === 'EGRESO' && !t.description.toLowerCase().includes('comisión') && !t.description.includes('[RETIRO/AJUSTE]'))
+    .filter(t => {
+      if (t.type !== 'EGRESO') return false;
+      const desc = t.description.toLowerCase();
+      // Excluir comisiones porque van en su propia variable
+      if (desc.includes('comisión') || desc.includes('comision')) return false;
+      // Excluir estrictamente retiros de socio y ajustes
+      if (desc.includes('[retiro') || desc.includes('retiro') || desc.includes('ajuste') || desc.includes('socio')) return false;
+      return true;
+    })
     .reduce((acc, t) => acc + t.amount, 0);
 
   const totalCostosGastos = costoMercaderiaCents + comisionesCents + otrosEgresosCents;
