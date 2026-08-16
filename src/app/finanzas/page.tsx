@@ -303,7 +303,7 @@ export default function FinanzasPage() {
 
       {/* Modal Registrar Gasto */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-4 sm:p-0">
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-4 sm:p-0">
           <div className="card w-full max-w-sm rounded-3xl sm:rounded-2xl overflow-hidden border-none animate-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:fade-in-100 duration-200">
             <div className="flex justify-between items-center p-5 border-b border-gray-100">
               <h3 className="font-bold text-lg text-ofit-text flex items-center gap-2">
@@ -337,21 +337,6 @@ export default function FinanzasPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-ofit-text mb-1.5" htmlFor="description">
-                  Descripción del Gasto <span className="text-[#A44848]">*</span>
-                </label>
-                <input
-                  id="description"
-                  type="text"
-                  required
-                  placeholder="Ej: Bolsas para envíos, Luz..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="input-field focus:ring-ofit-pink focus:border-ofit-pink"
-                />
-              </div>
-
-              <div>
                 <label className="block text-sm font-semibold text-ofit-text mb-1.5" htmlFor="category">
                   Categoría <span className="text-[#A44848]">*</span>
                 </label>
@@ -365,6 +350,21 @@ export default function FinanzasPage() {
                   <option value="MERCADERIA">Mercadería</option>
                   <option value="RETIRO">Retiro de Socio / Ajuste</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-ofit-text mb-1.5" htmlFor="description">
+                  Descripción del Gasto <span className="text-[#A44848]">*</span>
+                </label>
+                <input
+                  id="description"
+                  type="text"
+                  required
+                  placeholder="Ej: Bolsas para envíos, Luz..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="input-field focus:ring-ofit-pink focus:border-ofit-pink"
+                />
               </div>
 
               <div>
@@ -405,7 +405,7 @@ export default function FinanzasPage() {
       )}
       {/* Modal Transferencia */}
       {isTransferModalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-end sm:items-center justify-center sm:p-4 animate-in fade-in duration-200">
           <div className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 shadow-xl">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-ofit-text flex items-center gap-2">
