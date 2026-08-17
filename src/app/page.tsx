@@ -132,7 +132,7 @@ export default function DashboardPage() {
   const currentYear = now.getFullYear();
 
   const facturacionTotalCents = calculateSales(orders, currentMonth, currentYear);
-  const { cogs: costoMercaderiaCents, hasIncompleteCosts, incompleteItemsCount: pedidosSinCostoCount } = calculateCOGS(orders, productsMap, currentMonth, currentYear);
+  const { cogs: costoMercaderiaCents, hasIncompleteCosts, incompleteItemsCount: itemsSinCostoCount } = calculateCOGS(orders, productsMap, currentMonth, currentYear);
   
   const comisionesCents = calculateCommissions(transactions, currentMonth, currentYear);
   const otrosEgresosCents = calculateOperatingExpenses(transactions, currentMonth, currentYear);
@@ -155,11 +155,11 @@ export default function DashboardPage() {
       link: '/clientes'
     });
   }
-  if (pedidosSinCostoCount > 0) {
+  if (itemsSinCostoCount > 0) {
     atencionItems.push({
       id: 'costos',
       icon: <AlertCircle size={18} className="text-red-500" />,
-      text: `${pedidosSinCostoCount} ${pedidosSinCostoCount === 1 ? 'pedido de este mes no tiene' : 'pedidos de este mes no tienen'} costo cargado`,
+      text: `${itemsSinCostoCount} ${itemsSinCostoCount === 1 ? 'ítem de este mes no tiene' : 'ítems de este mes no tienen'} costo cargado`,
       color: 'bg-red-50 text-red-800 border-red-100',
       link: '/pedidos'
     });
@@ -283,9 +283,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 6. DISTRIBUCIÓN SUGERIDA */}
+      {/* 6. DISTRIBUCIÓN */}
       <div className="flex flex-col gap-3">
-        <h3 className="font-bold text-lg text-ofit-text px-1">Distribución Sugerida</h3>
+        <h3 className="font-bold text-lg text-ofit-text px-1">
+          {hasIncompleteCosts ? 'Distribución Estimada' : 'Distribución Sugerida'}
+        </h3>
         <div className="card p-5 sm:p-6 border-none shadow-sm flex flex-col gap-6">
           <div className="grid grid-cols-2 gap-4">
             
@@ -327,7 +329,7 @@ export default function DashboardPage() {
 
           </div>
           <p className="text-xs text-ofit-text-soft text-center font-medium">
-            Calculado sobre la ganancia neta de este mes. Podés editar los % tocando los números.
+            Calculado sobre la {hasIncompleteCosts ? 'ganancia estimada' : 'ganancia neta'} de este mes. Podés editar los % tocando los números.
           </p>
         </div>
       </div>
@@ -344,8 +346,8 @@ export default function DashboardPage() {
               {gananciaNetaCents < 0 ? '-' : ''}${(Math.abs(gananciaNetaCents) / 100).toLocaleString('es-AR')}
             </div>
             {hasIncompleteCosts && (
-              <span className="text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-md font-medium mt-2 flex items-center gap-1">
-                <AlertCircle size={14} /> Faltan costos de mercadería
+              <span className="text-[11px] sm:text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg font-bold mt-2 flex items-center gap-1.5 text-left leading-tight">
+                <AlertCircle size={16} className="shrink-0" /> Faltan costos en {itemsSinCostoCount} ítems. Completalos para conocer la ganancia real.
               </span>
             )}
           </div>
