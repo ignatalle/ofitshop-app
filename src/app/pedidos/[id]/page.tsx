@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '../../../lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { Loader2, ChevronLeft, PackageOpen, DollarSign, CheckCircle2, Truck, Clock, Trash2, Edit } from 'lucide-react';
 import Link from 'next/link';
 

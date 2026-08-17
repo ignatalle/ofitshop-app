@@ -2,10 +2,10 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { Phone, AtSign, Loader2, Mail, FileText, Trash2, Pencil, ChevronDown, ChevronUp, DollarSign, CheckCircle2, History, MessageCircle, Plus, Check, X, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
-import { getItemUnitCostCents, getItemQuantity, isValidSale, calculateOrderBalance } from '../../lib/finance';
+import { getItemUnitCostCents, getItemQuantity, isValidSale, calculateOrderBalance } from '@/lib/finance';
 
 interface Customer {
   id: string;
@@ -473,7 +473,7 @@ function CustomerProfileCard({
                  {hasIncompleteCosts ? 'Valor Comercial Estimado' : 'Valor Comercial'}
                </span>
                {hasIncompleteCosts && (
-                 <AlertCircle size={10} className="text-amber-500" title="Faltan cargar costos de mercadería" />
+                 <AlertCircle size={10} className="text-amber-500" />
                )}
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">

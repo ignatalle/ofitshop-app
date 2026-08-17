@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { Loader2, Plus, Clock, Truck, CheckCircle2, ChevronRight, PackageOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { calculateOrderBalance } from '../../lib/finance';
+import { calculateOrderBalance } from '@/lib/finance';
 
 interface Customer {
   id: string;

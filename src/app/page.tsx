@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { 
   Wallet, Loader2, TrendingDown, Lightbulb, 
   Plus, AlertCircle, CheckCircle2, ChevronRight, Package, Clock, CreditCard, Banknote, Users

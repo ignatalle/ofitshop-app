@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { Loader2, ArrowUpCircle, ArrowDownCircle, Wallet, X, MinusCircle, ArrowRightLeft, Trash2 } from 'lucide-react';
-import { calculateAccountBalance, calculateTotalCash, isInternalTransfer, isCashReconciliation } from '../../lib/finance';
+import { calculateAccountBalance, calculateTotalCash, isInternalTransfer, isCashReconciliation } from '@/lib/finance';
 
 interface Transaction {
   id: string;
