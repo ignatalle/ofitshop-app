@@ -191,7 +191,7 @@ export const isItemPendingCost = (item: any, productsMap: Record<string, number>
 export const parseOrderItems = (order: Order): any[] => {
   let itemsArr = order.items;
   if (typeof itemsArr === 'string') {
-    try { itemsArr = JSON.parse(itemsArr); } catch(e) { itemsArr = []; }
+    try { itemsArr = JSON.parse(itemsArr); } catch { itemsArr = []; }
   }
   
   if (itemsArr && !Array.isArray(itemsArr) && typeof itemsArr === 'object') {
@@ -338,8 +338,6 @@ export const calculateDistribution = (netProfit: number, businessPercent: number
   let pBusiness = businessPercent;
   if (isNaN(pBusiness) || pBusiness < 0) pBusiness = 0;
   if (pBusiness > 100) pBusiness = 100;
-  
-  const pPersonal = 100 - pBusiness;
   
   const businessShare = Math.round(netProfit * (pBusiness / 100));
   const personalShare = netProfit - businessShare; // Evita centavos perdidos por redondeo

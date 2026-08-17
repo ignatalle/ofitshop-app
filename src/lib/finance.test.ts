@@ -1,10 +1,10 @@
 import assert from 'assert';
 import {
-  Transaction, Order, getArgentinaDate, isSameMonthArgentina, isInternalTransfer, isCommission, 
-  isPersonalWithdrawal, isMerchandisePurchase, isOperatingExpense, isCashReconciliation, calculateTotalCash, calculateAccountBalance, 
+  Transaction, Order, isSameMonthArgentina, 
+  isPersonalWithdrawal, isMerchandisePurchase, isCashReconciliation, calculateTotalCash, calculateAccountBalance, 
   calculateReceivables, calculateDebtorCustomers, calculateSales, calculateCOGS, calculateOperatingExpenses, 
-  calculateCommissions, calculateNetProfit, calculateDistribution, getItemQuantity, getItemUnitCostCents,
-  getOrderFinancialStatus, calculateOrderBalance
+  calculateCommissions, calculateNetProfit, calculateDistribution,
+  getOrderFinancialStatus
 } from './finance';
 
 // Mock data builder helpers
@@ -103,7 +103,7 @@ function runTests() {
   assert.strictEqual(opExpMerc, 0, 'Caso 15: Compra mercadería no es operating expense directo en el mes para la ganancia neta');
 
   // Invariante Timezone
-  const dateStr = "2026-08-31T23:30:00.000Z"; // En UTC puede ser 31/8, en Arg también. Depende de dónde lo corro. 
+  // En UTC puede ser 31/8, en Arg también. Depende de dónde lo corro. 
   // Pero supongamos una venta a medianoche UTC 2026-09-01T01:30:00.000Z (que en arg es 31-08-2026 22:30).
   const midnightUTC = "2026-09-01T01:30:00.000Z";
   assert.strictEqual(isSameMonthArgentina(midnightUTC, 7, 2026), true, 'Timezone: Debe pertenecer a agosto en Arg (month 7)');
