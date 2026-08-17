@@ -7,11 +7,12 @@ import {
   Plus, AlertCircle, CheckCircle2, ChevronRight, Package, Clock, CreditCard, Banknote, Users
 } from 'lucide-react';
 import Link from 'next/link';
-import {
-  calculateTotalCash, calculateAccountBalance, calculateReceivables, calculateDebtorCustomers,
-  calculateSales, calculateCOGS, calculateOperatingExpenses, calculateCommissions,
-  calculateNetProfit, calculateDistribution, getArgentinaDate
-} from '../lib/finance';
+import { 
+  getArgentinaDate, isSameMonthArgentina, isValidSale, 
+  calculateReceivables, calculateDebtorCustomers, calculateSales, 
+  calculateCOGS, calculateOperatingExpenses, calculateCommissions, 
+  calculateNetProfit, calculateDistribution, calculateAccountBalance, countHistoricalPendingCosts 
+} from '@/lib/finance';
 
 interface Transaction {
   id: string;
@@ -132,7 +133,8 @@ export default function DashboardPage() {
   const currentYear = now.getFullYear();
 
   const facturacionTotalCents = calculateSales(orders, currentMonth, currentYear);
-  const { cogs: costoMercaderiaCents, hasIncompleteCosts, incompleteItemsCount: itemsSinCostoCount } = calculateCOGS(orders, productsMap, currentMonth, currentYear);
+  const { cogs: costoMercaderiaCents, hasIncompleteCosts } = calculateCOGS(orders, productsMap, currentMonth, currentYear);
+  const { pendingItemsCount: historicalPendingItems, pendingUnitsCount: historicalPendingUnits } = countHistoricalPendingCosts(orders, productsMap);
   
   const comisionesCents = calculateCommissions(transactions, currentMonth, currentYear);
   const otrosEgresosCents = calculateOperatingExpenses(transactions, currentMonth, currentYear);
@@ -155,13 +157,22 @@ export default function DashboardPage() {
       link: '/clientes'
     });
   }
-  if (itemsSinCostoCount > 0) {
+  if (historicalPendingItems > 0) {
     atencionItems.push({
       id: 'costos',
       icon: <AlertCircle size={18} className="text-red-500" />,
-      text: `${itemsSinCostoCount} ${itemsSinCostoCount === 1 ? 'ítem de este mes no tiene' : 'ítems de este mes no tienen'} costo cargado`,
+      text: `${historicalPendingItems} ${historicalPendingItems === 1 ? 'producto tiene' : 'productos tienen'} costo pendiente`,
       color: 'bg-red-50 text-red-800 border-red-100',
-      link: '/pedidos'
+      link: '/costos-pendientes',
+      subtext: historicalPendingUnits > 1 ? `Son ${historicalPendingUnits} unidades en total.` : undefined
+    });
+  } else if (hasIncompleteCosts) {
+    atencionItems.push({
+      id: 'costos',
+      icon: <AlertCircle size={18} className="text-amber-500" />,
+      text: `Hay costos sin determinar`,
+      color: 'bg-amber-50 text-amber-800 border-amber-100',
+      link: '/costos-pendientes' // Can go there even if empty, or just show a message
     });
   }
   const pedidosPendientes = orders.filter(o => o.status === 'PENDIENTE').length;
@@ -243,10 +254,29 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-2">
             {atencionItems.map((item) => (
               <Link href={item.link} key={item.id}>
-                <div className={`p-4 rounded-2xl border flex items-center gap-3 transition-colors hover:brightness-95 ${item.color}`}>
-                  <div className="shrink-0">{item.icon}</div>
-                  <span className="font-medium text-sm flex-1">{item.text}</span>
-                  <ChevronRight size={16} className="opacity-50 shrink-0" />
+                <div className={`flex justify-between items-start p-4 rounded-2xl border transition-colors hover:brightness-95 ${item.color}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-full flex items-center justify-center bg-white border ${item.color}`}>
+                      {item.icon}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-sm text-ofit-text">{item.text}</span>
+                      {item.subtext && <span className="text-xs text-ofit-text-soft font-medium mt-0.5">{item.subtext}</span>}
+                    </div>
+                  </div>
+                  {item.id === 'deudas' ? (
+                    <span className="text-xs font-bold text-amber-600 bg-white border border-amber-200 px-2.5 py-1 rounded-full whitespace-nowrap">
+                      Cobrar →
+                    </span>
+                  ) : item.id === 'costos' ? (
+                    <span className="text-xs font-bold text-red-600 bg-white border border-red-200 px-2.5 py-1 rounded-full whitespace-nowrap">
+                      Completar costos →
+                    </span>
+                  ) : (
+                    <span className="text-xs font-bold text-blue-600 bg-white border border-blue-200 px-2.5 py-1 rounded-full whitespace-nowrap">
+                      Ver pedidos →
+                    </span>
+                  )}
                 </div>
               </Link>
             ))}
@@ -347,7 +377,7 @@ export default function DashboardPage() {
             </div>
             {hasIncompleteCosts && (
               <span className="text-[11px] sm:text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg font-bold mt-2 flex items-center gap-1.5 text-left leading-tight">
-                <AlertCircle size={16} className="shrink-0" /> Faltan costos en {itemsSinCostoCount} ítems. Completalos para conocer la ganancia real.
+                <AlertCircle size={16} className="shrink-0" /> {historicalPendingItems > 0 ? `Faltan costos en ${historicalPendingItems} ítems. Completalos para conocer la ganancia real.` : `Hay costos confirmados como desconocidos. La ganancia real no puede calcularse exactamente.`}
               </span>
             )}
           </div>

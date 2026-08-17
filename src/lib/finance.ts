@@ -175,8 +175,17 @@ export const getItemUnitCostCents = (item: any, productsMap: Record<string, numb
   return cost;
 };
 
+export const hasItemMissingCost = (item: any, productsMap: Record<string, number> = {}): boolean => {
+  return getItemUnitCostCents(item, productsMap) === 0;
+};
+
+export const isItemPendingCost = (item: any, productsMap: Record<string, number> = {}): boolean => {
+  return hasItemMissingCost(item, productsMap) && item.sinCostoConfirmado !== true;
+};
+
+
 // Convierte un JSONB problemático de Supabase a un Array limpio
-const parseOrderItems = (order: Order): any[] => {
+export const parseOrderItems = (order: Order): any[] => {
   let itemsArr = order.items;
   if (typeof itemsArr === 'string') {
     try { itemsArr = JSON.parse(itemsArr); } catch(e) { itemsArr = []; }
@@ -250,7 +259,7 @@ export const calculateSales = (orders: Order[], month: number, year: number): nu
 export const calculateCOGS = (orders: Order[], productsMap: Record<string, number>, month: number, year: number) => {
   let cogs = 0;
   let hasIncompleteCosts = false;
-  let incompleteItemsCount = 0;
+  let pendingItemsCount = 0;
 
   for (const o of orders) {
     if (isValidSale(o) && isSameMonthArgentina(o.created_at, month, year)) {
@@ -263,12 +272,31 @@ export const calculateCOGS = (orders: Order[], productsMap: Record<string, numbe
           cogs += (cost * qty);
         } else {
           hasIncompleteCosts = true;
-          incompleteItemsCount++;
+          if (item.sinCostoConfirmado !== true) {
+            pendingItemsCount++;
+          }
         }
       }
     }
   }
-  return { cogs, hasIncompleteCosts, incompleteItemsCount };
+  return { cogs, hasIncompleteCosts, pendingItemsCount, incompleteItemsCount: pendingItemsCount }; // Keep incompleteItemsCount temporarily for backwards compatibility if needed, but we will rename it in page.tsx
+};
+
+export const countHistoricalPendingCosts = (orders: Order[], productsMap: Record<string, number>): { pendingItemsCount: number, pendingUnitsCount: number } => {
+  let pendingItemsCount = 0;
+  let pendingUnitsCount = 0;
+  for (const o of orders) {
+    if (isValidSale(o)) {
+      const items = parseOrderItems(o);
+      for (const item of items) {
+        if (isItemPendingCost(item, productsMap)) {
+          pendingItemsCount++;
+          pendingUnitsCount += getItemQuantity(item);
+        }
+      }
+    }
+  }
+  return { pendingItemsCount, pendingUnitsCount };
 };
 
 export const calculateOperatingExpenses = (transactions: Transaction[], month: number, year: number): number => {
