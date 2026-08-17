@@ -365,7 +365,7 @@ export default function FinanzasPage() {
                 >
                   <option value="NEGOCIO">Gasto del negocio</option>
                   <option value="USO_PERSONAL">Uso personal / Casa</option>
-                  <option value="AJUSTE">Ajuste de caja (o Retiro)</option>
+                  {/* <option value="AJUSTE">Ajuste de caja (o Retiro)</option> */}
                 </select>
               </div>
 
