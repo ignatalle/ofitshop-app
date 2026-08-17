@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Loader2, ArrowUpCircle, ArrowDownCircle, Wallet, X, MinusCircle, ArrowRightLeft, Trash2 } from 'lucide-react';
+import { calculateAccountBalance, calculateTotalCash, isInternalTransfer } from '../../lib/finance';
 
 interface Transaction {
   id: string;
@@ -43,19 +44,13 @@ export default function FinanzasPage() {
     fetchTransactions();
   }, []);
 
-  const totalIncomeCents = transactions.filter(t => t.type === 'INGRESO').reduce((acc, t) => acc + t.amount, 0);
-  const totalExpenseCents = transactions.filter(t => t.type === 'EGRESO').reduce((acc, t) => acc + t.amount, 0);
-  const balanceCents = totalIncomeCents - totalExpenseCents;
+  const balanceEfectivo = calculateAccountBalance(transactions, 'EFECTIVO');
+  const balanceVirtual = calculateAccountBalance(transactions, 'VIRTUAL');
+  const balanceCents = calculateTotalCash(transactions);
 
-  const efectivoIncome = transactions.filter(t => t.type === 'INGRESO' && t.cuenta === 'EFECTIVO').reduce((acc, t) => acc + t.amount, 0);
-  const efectivoExpense = transactions.filter(t => t.type === 'EGRESO' && t.cuenta === 'EFECTIVO').reduce((acc, t) => acc + t.amount, 0);
-  const efectivoTransfer = transactions.filter(t => t.type === 'TRANSFER' && t.cuenta === 'EFECTIVO').reduce((acc, t) => acc + t.amount, 0);
-  const balanceEfectivo = efectivoIncome - efectivoExpense + efectivoTransfer;
-
-  const virtualIncome = transactions.filter(t => t.type === 'INGRESO' && (t.cuenta === 'VIRTUAL' || !t.cuenta)).reduce((acc, t) => acc + t.amount, 0);
-  const virtualExpense = transactions.filter(t => t.type === 'EGRESO' && (t.cuenta === 'VIRTUAL' || !t.cuenta)).reduce((acc, t) => acc + t.amount, 0);
-  const virtualTransfer = transactions.filter(t => t.type === 'TRANSFER' && (t.cuenta === 'VIRTUAL' || !t.cuenta)).reduce((acc, t) => acc + t.amount, 0);
-  const balanceVirtual = virtualIncome - virtualExpense + virtualTransfer;
+  const realTransactions = transactions.filter(t => !isInternalTransfer(t));
+  const totalIncomeCents = realTransactions.filter(t => t.type === 'INGRESO').reduce((acc, t) => acc + t.amount, 0);
+  const totalExpenseCents = realTransactions.filter(t => t.type === 'EGRESO').reduce((acc, t) => acc + t.amount, 0);
 
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [transferOrigin, setTransferOrigin] = useState<'EFECTIVO' | 'VIRTUAL'>('VIRTUAL');

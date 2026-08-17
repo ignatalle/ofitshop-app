@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { Loader2, Plus, Clock, Truck, CheckCircle2, ChevronRight, PackageOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { calculateOrderBalance } from '../../lib/finance';
 
 interface Customer {
   id: string;
@@ -83,7 +84,7 @@ export default function PedidosDashboardPage() {
   const filteredOrders = orders.filter(order => {
     if (activeTab === 'TODOS') return true;
     
-    const isPaid = order.advance_payment >= order.total_amount;
+    const isPaid = calculateOrderBalance(order as any) <= 0;
     const isDelivered = order.status === 'ENTREGADO';
     
     if (activeTab === 'COMPLETADOS') {

@@ -231,7 +231,7 @@ function NuevoPedidoContent() {
         items: cleanItems,
         total_amount: calculatedTotalCents,
         advance_payment: advanceCents,
-        status: advanceCents >= calculatedTotalCents ? 'ENTREGADO' : 'PENDIENTE'
+        status: 'PENDIENTE'
       };
 
       const { data: orderData, error: orderError } = await supabase.from('orders').insert([newOrder]).select();

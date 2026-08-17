@@ -7,6 +7,11 @@ import {
   Plus, AlertCircle, CheckCircle2, ChevronRight, Package, Clock, CreditCard, Banknote, Users
 } from 'lucide-react';
 import Link from 'next/link';
+import {
+  calculateTotalCash, calculateAccountBalance, calculateReceivables, calculateDebtorCustomers,
+  calculateSales, calculateCOGS, calculateOperatingExpenses, calculateCommissions,
+  calculateNetProfit, calculateDistribution, getArgentinaDate
+} from '../lib/finance';
 
 interface Transaction {
   id: string;
@@ -111,107 +116,33 @@ export default function DashboardPage() {
   // --- CALCULOS BASICOS ---
 
   // 1. Efectivo y Virtual
-  const totalEfectivo = transactions
-    .filter(t => t.cuenta === 'EFECTIVO')
-    .reduce((acc, t) => t.type === 'INGRESO' ? acc + t.amount : acc - t.amount, 0);
-    
-  const totalVirtual = transactions
-    .filter(t => t.cuenta === 'VIRTUAL')
-    .reduce((acc, t) => t.type === 'INGRESO' ? acc + t.amount : acc - t.amount, 0);
+  const totalEfectivo = calculateAccountBalance(transactions, 'EFECTIVO');
+  const totalVirtual = calculateAccountBalance(transactions, 'VIRTUAL');
 
   // 2. Plata en la calle (Deuda total y clientes)
-  let deuda = 0;
-  const clientesConDeuda = new Set<string>();
+  const deuda = calculateReceivables(orders);
+  const clientesConDeudaCount = calculateDebtorCustomers(orders);
   
-  orders.forEach((o) => {
-    const saldo = (o.total_amount || 0) - (o.advance_payment || 0);
-    if (saldo > 0) {
-      deuda += saldo;
-      clientesConDeuda.add(o.customer_id);
-    }
-  });
+  // Maintain interface for the notification below
+  const clientesConDeuda = { size: clientesConDeudaCount };
 
   // 3. Rendimiento del Mes Current Month Logic
-  const now = new Date();
+  const now = getArgentinaDate(new Date().toISOString());
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
 
-  const currentMonthTransactions = transactions.filter(t => {
-    const d = new Date(t.created_at);
-    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-  });
-
-  const currentMonthOrders = orders.filter(o => {
-    const d = new Date(o.created_at);
-    return d.getMonth() === currentMonth && d.getFullYear() === currentYear && o.advance_payment > 0;
-  });
-
-  let facturacionTotalCents = 0;
-  let costoMercaderiaCents = 0;
-  let pedidosSinCostoCount = 0;
-
-  currentMonthOrders.forEach(o => {
-    facturacionTotalCents += Number(o.total_amount) || 0;
-    
-    let itemsArr = o.items;
-    if (typeof itemsArr === 'string') {
-      try { itemsArr = JSON.parse(itemsArr); } catch(e) { itemsArr = []; }
-    }
-    
-    if (itemsArr && !Array.isArray(itemsArr) && typeof itemsArr === 'object') {
-      if (Array.isArray((itemsArr as any).items)) itemsArr = (itemsArr as any).items;
-      else if (Array.isArray((itemsArr as any).cart)) itemsArr = (itemsArr as any).cart;
-      else itemsArr = Object.values(itemsArr);
-    }
-
-    let orderHasMissingCost = false;
-
-    if (itemsArr && Array.isArray(itemsArr)) {
-      itemsArr.forEach((item: any) => {
-        let rawCost = item.wholesaleCost || item.costo || item.costoUnitario || item.cost || item.wholesaleCostCents || item.costCents || 0;
-        if (typeof rawCost === 'string') rawCost = parseFloat(rawCost.replace(/[^0-9.-]+/g,""));
-        let cost = Number(rawCost) || 0;
-        
-        if (cost === 0 && item.productId && productsMap[item.productId]) {
-          cost = Number(productsMap[item.productId]) || 0;
-        }
-        
-        let rawQty = item.quantity || item.cantidad || item.qty || 1;
-        if (typeof rawQty === 'string') rawQty = parseInt(rawQty, 10);
-        const qty = Number(rawQty) || 1;
-        
-        if (cost > 0) {
-          costoMercaderiaCents += (cost * qty);
-        } else {
-          orderHasMissingCost = true;
-        }
-      });
-    }
-
-    if (orderHasMissingCost) pedidosSinCostoCount++;
-  });
-
-  const comisionesCents = currentMonthTransactions
-    .filter(t => t.type === 'EGRESO' && (t.description.toLowerCase().includes('comisión') || t.description.toLowerCase().includes('comision')))
-    .reduce((acc, t) => acc + t.amount, 0);
-
-  const otrosEgresosCents = currentMonthTransactions
-    .filter(t => {
-      if (t.type !== 'EGRESO') return false;
-      const desc = t.description.toLowerCase();
-      // Excluir comisiones porque van en su propia variable
-      if (desc.includes('comisión') || desc.includes('comision')) return false;
-      // Excluir estrictamente retiros de socio y ajustes
-      if (desc.includes('[retiro') || desc.includes('retiro') || desc.includes('ajuste') || desc.includes('socio')) return false;
-      return true;
-    })
-    .reduce((acc, t) => acc + t.amount, 0);
+  const facturacionTotalCents = calculateSales(orders, currentMonth, currentYear);
+  const { cogs: costoMercaderiaCents, hasIncompleteCosts, incompleteItemsCount: pedidosSinCostoCount } = calculateCOGS(orders, productsMap, currentMonth, currentYear);
+  
+  const comisionesCents = calculateCommissions(transactions, currentMonth, currentYear);
+  const otrosEgresosCents = calculateOperatingExpenses(transactions, currentMonth, currentYear);
 
   const totalCostosGastos = costoMercaderiaCents + comisionesCents + otrosEgresosCents;
-  let gananciaNetaCents = facturacionTotalCents - totalCostosGastos;
+  const gananciaNetaCents = calculateNetProfit(facturacionTotalCents, costoMercaderiaCents, comisionesCents, otrosEgresosCents);
   
-  // La ganancia a distribuir no puede ser negativa
-  const netProfitCurrentMonthCents = Math.max(0, gananciaNetaCents);
+  // Guardar en la misma variable para la UI
+  const netProfitCurrentMonthCents = gananciaNetaCents;
+  const { businessShare, personalShare } = calculateDistribution(gananciaNetaCents, businessPercent);
 
   // 4. Qué necesita tu atención
   const atencionItems = [];
@@ -372,7 +303,7 @@ export default function DashboardPage() {
                 <span className="text-xs font-bold text-ofit-navy ml-0.5">%</span>
               </div>
               <div className="text-2xl font-black text-ofit-navy">
-                ${(Math.round((netProfitCurrentMonthCents * (businessPercent / 100))) / 100).toLocaleString('es-AR')}
+                ${(businessShare / 100).toLocaleString('es-AR')}
               </div>
             </div>
 
@@ -390,7 +321,7 @@ export default function DashboardPage() {
                 <span className="text-xs font-bold text-ofit-pink ml-0.5">%</span>
               </div>
               <div className="text-2xl font-black text-ofit-pink">
-                ${(Math.round((netProfitCurrentMonthCents * (personalPercent / 100))) / 100).toLocaleString('es-AR')}
+                ${(personalShare / 100).toLocaleString('es-AR')}
               </div>
             </div>
 
@@ -406,10 +337,17 @@ export default function DashboardPage() {
         <h3 className="font-bold text-lg text-ofit-text px-1">Rendimiento del mes</h3>
         <div className="card p-6 border-none shadow-sm flex flex-col gap-6">
           <div className="flex flex-col gap-1 items-center justify-center text-center">
-            <span className="text-sm font-bold text-ofit-text-soft uppercase tracking-widest">Ganancia Neta</span>
+            <span className="text-sm font-bold text-ofit-text-soft uppercase tracking-widest">
+              {hasIncompleteCosts ? 'Ganancia Estimada' : 'Ganancia Neta'}
+            </span>
             <div className={`text-[40px] leading-none sm:text-5xl font-black tracking-tighter ${gananciaNetaCents < 0 ? 'text-[#A44848]' : 'text-ofit-text'}`}>
               {gananciaNetaCents < 0 ? '-' : ''}${(Math.abs(gananciaNetaCents) / 100).toLocaleString('es-AR')}
             </div>
+            {hasIncompleteCosts && (
+              <span className="text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-md font-medium mt-2 flex items-center gap-1">
+                <AlertCircle size={14} /> Faltan costos de mercadería
+              </span>
+            )}
           </div>
 
           <div className="flex gap-4 items-center w-full px-2">

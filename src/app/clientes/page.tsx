@@ -3,8 +3,9 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
-import { Phone, AtSign, Loader2, Mail, FileText, Trash2, Pencil, ChevronDown, ChevronUp, DollarSign, CheckCircle2, History, MessageCircle, Plus, Check, X } from 'lucide-react';
+import { Phone, AtSign, Loader2, Mail, FileText, Trash2, Pencil, ChevronDown, ChevronUp, DollarSign, CheckCircle2, History, MessageCircle, Plus, Check, X, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import { getItemUnitCostCents, getItemQuantity, isValidSale, calculateOrderBalance } from '../../lib/finance';
 
 interface Customer {
   id: string;
@@ -64,25 +65,31 @@ function CustomerProfileCard({
   const [editItemPrice, setEditItemPrice] = useState('');
   const [isSavingItem, setIsSavingItem] = useState(false);
 
-  const customerOrdersAll = orders.filter((o: any) => o.customer_id === customer.id && o.status !== 'CANCELADO' && o.status !== 'Cancelado');
+  const customerOrdersAll = orders.filter((o: any) => o.customer_id === customer.id && isValidSale(o));
   
   let totalFacturado = 0;
   let costoTotal = 0;
+  let hasIncompleteCosts = false;
 
   customerOrdersAll.forEach((order: any) => {
-    totalFacturado += order.total_amount;
+    totalFacturado += Math.max(0, order.total_amount || 0);
     if (order.items && Array.isArray(order.items)) {
       order.items.forEach((item: any) => {
-        const itemCost = item.wholesaleCost || (item.productId ? productsMap[item.productId] : 0) || 0;
-        costoTotal += itemCost * (item.quantity || 1);
+        const qty = getItemQuantity(item);
+        const itemCost = getItemUnitCostCents(item, productsMap);
+        if (itemCost > 0) {
+          costoTotal += itemCost * qty;
+        } else {
+          hasIncompleteCosts = true;
+        }
       });
     }
   });
 
   const gananciaNeta = totalFacturado - costoTotal;
 
-  const pendientes = customerOrdersAll.filter((o: any) => o.status !== 'ENTREGADO' || (o.total_amount - o.advance_payment) > 0);
-  const completados = customerOrdersAll.filter((o: any) => o.status === 'ENTREGADO' && (o.total_amount - o.advance_payment) <= 0);
+  const pendientes = customerOrdersAll.filter((o: any) => o.status !== 'ENTREGADO' || calculateOrderBalance(o) > 0);
+  const completados = customerOrdersAll.filter((o: any) => o.status === 'ENTREGADO' && calculateOrderBalance(o) <= 0);
 
   const generateGlobalWhatsAppMessage = () => {
     if (!customer.phone) return '#';
@@ -462,7 +469,12 @@ function CustomerProfileCard({
           {/* Financial Metrics Dashboard */}
           <div className="px-4 py-2.5 bg-white/40 border-b border-gray-100 flex flex-col justify-center">
             <div className="flex items-center gap-1.5 mb-0.5">
-               <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Valor Comercial</span>
+               <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">
+                 {hasIncompleteCosts ? 'Valor Comercial Estimado' : 'Valor Comercial'}
+               </span>
+               {hasIncompleteCosts && (
+                 <AlertCircle size={10} className="text-amber-500" title="Faltan cargar costos de mercadería" />
+               )}
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
               <div className="flex items-baseline gap-1.5">
