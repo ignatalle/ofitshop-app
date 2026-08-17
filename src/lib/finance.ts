@@ -68,10 +68,17 @@ export const isInternalTransfer = (tx: Transaction): boolean => {
   return d.includes('transferencia hacia') || d.includes('transferencia desde');
 };
 
+export const isCashReconciliation = (tx: Transaction): boolean => {
+  const d = tx.description.toUpperCase();
+  return d.includes('AJUSTE DE BALANCE') || d.includes('CONCILIACION DE CAJA') || d.includes('CONCILIACIÓN DE CAJA');
+};
+
 export const isPersonalWithdrawal = (tx: Transaction): boolean => {
   if (tx.type !== 'EGRESO') return false;
+  if (isCashReconciliation(tx)) return false;
   const d = tx.description.toLowerCase();
-  return d.includes('retiro') || d.includes('socio') || d.includes('ajuste'); // Ajustes técnicos no son gasto del negocio
+  // Adjust to avoid broad matching of "ajuste" if it's a reconciliation
+  return d.includes('retiro') || d.includes('socio'); 
 };
 
 export const isCommission = (tx: Transaction): boolean => {
@@ -95,6 +102,7 @@ export const isMerchandisePurchase = (tx: Transaction): boolean => {
 export const isOperatingExpense = (tx: Transaction): boolean => {
   if (tx.type !== 'EGRESO') return false;
   if (isInternalTransfer(tx)) return false;
+  if (isCashReconciliation(tx)) return false;
   if (isPersonalWithdrawal(tx)) return false;
   if (isMerchandisePurchase(tx)) return false;
   if (isCommission(tx)) return false;
@@ -106,6 +114,7 @@ export const isOperatingExpense = (tx: Transaction): boolean => {
 export const isCustomerPayment = (tx: Transaction): boolean => {
   if (tx.type !== 'INGRESO') return false;
   if (isInternalTransfer(tx)) return false;
+  if (isCashReconciliation(tx)) return false;
   // Todo ingreso que no sea transferencia interna es ingreso real de clientes/operativo.
   return true;
 };

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Loader2, ArrowUpCircle, ArrowDownCircle, Wallet, X, MinusCircle, ArrowRightLeft, Trash2 } from 'lucide-react';
-import { calculateAccountBalance, calculateTotalCash, isInternalTransfer } from '../../lib/finance';
+import { calculateAccountBalance, calculateTotalCash, isInternalTransfer, isCashReconciliation } from '../../lib/finance';
 
 interface Transaction {
   id: string;
@@ -244,10 +244,11 @@ export default function FinanzasPage() {
           <div className="flex flex-col gap-3">
             {transactions.map((transaction) => {
               const isIngreso = transaction.type === 'INGRESO';
-              const isTransfer = transaction.type === 'TRANSFER';
+              const isTransfer = transaction.type === 'TRANSFER' || isInternalTransfer(transaction);
+              const isReconciliation = isCashReconciliation(transaction);
               
-              let bgColor = isIngreso ? 'bg-[#DDEFE4]' : (isTransfer ? 'bg-gray-100' : 'bg-[#F7DEDE]');
-              let iconColor = isIngreso ? 'text-[#367A50]' : (isTransfer ? 'text-gray-500' : 'text-[#A44848]');
+              let bgColor = isReconciliation ? 'bg-amber-100' : (isIngreso ? 'bg-[#DDEFE4]' : (isTransfer ? 'bg-gray-100' : 'bg-[#F7DEDE]'));
+              let iconColor = isReconciliation ? 'text-amber-600' : (isIngreso ? 'text-[#367A50]' : (isTransfer ? 'text-gray-500' : 'text-[#A44848]'));
               
               return (
                 <div 
@@ -261,13 +262,17 @@ export default function FinanzasPage() {
                   <div className="flex flex-col flex-1 pr-6 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className="font-semibold text-ofit-text leading-tight">
-                        {transaction.description.replace(/^\[.*?\]\s*/, '')}
+                        {isReconciliation ? 'Ajuste histórico de balance' : transaction.description.replace(/^\[.*?\]\s*/, '')}
                       </span>
-                      {transaction.description.includes('[RETIRO/AJUSTE]') && (
+                      {isReconciliation ? (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-200 text-amber-800 uppercase tracking-wider">
+                          Conciliación de caja
+                        </span>
+                      ) : transaction.description.includes('[RETIRO/AJUSTE]') ? (
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-600 uppercase tracking-wider">
                           Retiro / Ajuste
                         </span>
-                      )}
+                      ) : null}
                     </div>
                     <span className="text-[11px] text-ofit-text-soft font-medium uppercase tracking-wider">
                       {new Date(transaction.created_at).toLocaleDateString('es-AR', {

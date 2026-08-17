@@ -1,7 +1,7 @@
 import assert from 'assert';
 import {
   Transaction, Order, getArgentinaDate, isSameMonthArgentina, isInternalTransfer, isCommission, 
-  isPersonalWithdrawal, isMerchandisePurchase, isOperatingExpense, calculateTotalCash, calculateAccountBalance, 
+  isPersonalWithdrawal, isMerchandisePurchase, isOperatingExpense, isCashReconciliation, calculateTotalCash, calculateAccountBalance, 
   calculateReceivables, calculateDebtorCustomers, calculateSales, calculateCOGS, calculateOperatingExpenses, 
   calculateCommissions, calculateNetProfit, calculateDistribution, getItemQuantity, getItemUnitCostCents,
   getOrderFinancialStatus, calculateOrderBalance
@@ -107,6 +107,73 @@ function runTests() {
   // Pero supongamos una venta a medianoche UTC 2026-09-01T01:30:00.000Z (que en arg es 31-08-2026 22:30).
   const midnightUTC = "2026-09-01T01:30:00.000Z";
   assert.strictEqual(isSameMonthArgentina(midnightUTC, 7, 2026), true, 'Timezone: Debe pertenecer a agosto en Arg (month 7)');
+
+  // Caso: Conciliación de caja
+  const t_prev = makeTx('c_prev', 'INGRESO', 600000, 'Ingreso inicial', 'EFECTIVO');
+  const t_concil = makeTx('c_concil', 'EGRESO', 100000, 'AJUSTE DE BALANCE', 'EFECTIVO');
+  
+  assert.strictEqual(calculateTotalCash([t_prev, t_concil]), 500000, 'Conciliación: Caja baja a 500k');
+  assert.strictEqual(calculateOperatingExpenses([t_concil], new Date().getMonth(), new Date().getFullYear()), 0, 'Conciliación: Gastos sin cambios');
+  assert.strictEqual(isPersonalWithdrawal(t_concil), false, 'Conciliación: No es retiro personal');
+  assert.strictEqual(isCashReconciliation(t_concil), true, 'Conciliación: Debe ser reconciliacion');
+
+  // TEST MÁS IMPORTANTE AHORA: DÍA COMPLETO DE CAMI
+  const startEfectivo = makeTx('startE', 'INGRESO', 7500000, 'Start Efectivo', 'EFECTIVO');
+  const startVirtual = makeTx('startV', 'INGRESO', 5164171, 'Start Virtual', 'VIRTUAL');
+  
+  const stateTxs: Transaction[] = [startEfectivo, startVirtual];
+  const stateOrders: Order[] = [];
+
+  const currentM = new Date().getMonth();
+  const currentY = new Date().getFullYear();
+
+  // Op 1: Venta 30k, Seña 10k efectivo
+  const op1Order = makeOrder('op1', 'c1', 3000000, 1000000, 'PENDIENTE', [{ wholesaleCost: 0, quantity: 1 }]);
+  const op1Tx = makeTx('op1tx', 'INGRESO', 1000000, 'Seña en efectivo', 'EFECTIVO');
+  stateOrders.push(op1Order);
+  stateTxs.push(op1Tx);
+
+  assert.strictEqual(calculateAccountBalance(stateTxs, 'EFECTIVO'), 8500000, 'Op 1 Efectivo = 85.000');
+  assert.strictEqual(calculateTotalCash(stateTxs), 13664171, 'Op 1 Caja Total = 136.641,71');
+  assert.strictEqual(calculateReceivables(stateOrders), 2000000, 'Op 1 Plata en Calle = 20.000');
+  assert.strictEqual(calculateSales(stateOrders, currentM, currentY), 3000000, 'Op 1 Ventas = 30.000');
+
+  // Op 2: Gasto operativo 5k efectivo
+  const op2Tx = makeTx('op2tx', 'EGRESO', 500000, 'Gasto operativo efectivo', 'EFECTIVO');
+  stateTxs.push(op2Tx);
+
+  assert.strictEqual(calculateAccountBalance(stateTxs, 'EFECTIVO'), 8000000, 'Op 2 Efectivo = 80.000');
+  assert.strictEqual(calculateTotalCash(stateTxs), 13164171, 'Op 2 Caja Total = 131.641,71');
+  assert.strictEqual(calculateOperatingExpenses(stateTxs, currentM, currentY), 500000, 'Op 2 Gastos = 5.000');
+  // Ganancia is Sales - COGS - OpExpenses - Comiss = 3000000 - 0 - 500000 - 0 = 2500000
+  assert.strictEqual(calculateNetProfit(3000000, 0, 0, 500000), 2500000, 'Op 2 Ganancia baja 5.000');
+
+  // Op 3: Mover 20k efectivo a virtual
+  const op3TxE = makeTx('op3txe', 'EGRESO', 2000000, 'Transferencia hacia Virtual', 'EFECTIVO');
+  const op3TxV = makeTx('op3txv', 'INGRESO', 2000000, 'Transferencia desde Efectivo', 'VIRTUAL');
+  stateTxs.push(op3TxE, op3TxV);
+
+  assert.strictEqual(calculateAccountBalance(stateTxs, 'EFECTIVO'), 6000000, 'Op 3 Efectivo = 60.000');
+  assert.strictEqual(calculateAccountBalance(stateTxs, 'VIRTUAL'), 7164171, 'Op 3 Virtual = 71.641,71');
+  assert.strictEqual(calculateTotalCash(stateTxs), 13164171, 'Op 3 Caja Total = 131.641,71');
+
+  // Op 4: Paga 20k restantes virtualmente
+  op1Order.advance_payment += 2000000;
+  const op4TxV = makeTx('op4txv', 'INGRESO', 2000000, 'Pago final', 'VIRTUAL');
+  stateTxs.push(op4TxV);
+
+  assert.strictEqual(calculateAccountBalance(stateTxs, 'EFECTIVO'), 6000000, 'Op 4 Efectivo = 60.000');
+  assert.strictEqual(calculateAccountBalance(stateTxs, 'VIRTUAL'), 9164171, 'Op 4 Virtual = 91.641,71');
+  assert.strictEqual(calculateTotalCash(stateTxs), 15164171, 'Op 4 Caja Total = 151.641,71');
+  assert.strictEqual(calculateReceivables(stateOrders), 0, 'Op 4 Plata en Calle = 0');
+  assert.strictEqual(calculateSales(stateOrders, currentM, currentY), 3000000, 'Op 4 Ventas NO aumenta de nuevo');
+
+  // Check Invariants
+  assert.strictEqual(
+    calculateTotalCash(stateTxs),
+    calculateAccountBalance(stateTxs, 'EFECTIVO') + calculateAccountBalance(stateTxs, 'VIRTUAL'),
+    'Invariant: Caja = Efectivo + Virtual'
+  );
 
   console.log('✅ ALL TESTS PASSED SUCCESSFULLY!');
 }
