@@ -50,8 +50,10 @@ export default function CostosPendientesClient({
   
   // Build product catalog map
   const productsMap = useMemo(() => {
-    const map: Record<string, any> = {};
-    products.forEach((p: any) => map[p.id] = p);
+    const map: Record<string, number> = {};
+    products.forEach((p: any) => {
+      map[p.id] = Number(p.cost_price) || 0;
+    });
     return map;
   }, [products]);
 
