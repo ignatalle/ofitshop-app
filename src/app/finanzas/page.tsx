@@ -22,7 +22,7 @@ export default function FinanzasPage() {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [cuenta, setCuenta] = useState<'EFECTIVO' | 'VIRTUAL'>('VIRTUAL');
-  const [egresoCategory, setEgresoCategory] = useState<'MERCADERIA' | 'OPERATIVO' | 'RETIRO'>('OPERATIVO');
+  const [egresoCategory, setEgresoCategory] = useState<'MERCADERIA' | 'OPERATIVO' | 'RETIRO' | 'USO_PERSONAL' | 'AJUSTE'>('OPERATIVO');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchTransactions = async () => {
@@ -99,7 +99,9 @@ export default function FinanzasPage() {
       setIsSubmitting(true);
       
       let finalDescription = description.trim();
-      if (egresoCategory === 'RETIRO') finalDescription = `[RETIRO/AJUSTE] ${finalDescription}`;
+      if (egresoCategory === 'RETIRO') finalDescription = `[RETIRO] ${finalDescription}`;
+      else if (egresoCategory === 'USO_PERSONAL') finalDescription = `[USO_PERSONAL] ${finalDescription}`;
+      else if (egresoCategory === 'AJUSTE') finalDescription = `[AJUSTE] ${finalDescription}`;
       else if (egresoCategory === 'MERCADERIA') finalDescription = `[MERCADERIA] ${finalDescription}`;
       else if (egresoCategory === 'OPERATIVO') finalDescription = `[OPERATIVO] ${finalDescription}`;
 
@@ -268,6 +270,18 @@ export default function FinanzasPage() {
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-200 text-amber-800 uppercase tracking-wider">
                           Conciliación de caja
                         </span>
+                      ) : transaction.description.includes('[RETIRO]') ? (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-600 uppercase tracking-wider">
+                          Retiro de Socio
+                        </span>
+                      ) : transaction.description.includes('[USO_PERSONAL]') ? (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-700 uppercase tracking-wider">
+                          Uso Personal
+                        </span>
+                      ) : transaction.description.includes('[AJUSTE]') ? (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wider">
+                          Ajuste de Caja
+                        </span>
                       ) : transaction.description.includes('[RETIRO/AJUSTE]') ? (
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-600 uppercase tracking-wider">
                           Retiro / Ajuste
@@ -348,7 +362,9 @@ export default function FinanzasPage() {
                 >
                   <option value="OPERATIVO">Gastos Operativos (Envíos, etc)</option>
                   <option value="MERCADERIA">Mercadería</option>
-                  <option value="RETIRO">Retiro de Socio / Ajuste</option>
+                  <option value="USO_PERSONAL">Uso personal / Casa</option>
+                  <option value="RETIRO">Retiro de Socio</option>
+                  <option value="AJUSTE">Ajuste de Caja (Conciliación)</option>
                 </select>
               </div>
 

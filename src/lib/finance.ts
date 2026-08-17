@@ -70,7 +70,7 @@ export const isInternalTransfer = (tx: Transaction): boolean => {
 
 export const isCashReconciliation = (tx: Transaction): boolean => {
   const d = tx.description.toUpperCase();
-  return d.includes('AJUSTE DE BALANCE') || d.includes('CONCILIACION DE CAJA') || d.includes('CONCILIACIÓN DE CAJA');
+  return d.includes('[AJUSTE]') || d.includes('AJUSTE DE BALANCE') || d.includes('CONCILIACION DE CAJA') || d.includes('CONCILIACIÓN DE CAJA');
 };
 
 export const isPersonalWithdrawal = (tx: Transaction): boolean => {
@@ -81,7 +81,7 @@ export const isPersonalWithdrawal = (tx: Transaction): boolean => {
 
   const d = tx.description.toLowerCase();
   // Adjust to avoid broad matching of "ajuste" if it's a reconciliation
-  return d.includes('retiro') || d.includes('socio') || d.includes('gastos personales'); 
+  return d.includes('[uso_personal]') || d.includes('retiro') || d.includes('socio') || d.includes('gastos personales') || d.includes('uso personal'); 
 };
 
 export const isCommission = (tx: Transaction): boolean => {
