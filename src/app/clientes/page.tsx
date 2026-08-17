@@ -38,28 +38,7 @@ interface Order {
   created_at: string;
 }
 
-const generateWhatsAppLink = (order: Order, customer: Customer) => {
-  if (!customer.phone) return '#';
-  let text = `¡Hola ${customer.name}! 👋 Te paso el resumen de tu cuenta en Outfit Shop:\n\n*Detalle del pedido:*\n`;
-  if (order.items && Array.isArray(order.items) && order.items.length > 0) {
-    order.items.forEach((item: any) => {
-      text += `${item.quantity}x ${item.productName} - $${(item.subtotal / 100).toLocaleString('es-AR')}\n`;
-    });
-  } else {
-    text += `${order.details}\n`;
-  }
-  text += `\n*Total del Pedido:* $${(order.total_amount / 100).toLocaleString('es-AR')}`;
-  const pending = order.total_amount - order.advance_payment;
-  if (pending > 0) {
-    text += `\n*Saldo Pendiente:* $${(pending / 100).toLocaleString('es-AR')}`;
-    text += `\n\nPodés abonar por transferencia al alias: ALIAS.DE.PRUEBA`;
-  } else {
-    text += `\n\n¡Cuenta saldada! Muchas gracias.`;
-  }
-  
-  const cleanPhone = customer.phone.replace(/\D/g, '');
-  return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
-};
+
 
 function CustomerProfileCard({
   customer,
