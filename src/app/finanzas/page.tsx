@@ -22,7 +22,8 @@ export default function FinanzasPage() {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [cuenta, setCuenta] = useState<'EFECTIVO' | 'VIRTUAL'>('VIRTUAL');
-  const [egresoCategory, setEgresoCategory] = useState<'MERCADERIA' | 'OPERATIVO' | 'RETIRO' | 'USO_PERSONAL' | 'AJUSTE'>('OPERATIVO');
+  const [mainCategory, setMainCategory] = useState<'NEGOCIO' | 'USO_PERSONAL' | 'AJUSTE'>('NEGOCIO');
+  const [subCategory, setSubCategory] = useState<'MERCADERIA' | 'ENVIOS' | 'PACKAGING' | 'PUBLICIDAD' | 'HERRAMIENTAS' | 'TRANSPORTE' | 'OTRO'>('MERCADERIA');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchTransactions = async () => {
@@ -99,11 +100,12 @@ export default function FinanzasPage() {
       setIsSubmitting(true);
       
       let finalDescription = description.trim();
-      if (egresoCategory === 'RETIRO') finalDescription = `[RETIRO] ${finalDescription}`;
-      else if (egresoCategory === 'USO_PERSONAL') finalDescription = `[USO_PERSONAL] ${finalDescription}`;
-      else if (egresoCategory === 'AJUSTE') finalDescription = `[AJUSTE] ${finalDescription}`;
-      else if (egresoCategory === 'MERCADERIA') finalDescription = `[MERCADERIA] ${finalDescription}`;
-      else if (egresoCategory === 'OPERATIVO') finalDescription = `[OPERATIVO] ${finalDescription}`;
+      if (mainCategory === 'USO_PERSONAL') finalDescription = `[USO_PERSONAL] ${finalDescription}`;
+      else if (mainCategory === 'AJUSTE') finalDescription = `[AJUSTE] ${finalDescription}`;
+      else if (mainCategory === 'NEGOCIO') {
+        if (subCategory === 'MERCADERIA') finalDescription = `[MERCADERIA] ${finalDescription}`;
+        else finalDescription = `[OPERATIVO] [${subCategory}] ${finalDescription}`;
+      }
 
       const newTransaction = {
         type: 'EGRESO',
@@ -121,7 +123,8 @@ export default function FinanzasPage() {
       
       setAmount('');
       setDescription('');
-      setEgresoCategory('OPERATIVO');
+      setMainCategory('NEGOCIO');
+      setSubCategory('MERCADERIA');
       setIsModalOpen(false);
       
       if (data && data.length > 0) {
@@ -355,18 +358,38 @@ export default function FinanzasPage() {
                   Categoría <span className="text-[#A44848]">*</span>
                 </label>
                 <select
-                  id="category"
-                  value={egresoCategory}
-                  onChange={(e) => setEgresoCategory(e.target.value as any)}
+                  id="mainCategory"
+                  value={mainCategory}
+                  onChange={(e) => setMainCategory(e.target.value as any)}
                   className="input-field focus:ring-ofit-pink focus:border-ofit-pink font-medium text-ofit-text"
                 >
-                  <option value="OPERATIVO">Gastos Operativos (Envíos, etc)</option>
-                  <option value="MERCADERIA">Mercadería</option>
+                  <option value="NEGOCIO">Gasto del negocio</option>
                   <option value="USO_PERSONAL">Uso personal / Casa</option>
-                  <option value="RETIRO">Retiro de Socio</option>
-                  <option value="AJUSTE">Ajuste de Caja (Conciliación)</option>
+                  <option value="AJUSTE">Ajuste de caja (o Retiro)</option>
                 </select>
               </div>
+
+              {mainCategory === 'NEGOCIO' && (
+                <div>
+                  <label className="block text-sm font-semibold text-ofit-text mb-1.5" htmlFor="subCategory">
+                    Subcategoría <span className="text-[#A44848]">*</span>
+                  </label>
+                  <select
+                    id="subCategory"
+                    value={subCategory}
+                    onChange={(e) => setSubCategory(e.target.value as any)}
+                    className="input-field focus:ring-ofit-pink focus:border-ofit-pink font-medium text-ofit-text"
+                  >
+                    <option value="MERCADERIA">Mercadería</option>
+                    <option value="ENVIOS">Envíos</option>
+                    <option value="PACKAGING">Packaging</option>
+                    <option value="PUBLICIDAD">Publicidad</option>
+                    <option value="HERRAMIENTAS">Herramientas</option>
+                    <option value="TRANSPORTE">Transporte</option>
+                    <option value="OTRO">Otro</option>
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-semibold text-ofit-text mb-1.5" htmlFor="description">
