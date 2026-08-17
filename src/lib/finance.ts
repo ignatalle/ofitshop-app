@@ -76,9 +76,12 @@ export const isCashReconciliation = (tx: Transaction): boolean => {
 export const isPersonalWithdrawal = (tx: Transaction): boolean => {
   if (tx.type !== 'EGRESO') return false;
   if (isCashReconciliation(tx)) return false;
+  
+  if ((tx as any).category === 'RETIRO_SOCIO') return true;
+
   const d = tx.description.toLowerCase();
   // Adjust to avoid broad matching of "ajuste" if it's a reconciliation
-  return d.includes('retiro') || d.includes('socio'); 
+  return d.includes('retiro') || d.includes('socio') || d.includes('gastos personales'); 
 };
 
 export const isCommission = (tx: Transaction): boolean => {
