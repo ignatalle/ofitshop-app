@@ -481,20 +481,22 @@ function CustomerProfileCard({
         <div className="border-t border-gray-100 bg-gray-50/50">
           
           {/* Financial Metrics Dashboard */}
-          <div className="p-4 bg-white/50 border-b border-gray-100">
-            <h4 className="text-[11px] font-bold text-ofit-text-soft uppercase tracking-wider mb-3">Valor Comercial</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="bg-white p-3 rounded-2xl shadow-[0_2px_10px_rgba(48,40,42,0.02)] border border-gray-50 flex flex-col justify-center">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-ofit-text-soft mb-1">Total Comprado</span>
-                <span className="text-lg font-black text-ofit-text">${(totalFacturado / 100).toLocaleString('es-AR')}</span>
+          <div className="px-4 py-2.5 bg-white/40 border-b border-gray-100 flex flex-col justify-center">
+            <div className="flex items-center gap-1.5 mb-0.5">
+               <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Valor Comercial</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-[10px] text-gray-500 font-medium">Total:</span>
+                <span className="text-sm font-black text-gray-700">${(totalFacturado / 100).toLocaleString('es-AR')}</span>
               </div>
-              <div className="bg-white p-3 rounded-2xl shadow-[0_2px_10px_rgba(48,40,42,0.02)] border border-gray-50 flex flex-col justify-center">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-ofit-text-soft mb-1">Costo Mercadería</span>
-                <span className="text-lg font-black text-gray-400">${(costoTotal / 100).toLocaleString('es-AR')}</span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-[10px] text-gray-400 font-medium">Costo:</span>
+                <span className="text-sm font-black text-gray-500">${(costoTotal / 100).toLocaleString('es-AR')}</span>
               </div>
-              <div className="bg-emerald-50/30 p-3 rounded-2xl shadow-[0_2px_10px_rgba(48,40,42,0.02)] border border-emerald-100/50 flex flex-col justify-center">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-600/80 mb-1">Ganancia Neta</span>
-                <span className="text-lg font-black text-emerald-600">${(gananciaNeta / 100).toLocaleString('es-AR')}</span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-[10px] text-emerald-600/80 font-medium">Neta:</span>
+                <span className="text-sm font-black text-emerald-600">${(gananciaNeta / 100).toLocaleString('es-AR')}</span>
               </div>
             </div>
           </div>
