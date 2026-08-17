@@ -160,7 +160,7 @@ export default function PedidosDashboardPage() {
             return (
               <Link 
                 key={order.id} 
-                href={`/pedidos/${order.id}`}
+                href={`/clientes?expand=${order.customer_id}`}
                 className={`card p-4 hover:shadow-md transition-shadow group cursor-pointer block relative ${hasMissingCost ? 'border-2 border-amber-300/50' : 'border-none'}`}
               >
                 <div className="flex justify-between items-start mb-2">

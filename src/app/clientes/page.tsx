@@ -238,6 +238,20 @@ function CustomerProfileCard({
     }
   };
 
+  const handleDeleteOrder = async (order: any) => {
+    if (!window.confirm('¿Seguro que querés eliminar el pedido COMPLETO? Esta acción no se puede deshacer.')) return;
+    setIsSavingItem(true);
+    try {
+      const { error } = await supabase.from('orders').delete().eq('id', order.id);
+      if (error) throw error;
+      setOrders((prev: any[]) => prev.filter(o => o.id !== order.id));
+    } catch (err: any) {
+      alert('Error eliminando pedido: ' + err.message);
+    } finally {
+      setIsSavingItem(false);
+    }
+  };
+
   const toggleOrderAccordion = (orderId: string) => {
     setExpandedOrders(prev => ({ ...prev, [orderId]: !prev[orderId] }));
   };
@@ -284,6 +298,14 @@ function CustomerProfileCard({
                   <option value="RECIBIDO">RECIBIDO</option>
                   <option value="ENTREGADO">ENTREGADO</option>
                 </select>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order); }}
+                  disabled={isSavingItem}
+                  className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors ml-1 disabled:opacity-50"
+                  title="Eliminar Pedido"
+                >
+                  <Trash2 size={16} />
+                </button>
                 {isCollapsedByDefault && (
                   <ChevronUp size={18} className="text-gray-400 ml-1" />
                 )}
