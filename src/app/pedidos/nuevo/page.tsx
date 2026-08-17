@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Plus, X, PackageOpen, DollarSign, ChevronLeft, Trash2, CheckCircle2, Copy } from 'lucide-react';
+import { Loader2, Plus, X, PackageOpen, DollarSign, ChevronLeft, Trash2, CheckCircle2, Copy, Search, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 
 interface Customer {
@@ -15,11 +15,25 @@ interface Customer {
 
 interface DraftItem {
   id: string;
+  productId?: string;
   quantity: number | '';
   productName: string;
+  size?: string;
+  color?: string;
   wholesaleCost: string;
   margin: string;
   unitPrice: string;
+}
+
+interface CatalogProduct {
+  id: string;
+  name: string;
+  retail_price: number | null;
+  cost_price: number | null;
+  stock_quantity: number;
+  image_url: string | null;
+  size: string | null;
+  color: string | null;
 }
 
 function NuevoPedidoContent() {
@@ -32,14 +46,7 @@ function NuevoPedidoContent() {
 
   // Form states
   const [selectedCustomerId, setSelectedCustomerId] = useState(clienteIdUrl || '');
-  const [draftItems, setDraftItems] = useState<DraftItem[]>([{
-    id: Date.now().toString(),
-    quantity: 1,
-    productName: '',
-    wholesaleCost: '',
-    margin: '',
-    unitPrice: ''
-  }]);
+  const [draftItems, setDraftItems] = useState<DraftItem[]>([]);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -57,6 +64,12 @@ function NuevoPedidoContent() {
   const [newCustomerType, setNewCustomerType] = useState('MINORISTA');
   const [isSubmittingCustomer, setIsSubmittingCustomer] = useState(false);
 
+  // Catalog Modal states
+  const [isCatalogModalOpen, setIsCatalogModalOpen] = useState(false);
+  const [catalogProducts, setCatalogProducts] = useState<CatalogProduct[]>([]);
+  const [loadingCatalog, setLoadingCatalog] = useState(false);
+  const [catalogSearch, setCatalogSearch] = useState('');
+
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
@@ -70,7 +83,79 @@ function NuevoPedidoContent() {
       }
     };
     fetchCustomers();
+    
+    // Si viene vacío por default agregar una fila vacía
+    if (draftItems.length === 0) {
+      addManualRow();
+    }
   }, []);
+
+  const fetchCatalog = async () => {
+    try {
+      setLoadingCatalog(true);
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, name, retail_price, cost_price, stock_quantity, image_url, size, color')
+        .order('created_at', { ascending: false });
+        
+      if (error) throw error;
+      setCatalogProducts(data || []);
+    } catch (error: any) {
+      alert("Error al cargar catálogo: " + error.message);
+    } finally {
+      setLoadingCatalog(false);
+    }
+  };
+
+  const handleOpenCatalog = () => {
+    setIsCatalogModalOpen(true);
+    if (catalogProducts.length === 0) {
+      fetchCatalog();
+    }
+  };
+
+  const addFromCatalog = (product: CatalogProduct) => {
+    const cost = product.cost_price ? (product.cost_price / 100) : 0;
+    const price = product.retail_price ? (product.retail_price / 100) : 0;
+    let margin = '';
+    if (cost > 0 && price > 0) {
+      margin = (((price - cost) / cost) * 100).toFixed(1);
+    }
+
+    setDraftItems(prev => {
+      // Remover filas vacías previas
+      const cleanPrev = prev.filter(item => item.productName.trim() !== '' || item.unitPrice !== '');
+      return [
+        ...cleanPrev,
+        {
+          id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+          productId: product.id,
+          quantity: 1,
+          productName: product.name,
+          wholesaleCost: cost > 0 ? cost.toString() : '',
+          margin: margin,
+          unitPrice: price > 0 ? price.toString() : '',
+          size: product.size || '',
+          color: product.color || ''
+        }
+      ];
+    });
+    setIsCatalogModalOpen(false);
+  };
+
+  const addManualRow = () => {
+    setDraftItems(prev => [
+      ...prev,
+      {
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+        quantity: 1,
+        productName: '',
+        wholesaleCost: '',
+        margin: '',
+        unitPrice: ''
+      }
+    ]);
+  };
 
   const totalAmountCents = draftItems.reduce((acc, item) => {
     const qty = typeof item.quantity === 'number' ? item.quantity : 1;
@@ -114,26 +199,11 @@ function NuevoPedidoContent() {
     }));
   };
 
-  const addRow = () => {
-    setDraftItems(prev => [
-      ...prev,
-      {
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
-        quantity: 1,
-        productName: '',
-        wholesaleCost: '',
-        margin: '',
-        unitPrice: ''
-      }
-    ]);
-  };
-
   const removeRow = (id: string) => {
     setDraftItems(prev => prev.filter(item => item.id !== id));
   };
 
   const cleanItemsForSave = () => {
-    // Filter out rows with no product name or no price
     return draftItems.filter(item => item.productName.trim() !== '' && parseFloat(item.unitPrice) > 0).map(item => {
       const unitPriceCents = Math.round(parseFloat(item.unitPrice) * 100);
       const wholesaleCostNum = parseFloat(item.wholesaleCost);
@@ -142,7 +212,10 @@ function NuevoPedidoContent() {
 
       return {
         id: item.id,
+        productId: item.productId || null,
         productName: item.productName,
+        size: item.size || null,
+        color: item.color || null,
         quantity,
         unitPrice: unitPriceCents,
         wholesaleCost: wholesaleCostCents,
@@ -201,7 +274,11 @@ function NuevoPedidoContent() {
 
     const lines = cleanItems.map(it => {
       const priceFormatted = (it.unitPrice / 100).toLocaleString('es-AR', { minimumFractionDigits: 0 });
-      return `▫️ ${it.quantity}x ${it.productName} - $${priceFormatted}`;
+      let attrs = [];
+      if (it.size) attrs.push(it.size);
+      if (it.color) attrs.push(it.color);
+      const attrStr = attrs.length > 0 ? ` (${attrs.join(', ')})` : '';
+      return `▫️ ${it.quantity}x ${it.productName}${attrStr} - $${priceFormatted}`;
     });
 
     const textToCopy = `¡Hola! ✨ Te paso el detalle de tu pedido:\n\n${lines.join('\n')}\n\nTotal: $${totalFormatted}`;
@@ -272,10 +349,10 @@ function NuevoPedidoContent() {
     }
   };
 
-
+  const filteredCatalog = catalogProducts.filter(p => p.name.toLowerCase().includes(catalogSearch.toLowerCase()));
 
   return (
-    <div className="p-4 flex flex-col gap-6 max-w-2xl mx-auto w-full">
+    <div className="p-4 flex flex-col gap-6 max-w-2xl mx-auto w-full mb-24">
       <div className="flex items-center gap-3 pt-2">
         <Link href={clienteIdUrl ? `/clientes?expand=${clienteIdUrl}` : "/pedidos"} className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
           <ChevronLeft size={24} className="text-ofit-text" />
@@ -321,7 +398,7 @@ function NuevoPedidoContent() {
         {/* Dynamic Items List */}
         <div>
           {draftItems.map((item, index) => (
-            <div key={item.id} className="bg-white p-3 rounded-xl shadow-sm mb-3 flex flex-col gap-2 relative group border border-gray-100">
+            <div key={item.id} className="bg-white p-3 rounded-xl shadow-sm mb-3 flex flex-col gap-2 relative group border border-gray-200">
               
               {/* Row 1: Quantity, Product, Trash */}
               <div className="flex flex-row w-full gap-2 items-center">
@@ -339,7 +416,8 @@ function NuevoPedidoContent() {
                   value={item.productName}
                   onChange={(e) => handleRowChange(item.id, 'productName', e.target.value)}
                   placeholder="Ej: Conjunto Nike"
-                  className="flex-1 min-w-0 w-full h-10 px-3 text-sm font-medium text-ofit-text bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-ofit-pink transition-all"
+                  disabled={!!item.productId}
+                  className={`flex-1 min-w-0 w-full h-10 px-3 text-sm font-medium border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-ofit-pink transition-all ${item.productId ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-gray-50 text-ofit-text'}`}
                 />
                 <button 
                   onClick={() => removeRow(item.id)}
@@ -350,8 +428,26 @@ function NuevoPedidoContent() {
                 </button>
               </div>
 
-              {/* Row 2: Cost, Margin, Price */}
-              <div className="grid grid-cols-3 gap-2">
+              {/* Row 2: Talle, Color */}
+              <div className="flex flex-row w-full gap-2">
+                 <input 
+                    type="text" 
+                    value={item.size || ''}
+                    onChange={(e) => handleRowChange(item.id, 'size', e.target.value)}
+                    placeholder="Talle"
+                    className="flex-1 min-w-0 h-9 px-3 text-xs font-medium text-ofit-text bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-ofit-pink transition-all"
+                  />
+                  <input 
+                    type="text" 
+                    value={item.color || ''}
+                    onChange={(e) => handleRowChange(item.id, 'color', e.target.value)}
+                    placeholder="Color"
+                    className="flex-1 min-w-0 h-9 px-3 text-xs font-medium text-ofit-text bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-ofit-pink transition-all"
+                  />
+              </div>
+
+              {/* Row 3: Cost, Margin, Price */}
+              <div className="grid grid-cols-3 gap-2 mt-1">
                 <div>
                   <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1 block ml-1">Costo</label>
                   <div className="relative">
@@ -397,12 +493,20 @@ function NuevoPedidoContent() {
             </div>
           ))}
 
-          <button 
-            onClick={addRow}
-            className="mt-2 py-3 px-4 w-full border-2 border-dashed border-gray-200 hover:border-ofit-pink/50 hover:bg-ofit-pink/5 text-gray-500 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
-          >
-            <Plus size={18} /> Agregar Prenda
-          </button>
+          <div className="flex gap-2 mt-2">
+            <button 
+              onClick={handleOpenCatalog}
+              className="flex-[2] py-3 px-4 bg-ofit-pink hover:bg-ofit-pink-hover text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm text-sm"
+            >
+              <PackageOpen size={18} /> Buscar en Catálogo
+            </button>
+            <button 
+              onClick={addManualRow}
+              className="flex-1 py-3 px-4 border-2 border-dashed border-gray-300 hover:border-gray-400 text-gray-500 font-bold rounded-xl flex items-center justify-center gap-1 transition-all text-sm"
+            >
+              <Plus size={16} /> Manual
+            </button>
+          </div>
         </div>
 
         <div className="mt-8 flex flex-col items-end border-t border-gray-100 pt-4">
@@ -498,7 +602,7 @@ function NuevoPedidoContent() {
               className="flex-1 py-3.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50"
             >
               <Copy size={18} className="text-gray-500" />
-              Copiar para WhatsApp
+              Copiar a WhatsApp
             </button>
             <button
               type="button"
@@ -507,7 +611,7 @@ function NuevoPedidoContent() {
               className="flex-[1.5] py-3.5 px-4 bg-ofit-pink hover:bg-ofit-pink-dark text-white font-bold rounded-xl shadow-[0_4px_14px_0_rgba(240,98,146,0.39)] hover:-translate-y-0.5 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:hover:translate-y-0"
             >
               {isSubmitting ? <Loader2 size={24} className="animate-spin" /> : <CheckCircle2 size={24} />}
-              Aprobar y Crear Pedido
+              Crear Pedido
             </button>
           </div>
         </div>
@@ -581,6 +685,84 @@ function NuevoPedidoContent() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Catalog Modal */}
+      {isCatalogModalOpen && (
+        <div className="fixed inset-0 bg-white z-50 flex flex-col animate-in slide-in-from-bottom-full duration-300">
+          <div className="flex items-center gap-3 p-4 border-b border-gray-200 bg-white shadow-sm sticky top-0 z-10">
+            <button onClick={() => setIsCatalogModalOpen(false)} className="p-2 -ml-2 rounded-full hover:bg-gray-100 text-gray-600">
+              <ChevronLeft size={24} />
+            </button>
+            <h2 className="text-lg font-bold flex-1">Elegir del Catálogo</h2>
+          </div>
+
+          <div className="p-4 border-b border-gray-100 bg-gray-50">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input 
+                type="text"
+                placeholder="Buscar prenda..."
+                value={catalogSearch}
+                onChange={e => setCatalogSearch(e.target.value)}
+                className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-ofit-pink focus:border-ofit-pink"
+              />
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 bg-gray-50 pb-20">
+            {loadingCatalog ? (
+              <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                <Loader2 size={32} className="animate-spin mb-2" />
+                <p>Cargando prendas...</p>
+              </div>
+            ) : filteredCatalog.length === 0 ? (
+              <div className="text-center text-gray-500 mt-10">No hay prendas que coincidan.</div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {filteredCatalog.map(p => {
+                  const retail = p.retail_price ? p.retail_price / 100 : 0;
+                  const cost = p.cost_price ? p.cost_price / 100 : 0;
+                  return (
+                    <div 
+                      key={p.id}
+                      onClick={() => addFromCatalog(p)}
+                      className="bg-white p-3 rounded-2xl border border-gray-200 shadow-sm flex gap-4 items-center cursor-pointer hover:border-ofit-pink transition-all active:scale-[0.98]"
+                    >
+                      <div className="w-16 h-16 rounded-xl bg-gray-100 shrink-0 overflow-hidden flex items-center justify-center border border-gray-200">
+                        {p.image_url ? (
+                          <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <ImageIcon size={20} className="text-gray-300" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-gray-900 truncate">{p.name}</h4>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          <span className="text-xs font-bold text-ofit-pink bg-ofit-pink/10 px-2 py-0.5 rounded-md">${retail.toLocaleString('es-AR')}</span>
+                          {cost > 0 && (
+                            <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200 line-through">
+                              C: ${cost.toLocaleString('es-AR')}
+                            </span>
+                          )}
+                        </div>
+                        {(p.size || p.color) && (
+                          <div className="text-[10px] text-gray-500 mt-1 truncate">
+                            {p.size && <span>Talle: {p.size} </span>}
+                            {p.color && <span>Color: {p.color}</span>}
+                          </div>
+                        )}
+                      </div>
+                      <div className="shrink-0 text-ofit-pink">
+                        <Plus size={24} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       )}
