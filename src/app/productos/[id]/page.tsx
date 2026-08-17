@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { ChevronLeft, Camera, Loader2, Image as ImageIcon, ChevronDown, Eye, EyeOff, DollarSign, Share2 } from 'lucide-react';
+import { ChevronLeft, Camera, Loader2, Image as ImageIcon, ChevronDown, Eye, EyeOff, DollarSign, Share2, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function EditarProductoPage() {
@@ -200,6 +200,59 @@ export default function EditarProductoPage() {
       }
     } catch (error) {
       console.log('Error sharing', error);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      setLoading(true);
+
+      // Verify if used in orders safely via frontend check (to avoid jsonb errors)
+      const { data: allOrders, error: ordersError } = await supabase
+        .from('orders')
+        .select('id, items');
+
+      if (ordersError) throw ordersError;
+
+      const isUsed = allOrders?.some(order => 
+        order.items && 
+        Array.isArray(order.items) && 
+        order.items.some((item: any) => item.productId === productId)
+      );
+
+      if (isUsed) {
+        alert("Este producto tiene ventas registradas y no puede eliminarse definitivamente. Podés ocultarlo.");
+        setIsVisible(false);
+        setLoading(false);
+        return;
+      }
+
+      const confirmed = window.confirm("¿Eliminar definitivamente este producto?");
+      if (!confirmed) {
+        setLoading(false);
+        return;
+      }
+
+      // Delete image if exists
+      if (imageUrl) {
+        const urlParts = imageUrl.split('/product-images/');
+        if (urlParts.length > 1) {
+          const path = urlParts[1];
+          await supabase.storage.from('product-images').remove([path]);
+        }
+      }
+
+      const { error: deleteError } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+
+      if (deleteError) throw deleteError;
+
+      router.push('/productos');
+    } catch (error: any) {
+      alert('Error al eliminar: ' + error.message);
+      setLoading(false);
     }
   };
 
@@ -433,6 +486,19 @@ export default function EditarProductoPage() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Eliminar Producto */}
+        <div className="mt-2 flex justify-center">
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={loading || uploadingImage}
+            className="flex items-center gap-2 text-red-500 font-bold hover:bg-red-50 px-4 py-2 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Trash2 size={20} />
+            Eliminar producto
+          </button>
         </div>
 
         {/* Sticky Botón Guardar */}

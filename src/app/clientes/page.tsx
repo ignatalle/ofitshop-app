@@ -625,6 +625,12 @@ function ClientesContent() {
   const expandParam = searchParams.get('expand');
   const [expandedId, setExpandedId] = useState<string | null>(expandParam);
 
+  // Estados Modal Abono
+  const [isAbonoModalOpen, setIsAbonoModalOpen] = useState(false);
+  const [abonoCustomer, setAbonoCustomer] = useState<{id: string, name: string, debt: number} | null>(null);
+  const [abonoAmount, setAbonoAmount] = useState('');
+  const [abonoAccount, setAbonoAccount] = useState<'VIRTUAL' | 'EFECTIVO'>('VIRTUAL');
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -767,21 +773,27 @@ function ClientesContent() {
     return debt;
   };
 
-  const handleAbonarGlobal = async (customerId: string, customerName: string) => {
+  const handleAbonarGlobal = (customerId: string, customerName: string) => {
     const debt = getCustomerDebt(customerId);
     if (debt <= 0) return;
+    setAbonoCustomer({ id: customerId, name: customerName, debt });
+    setAbonoAmount('');
+    setAbonoAccount('VIRTUAL');
+    setIsAbonoModalOpen(true);
+  };
 
-    const amountStr = window.prompt(`Deuda total: $${(debt / 100).toLocaleString('es-AR')}\n¿Cuánto entregó hoy a la cuenta? (sólo números, ej: 5000)`);
-    if (!amountStr) return;
+  const confirmAbono = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!abonoCustomer) return;
 
-    const abonado = parseFloat(amountStr);
+    const abonado = parseFloat(abonoAmount);
     if (isNaN(abonado) || abonado <= 0) {
       alert("Por favor, ingresa un monto válido mayor a 0.");
       return;
     }
 
     const abonadoCents = Math.round(abonado * 100);
-    if (abonadoCents > debt) {
+    if (abonadoCents > abonoCustomer.debt) {
       alert("El monto ingresado es mayor a la deuda total.");
       return;
     }
@@ -790,7 +802,7 @@ function ClientesContent() {
       setIsSubmitting(true);
       
       const pendingOrders = orders
-        .filter(o => o.customer_id === customerId && o.total_amount > o.advance_payment)
+        .filter(o => o.customer_id === abonoCustomer.id && o.total_amount > o.advance_payment)
         .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
       let remainingPayment = abonadoCents;
@@ -803,12 +815,6 @@ function ClientesContent() {
         const amountToApply = Math.min(orderDebt, remainingPayment);
         const newAdvancePayment = order.advance_payment + amountToApply;
         
-        let newStatus = order.status;
-        if (newAdvancePayment >= order.total_amount && order.status !== 'ENTREGADO') {
-          // Si está pagado completamente, podríamos dejarlo como estaba o no tocar el status
-          // Generalmente el pago no cambia el estado logístico, así que no lo cambiamos
-        }
-
         const { error: orderError } = await supabase
           .from('orders')
           .update({ advance_payment: newAdvancePayment })
@@ -820,7 +826,8 @@ function ClientesContent() {
           order_id: order.id,
           type: 'INGRESO',
           amount: amountToApply,
-          description: `Abono a cuenta de ${customerName} (aplicado a encargo)`
+          cuenta: abonoAccount,
+          description: `Abono a cuenta de ${abonoCustomer.name} (aplicado a encargo)`
         };
         
         const { error: txError } = await supabase.from('transactions').insert([transaction]);
@@ -835,6 +842,7 @@ function ClientesContent() {
       }
 
       await fetchData();
+      setIsAbonoModalOpen(false);
       alert("Abono procesado y distribuido en los encargos más antiguos correctamente.");
 
     } catch (error: any) {
@@ -995,6 +1003,82 @@ function ClientesContent() {
           </div>
         )}
       </div>
+      {/* ------------------------------------------------------
+          MODAL DE ABONO
+          ------------------------------------------------------ */}
+      {isAbonoModalOpen && abonoCustomer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden flex flex-col animate-slide-up">
+            <div className="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h3 className="font-bold text-ofit-text">Abonar a la Cuenta</h3>
+              <button onClick={() => setIsAbonoModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={confirmAbono} className="p-5 flex flex-col gap-4">
+              <div className="bg-red-50 text-red-800 p-3 rounded-xl flex justify-between items-center font-bold">
+                <span className="text-sm">Deuda total:</span>
+                <span>${(abonoCustomer.debt / 100).toLocaleString('es-AR')}</span>
+              </div>
+              
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-bold text-gray-700">Monto a abonar</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max={abonoCustomer.debt / 100}
+                    required
+                    value={abonoAmount}
+                    onChange={(e) => setAbonoAmount(e.target.value)}
+                    placeholder="Ej. 5000"
+                    className="w-full bg-white border border-gray-300 rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-ofit-pink focus:border-ofit-pink transition-all font-bold text-ofit-text"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-bold text-gray-700">¿Dónde entró la plata?</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAbonoAccount('VIRTUAL')}
+                    className={`flex items-center justify-center gap-2 p-3 rounded-xl border font-bold text-sm transition-all ${
+                      abonoAccount === 'VIRTUAL' 
+                        ? 'bg-blue-50 border-blue-200 text-blue-700 shadow-sm' 
+                        : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    📱 Virtual
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAbonoAccount('EFECTIVO')}
+                    className={`flex items-center justify-center gap-2 p-3 rounded-xl border font-bold text-sm transition-all ${
+                      abonoAccount === 'EFECTIVO' 
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-sm' 
+                        : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    💵 Efectivo
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting || !abonoAmount}
+                className="w-full mt-2 bg-ofit-pink hover:bg-ofit-pink-hover text-white py-3 rounded-xl font-bold text-sm transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
+              >
+                {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <DollarSign size={18} />}
+                Confirmar Abono
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
