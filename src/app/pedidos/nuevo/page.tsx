@@ -307,9 +307,19 @@ function NuevoPedidoContent() {
   const handleFinalOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanItems = cleanItemsForSave();
+
+    if (!selectedCustomerId) {
+      alert('Seleccioná un cliente antes de crear el pedido.');
+      return;
+    }
+    if (cleanItems.length === 0) {
+      alert('Agregá al menos un ítem válido con nombre y precio.');
+      return;
+    }
     
     try {
       setIsSubmitting(true);
+      const warnings: string[] = [];
       const advanceCents = clientPayment ? Math.round(parseFloat(clientPayment) * 100) : 0;
       const calculatedTotalCents = cleanItems.reduce((acc, it) => acc + it.subtotal, 0);
       
@@ -326,40 +336,49 @@ function NuevoPedidoContent() {
 
       const { data: orderData, error: orderError } = await supabase.from('orders').insert([newOrder]).select();
       if (orderError) throw orderError;
+      if (!orderData || orderData.length === 0) throw new Error('El pedido no devolvió un identificador válido.');
 
-      if (orderData && orderData.length > 0 && advanceCents > 0) {
+      const orderId = orderData[0].id;
+
+      if (advanceCents > 0) {
         const transaction = {
-          order_id: orderData[0].id,
+          order_id: orderId,
           type: 'INGRESO',
           amount: advanceCents,
           description: `Pago inicial pedido (${paymentMethod}): ${customers.find(c => c.id === selectedCustomerId)?.name || 'Cliente'}`,
           cuenta: cuenta
         };
         const { error: txError } = await supabase.from('transactions').insert([transaction]);
-        if (txError) console.error("Error al registrar pago inicial:", txError);
+        if (txError) {
+          console.error('Error al registrar pago inicial:', txError);
+          warnings.push('No se pudo registrar el pago inicial en Finanzas. El pedido sí quedó creado.');
+        }
         
         if (hasCommission && realIncome) {
           const realIncomeCents = Math.round(parseFloat(realIncome) * 100);
           const comisionCents = advanceCents - realIncomeCents;
           if (comisionCents > 0) {
             const comisionTx = {
-              order_id: orderData[0].id,
+              order_id: orderId,
               type: 'EGRESO',
               amount: comisionCents,
               description: `Comisión de tarjeta (Pedido automático)`,
               cuenta: cuenta
             };
-            await supabase.from('transactions').insert([comisionTx]);
+            const { error: commissionError } = await supabase.from('transactions').insert([comisionTx]);
+            if (commissionError) {
+              console.error('Error al registrar comisión:', commissionError);
+              warnings.push('No se pudo registrar la comisión en Finanzas.');
+            }
           }
         }
       }
       
-      // Upsert en pending_purchases para los ítems que lo requieran
       const pendingPurchasesToInsert = cleanItems
         .filter(i => i.needsPurchase)
         .map(i => ({
-          order_id: orderData[0].id,
-          item_id: i.id, // usamos el id generado localmente como identificador único del ítem en este pedido
+          order_id: orderId,
+          item_id: i.id,
           product_id: i.productId || null,
           supplier_id: i.supplierId || null,
           customer_id: selectedCustomerId,
@@ -374,17 +393,35 @@ function NuevoPedidoContent() {
         }));
 
       if (pendingPurchasesToInsert.length > 0) {
-        const { error: ppError } = await supabase
+        let { error: ppError } = await supabase
           .from('pending_purchases')
           .upsert(pendingPurchasesToInsert, { onConflict: 'order_id,item_id' });
+
+        // Reintento único e idempotente: la UNIQUE(order_id,item_id) evita duplicados.
+        if (ppError) {
+          console.error('Primer intento de compras pendientes falló:', ppError);
+          await new Promise(resolve => setTimeout(resolve, 400));
+          const retry = await supabase
+            .from('pending_purchases')
+            .upsert(pendingPurchasesToInsert, { onConflict: 'order_id,item_id' });
+          ppError = retry.error;
+        }
         
-        if (ppError) console.error("Error al registrar compras pendientes:", ppError);
+        if (ppError) {
+          console.error('Error al registrar compras pendientes:', ppError);
+          warnings.push('No se pudo crear la lista de Compras Pendientes. El pedido conserva qué prendas requieren compra para poder recuperarlas.');
+        }
       }
-      
-      alert(advanceCents > 0 ? "¡Pedido creado y caja actualizada exitosamente!" : "¡Pedido creado exitosamente!");
+
+      if (warnings.length > 0) {
+        alert(`Pedido creado, pero hay cosas para revisar:\n\n• ${warnings.join('\n• ')}`);
+      } else {
+        alert(advanceCents > 0 ? '¡Pedido creado y caja actualizada exitosamente!' : '¡Pedido creado exitosamente!');
+      }
       router.push(`/clientes?expand=${selectedCustomerId}`);
     } catch (error: any) {
-      alert("Error al crear pedido: " + error.message);
+      alert('Error al crear pedido: ' + error.message);
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -435,12 +472,9 @@ function NuevoPedidoContent() {
           </div>
         </div>
 
-        {/* Dynamic Items List */}
         <div>
-          {draftItems.map((item, index) => (
+          {draftItems.map((item) => (
             <div key={item.id} className="bg-white p-3 rounded-xl shadow-sm mb-3 flex flex-col gap-2 relative group border border-gray-200">
-              
-              {/* Row 1: Quantity, Product, Trash */}
               <div className="flex flex-row w-full gap-2 items-center">
                 <input 
                   type="number" min="1" step="1" inputMode="numeric"
@@ -468,7 +502,6 @@ function NuevoPedidoContent() {
                 </button>
               </div>
 
-              {/* Fila de Origen de la prenda (Toggle) */}
               <div className="flex w-full pt-2 pb-1 border-b border-gray-100">
                 <label className="flex items-center gap-2 cursor-pointer select-none px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors w-full">
                   <input
@@ -483,7 +516,6 @@ function NuevoPedidoContent() {
                 </label>
               </div>
 
-              {/* Row 2: Talle, Color */}
               <div className="flex flex-row w-full gap-2">
                  <input 
                     type="text" 
@@ -501,7 +533,6 @@ function NuevoPedidoContent() {
                   />
               </div>
 
-              {/* Row 3: Cost, Margin, Price */}
               <div className="grid grid-cols-3 gap-2 mt-1">
                 <div>
                   <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1 block ml-1">Costo</label>
@@ -569,7 +600,6 @@ function NuevoPedidoContent() {
           <span className="text-3xl font-black text-ofit-text">${(totalAmountCents / 100).toLocaleString('es-AR')}</span>
         </div>
 
-        {/* Formulario de Pago y Cierre */}
         <div className="mt-6 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
           <h2 className="text-lg font-bold text-ofit-text mb-4">Cierre y Pago</h2>
           
@@ -672,7 +702,6 @@ function NuevoPedidoContent() {
         </div>
       </div>
 
-      {/* Customer Modal */}
       {isCustomerModalOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 animate-in fade-in duration-200">
           <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 pb-10 sm:pb-6 animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 shadow-xl">
@@ -744,7 +773,6 @@ function NuevoPedidoContent() {
         </div>
       )}
 
-      {/* Catalog Modal */}
       {isCatalogModalOpen && (
         <div className="fixed inset-0 bg-white z-50 flex flex-col animate-in slide-in-from-bottom-full duration-300">
           <div className="flex items-center gap-3 p-4 border-b border-gray-200 bg-white shadow-sm sticky top-0 z-10">
