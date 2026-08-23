@@ -17,7 +17,7 @@ export default function Sidebar() {
     { name: 'Clientes', href: '/clientes', icon: Users },
     { name: 'Pedidos', href: '/pedidos', icon: ClipboardList },
     { name: 'Carga Rápida', href: '/pedidos/nuevo', icon: Calculator },
-    { name: 'Catálogo Histórico', href: '/productos', icon: Package },
+    { name: 'Mi Catálogo', href: '/productos', icon: Package },
     { name: 'Finanzas', href: '/finanzas', icon: Wallet },
     { name: 'Ajustes', href: '/ajustes', icon: Settings },
   ];

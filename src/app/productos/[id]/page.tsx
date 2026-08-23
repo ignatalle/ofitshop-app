@@ -214,19 +214,28 @@ export default function EditarProductoPage() {
 
       if (ordersError) throw ordersError;
 
+      let missingCost = false;
       const isUsed = allOrders?.some(order => 
         order.items && 
         Array.isArray(order.items) && 
-        order.items.some((item: any) => item.productId === productId)
+        order.items.some((item: any) => {
+          if (item.productId === productId) {
+            if (item.wholesaleCost === undefined || item.wholesaleCost === null || item.wholesaleCost === 0) {
+              missingCost = true;
+            }
+            return true;
+          }
+          return false;
+        })
       );
 
-      if (isUsed) {
-        alert("Este producto tiene ventas registradas y no puede eliminarse definitivamente. Podés ocultarlo.");
-        setIsVisible(false);
+      if (missingCost) {
+        alert("Este producto todavía se usa para calcular costos de ventas antiguas. Primero debemos guardar esos costos históricos antes de eliminarlo.");
         setLoading(false);
         return;
       }
 
+      // Si isUsed es true pero no hay missingCost, la eliminación es segura (ON DELETE SET NULL protege los históricos).
       const confirmed = window.confirm("¿Eliminar definitivamente este producto?");
       if (!confirmed) {
         setLoading(false);

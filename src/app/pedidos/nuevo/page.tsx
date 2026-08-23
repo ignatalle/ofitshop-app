@@ -23,6 +23,9 @@ interface DraftItem {
   wholesaleCost: string;
   margin: string;
   unitPrice: string;
+  needsPurchase: boolean;
+  supplierId?: string;
+  supplierName?: string;
 }
 
 interface CatalogProduct {
@@ -34,6 +37,9 @@ interface CatalogProduct {
   image_url: string | null;
   size: string | null;
   color: string | null;
+  modality: string | null;
+  supplier_id: string | null;
+  suppliers: { name: string } | { name: string }[] | null;
 }
 
 function NuevoPedidoContent() {
@@ -95,7 +101,7 @@ function NuevoPedidoContent() {
       setLoadingCatalog(true);
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, retail_price, cost_price, stock_quantity, image_url, size, color')
+        .select('id, name, retail_price, cost_price, stock_quantity, image_url, size, color, modality, supplier_id, suppliers(name)')
         .order('created_at', { ascending: false });
         
       if (error) throw error;
@@ -136,7 +142,10 @@ function NuevoPedidoContent() {
           margin: margin,
           unitPrice: price > 0 ? price.toString() : '',
           size: product.size || '',
-          color: product.color || ''
+          color: product.color || '',
+          needsPurchase: product.modality !== 'STOCK_PROPIO',
+          supplierId: product.supplier_id || undefined,
+          supplierName: Array.isArray(product.suppliers) ? product.suppliers[0]?.name : (product.suppliers?.name || undefined)
         }
       ];
     });
@@ -152,7 +161,8 @@ function NuevoPedidoContent() {
         productName: '',
         wholesaleCost: '',
         margin: '',
-        unitPrice: ''
+        unitPrice: '',
+        needsPurchase: false
       }
     ]);
   };
@@ -163,11 +173,11 @@ function NuevoPedidoContent() {
     return acc + Math.round(price * qty * 100);
   }, 0);
 
-  const handleRowChange = (id: string, field: keyof DraftItem, value: string | number) => {
+  const handleRowChange = (id: string, field: keyof DraftItem, value: string | number | boolean) => {
     setDraftItems(prev => prev.map(item => {
       if (item.id !== id) return item;
 
-      const newItem = { ...item, [field]: value };
+      const newItem = { ...item, [field]: value } as DraftItem;
 
       if (field === 'wholesaleCost') {
         const costNum = parseFloat(value as string);
@@ -219,7 +229,10 @@ function NuevoPedidoContent() {
         quantity,
         unitPrice: unitPriceCents,
         wholesaleCost: wholesaleCostCents,
-        subtotal: unitPriceCents * quantity
+        subtotal: unitPriceCents * quantity,
+        needsPurchase: item.needsPurchase,
+        supplierId: item.supplierId,
+        supplierName: item.supplierName
       };
     });
   };
@@ -341,6 +354,33 @@ function NuevoPedidoContent() {
         }
       }
       
+      // Upsert en pending_purchases para los ítems que lo requieran
+      const pendingPurchasesToInsert = cleanItems
+        .filter(i => i.needsPurchase)
+        .map(i => ({
+          order_id: orderData[0].id,
+          item_id: i.id, // usamos el id generado localmente como identificador único del ítem en este pedido
+          product_id: i.productId || null,
+          supplier_id: i.supplierId || null,
+          customer_id: selectedCustomerId,
+          product_name: i.productName,
+          supplier_name: i.supplierName || null,
+          quantity: i.quantity,
+          color: i.color || null,
+          size: i.size || null,
+          cost_price: i.wholesaleCost > 0 ? i.wholesaleCost : null,
+          status: 'PENDIENTE',
+          updated_at: new Date().toISOString()
+        }));
+
+      if (pendingPurchasesToInsert.length > 0) {
+        const { error: ppError } = await supabase
+          .from('pending_purchases')
+          .upsert(pendingPurchasesToInsert, { onConflict: 'order_id,item_id' });
+        
+        if (ppError) console.error("Error al registrar compras pendientes:", ppError);
+      }
+      
       alert(advanceCents > 0 ? "¡Pedido creado y caja actualizada exitosamente!" : "¡Pedido creado exitosamente!");
       router.push(`/clientes?expand=${selectedCustomerId}`);
     } catch (error: any) {
@@ -426,6 +466,21 @@ function NuevoPedidoContent() {
                 >
                   <Trash2 size={18} />
                 </button>
+              </div>
+
+              {/* Fila de Origen de la prenda (Toggle) */}
+              <div className="flex w-full pt-2 pb-1 border-b border-gray-100">
+                <label className="flex items-center gap-2 cursor-pointer select-none px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors w-full">
+                  <input
+                    type="checkbox"
+                    checked={item.needsPurchase}
+                    onChange={(e) => handleRowChange(item.id, 'needsPurchase', e.target.checked)}
+                    className="w-4 h-4 rounded text-ofit-pink focus:ring-ofit-pink border-gray-300"
+                  />
+                  <span className="text-[13px] font-bold text-gray-700">
+                    {item.needsPurchase ? '🛍️ Tengo que conseguirla' : '✅ Ya la tengo (Stock)'}
+                  </span>
+                </label>
               </div>
 
               {/* Row 2: Talle, Color */}
