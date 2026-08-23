@@ -136,58 +136,16 @@ export default function ComprasPendientesPage() {
     try {
       setIsSubmitting(true);
 
-      // Fallo seguro: primero comprobamos y congelamos el costo histórico del item.
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .select('items')
-        .eq('id', purchase.order_id)
-        .single();
+      // La RPC actualiza orders.items.wholesaleCost y pending_purchases en una sola
+      // transacción PostgreSQL. Si algo falla, no queda un estado a medias.
+      const { error } = await supabase.rpc('resolve_pending_purchase', {
+        p_purchase_id: purchase.id,
+        p_cost_price: newCostCents,
+      });
 
-      if (orderError) throw orderError;
-      if (!orderData || !Array.isArray(orderData.items)) {
-        throw new Error('El pedido original no contiene una lista de ítems válida. No se resolvió la compra.');
-      }
+      if (error) throw error;
 
-      const matches = orderData.items.filter((item: any) => item?.id === purchase.item_id);
-      if (matches.length !== 1) {
-        throw new Error(
-          matches.length === 0
-            ? 'No encontramos el ítem original de esta compra. No se cambió el estado.'
-            : 'Hay más de un ítem con el mismo identificador. No se cambió el estado.',
-        );
-      }
-
-      const newItems = orderData.items.map((item: any) =>
-        item.id === purchase.item_id ? { ...item, wholesaleCost: newCostCents } : item,
-      );
-
-      const { error: updateOrderError } = await supabase
-        .from('orders')
-        .update({ items: newItems })
-        .eq('id', purchase.order_id);
-
-      if (updateOrderError) throw updateOrderError;
-
-      // Solo después de guardar el costo histórico marcamos la tarea como resuelta.
       const now = new Date().toISOString();
-      const { error: ppError } = await supabase
-        .from('pending_purchases')
-        .update({
-          status: 'CONSEGUIDO',
-          cost_price: newCostCents,
-          resolved_at: now,
-          updated_at: now,
-        })
-        .eq('id', purchase.id)
-        .eq('status', 'PENDIENTE');
-
-      if (ppError) {
-        throw new Error(
-          'El costo histórico quedó guardado, pero no pudimos cerrar la tarea. Podés reintentar sin perder el costo. ' +
-            ppError.message,
-        );
-      }
-
       setPurchases((prev) =>
         prev.map((p) =>
           p.id === purchase.id
@@ -416,7 +374,7 @@ export default function ComprasPendientesPage() {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4">
           <div className="bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-6 pb-10 sm:pb-6 shadow-xl">
             <h2 className="text-xl font-bold text-ofit-text mb-2">Prenda Conseguida</h2>
-            <p className="text-sm text-gray-500 mb-6">Confirmá el costo real pagado. Se guardará en el pedido original antes de cerrar esta tarea.</p>
+            <p className="text-sm text-gray-500 mb-6">Confirmá el costo real pagado. El costo y el estado se guardan juntos para no dejar las finanzas a medias.</p>
             <form onSubmit={handleResolveSubmit} className="flex flex-col gap-5">
               <div>
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Costo Real Pagado</label>
