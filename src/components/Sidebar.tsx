@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Home, Users, Package, Wallet, Menu, X, ClipboardList, Calculator, Settings } from 'lucide-react';
+import { Home, Users, Package, Wallet, Menu, X, ClipboardList, Calculator, Settings, ShoppingBag } from 'lucide-react';
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,6 +18,7 @@ export default function Sidebar() {
     { name: 'Pedidos', href: '/pedidos', icon: ClipboardList },
     { name: 'Carga Rápida', href: '/pedidos/nuevo', icon: Calculator },
     { name: 'Mi Catálogo', href: '/productos', icon: Package },
+    { name: 'Compras Pendientes', href: '/compras-pendientes', icon: ShoppingBag },
     { name: 'Finanzas', href: '/finanzas', icon: Wallet },
     { name: 'Ajustes', href: '/ajustes', icon: Settings },
   ];
@@ -45,10 +46,9 @@ export default function Sidebar() {
             Outfit Shop
           </h1>
         </div>
-        <div className="w-11"></div> {/* Espaciador para centrar título */}
+        <div className="w-11"></div>
       </header>
 
-      {/* Overlay Oscuro */}
       {isOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 transition-opacity"
@@ -56,7 +56,6 @@ export default function Sidebar() {
         />
       )}
 
-      {/* Drawer / Menú Lateral */}
       <aside 
         className={`fixed top-0 left-0 bottom-0 w-[min(85vw,320px)] pt-[env(safe-area-inset-top)] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
