@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { ChevronLeft, Camera, Loader2, Image as ImageIcon, ChevronDown, Eye, EyeOff, DollarSign, Share2, Trash2 } from 'lucide-react';
+import { getItemUnitCostCents } from '@/lib/finance';
+import { ChevronLeft, Camera, Loader2, Image as ImageIcon, ChevronDown, DollarSign, Share2, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function EditarProductoPage() {
@@ -16,7 +17,6 @@ export default function EditarProductoPage() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
-  // Form states
   const [name, setName] = useState('');
   const [retailPrice, setRetailPrice] = useState('');
   const [costPrice, setCostPrice] = useState('');
@@ -24,8 +24,6 @@ export default function EditarProductoPage() {
   const [isVisible, setIsVisible] = useState(false);
   const [showPrice, setShowPrice] = useState(true);
   const [imageUrl, setImageUrl] = useState('');
-  
-  // More options
   const [wholesalePrice, setWholesalePrice] = useState('');
   const [size, setSize] = useState('');
   const [color, setColor] = useState('');
@@ -68,7 +66,7 @@ export default function EditarProductoPage() {
         setInitialLoading(false);
       }
     }
-    
+
     if (productId) loadProduct();
   }, [productId, router]);
 
@@ -114,23 +112,23 @@ export default function EditarProductoPage() {
   const getOrCreateSupplier = async (sName: string) => {
     if (!sName.trim()) return null;
     const cleanName = sName.trim();
-    
+
     const { data: existing } = await supabase
       .from('suppliers')
       .select('id')
       .ilike('name', cleanName)
       .limit(1);
-      
+
     if (existing && existing.length > 0) {
       return existing[0].id;
     }
-    
+
     const { data: inserted, error } = await supabase
       .from('suppliers')
       .insert([{ name: cleanName }])
       .select('id')
       .single();
-      
+
     if (error) {
       console.error('Error creando proveedor', error);
       return null;
@@ -145,9 +143,8 @@ export default function EditarProductoPage() {
 
     try {
       setLoading(true);
-
       const supplierId = await getOrCreateSupplier(supplierName);
-      
+
       const updateData = {
         name: name.trim(),
         retail_price: parseCurrency(retailPrice),
@@ -169,7 +166,6 @@ export default function EditarProductoPage() {
         .eq('id', productId);
 
       if (error) throw error;
-
       router.push('/productos');
     } catch (error: any) {
       alert('Error al actualizar el producto: ' + error.message);
@@ -179,7 +175,7 @@ export default function EditarProductoPage() {
 
   const handleShare = async () => {
     let text = `✨ ${name}\n`;
-    
+
     if (showPrice) {
       const priceNum = parseFloat(retailPrice || '0');
       text += `$ ${priceNum.toLocaleString('es-AR')}\nDisponible en Outfit Shop 💕`;
@@ -187,9 +183,7 @@ export default function EditarProductoPage() {
       text += `Consultanos por precio 💕\nOutfit Shop`;
     }
 
-    if (imageUrl) {
-      text += `\n\n${imageUrl}`;
-    }
+    if (imageUrl) text += `\n\n${imageUrl}`;
 
     try {
       if (navigator.share) {
@@ -207,7 +201,6 @@ export default function EditarProductoPage() {
     try {
       setLoading(true);
 
-      // Verify if used in orders safely via frontend check (to avoid jsonb errors)
       const { data: allOrders, error: ordersError } = await supabase
         .from('orders')
         .select('id, items');
@@ -215,34 +208,33 @@ export default function EditarProductoPage() {
       if (ordersError) throw ordersError;
 
       let missingCost = false;
-      const isUsed = allOrders?.some(order => 
-        order.items && 
-        Array.isArray(order.items) && 
-        order.items.some((item: any) => {
-          if (item.productId === productId) {
-            if (item.wholesaleCost === undefined || item.wholesaleCost === null || item.wholesaleCost === 0) {
-              missingCost = true;
-            }
-            return true;
+      allOrders?.forEach((order) => {
+        if (!Array.isArray(order.items)) return;
+        order.items.forEach((item: any) => {
+          if (item.productId !== productId) return;
+
+          // Usamos exactamente la misma semántica que Finanzas, pero SIN catálogo
+          // como fallback. Un costo 0 solo es histórico válido si fue confirmado
+          // explícitamente con sinCostoConfirmado=true.
+          const explicitHistoricalCost = getItemUnitCostCents(item, {});
+          if (explicitHistoricalCost <= 0 && item.sinCostoConfirmado !== true) {
+            missingCost = true;
           }
-          return false;
-        })
-      );
+        });
+      });
 
       if (missingCost) {
-        alert("Este producto todavía se usa para calcular costos de ventas antiguas. Primero debemos guardar esos costos históricos antes de eliminarlo.");
+        alert('Este producto todavía se usa para calcular costos de ventas antiguas. Primero debemos guardar esos costos históricos antes de eliminarlo.');
         setLoading(false);
         return;
       }
 
-      // Si isUsed es true pero no hay missingCost, la eliminación es segura (ON DELETE SET NULL protege los históricos).
-      const confirmed = window.confirm("¿Eliminar definitivamente este producto?");
+      const confirmed = window.confirm('¿Eliminar definitivamente este producto?');
       if (!confirmed) {
         setLoading(false);
         return;
       }
 
-      // Delete image if exists
       if (imageUrl) {
         const urlParts = imageUrl.split('/product-images/');
         if (urlParts.length > 1) {
@@ -257,7 +249,6 @@ export default function EditarProductoPage() {
         .eq('id', productId);
 
       if (deleteError) throw deleteError;
-
       router.push('/productos');
     } catch (error: any) {
       alert('Error al eliminar: ' + error.message);
@@ -276,7 +267,6 @@ export default function EditarProductoPage() {
 
   return (
     <div className="w-full max-w-lg mx-auto bg-gray-50 min-h-screen pb-24">
-      {/* Header Fijo */}
       <div className="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 py-4 flex items-center justify-between shadow-sm">
         <Link href="/productos" className="p-2 -ml-2 text-gray-600 hover:text-ofit-pink transition-colors">
           <ChevronLeft size={24} />
@@ -288,11 +278,9 @@ export default function EditarProductoPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="p-4 flex flex-col gap-6 animate-fade-in">
-        
-        {/* Foto */}
         <div className="flex flex-col gap-2">
           <label className="text-sm font-bold text-gray-700">Foto</label>
-          <div 
+          <div
             onClick={() => fileInputRef.current?.click()}
             className="w-full h-48 bg-white border-2 border-dashed border-gray-300 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-gray-50 hover:border-ofit-pink transition-all overflow-hidden relative group"
           >
@@ -300,9 +288,7 @@ export default function EditarProductoPage() {
               <>
                 <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-white font-bold text-sm flex items-center gap-2">
-                    <Camera size={18} /> Cambiar Foto
-                  </span>
+                  <span className="text-white font-bold text-sm flex items-center gap-2"><Camera size={18} /> Cambiar Foto</span>
                 </div>
               </>
             ) : uploadingImage ? (
@@ -320,20 +306,13 @@ export default function EditarProductoPage() {
               </>
             )}
           </div>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleImageUpload} 
-            accept="image/jpeg, image/png, image/webp" 
-            className="hidden" 
-          />
+          <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/jpeg, image/png, image/webp" className="hidden" />
         </div>
 
-        {/* Nombre */}
         <div className="flex flex-col gap-2">
           <label className="text-sm font-bold text-gray-700">Nombre de la prenda *</label>
-          <input 
-            type="text" 
+          <input
+            type="text"
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder="Ej: Conjunto deportivo importado"
@@ -343,92 +322,51 @@ export default function EditarProductoPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          {/* Precio Venta */}
           <div className="flex flex-col gap-2">
             <label className="text-sm font-bold text-gray-700">Precio Venta *</label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
-              <input 
-                type="number"
-                value={retailPrice}
-                onChange={e => setRetailPrice(e.target.value)}
-                placeholder="0"
-                required
-                className="w-full bg-white border border-gray-300 rounded-xl pl-8 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink transition-all font-black text-ofit-text text-base"
-              />
+              <input type="number" value={retailPrice} onChange={e => setRetailPrice(e.target.value)} placeholder="0" required className="w-full bg-white border border-gray-300 rounded-xl pl-8 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink transition-all font-black text-ofit-text text-base" />
             </div>
           </div>
 
-          {/* Costo */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-gray-700 flex items-center justify-between">
-              Costo <span className="text-[10px] font-normal text-gray-400 bg-gray-100 px-2 py-0.5 rounded">Opcional</span>
-            </label>
+            <label className="text-sm font-bold text-gray-700 flex items-center justify-between">Costo <span className="text-[10px] font-normal text-gray-400 bg-gray-100 px-2 py-0.5 rounded">Opcional</span></label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
-              <input 
-                type="number"
-                value={costPrice}
-                onChange={e => setCostPrice(e.target.value)}
-                placeholder="0"
-                className="w-full bg-white border border-gray-300 rounded-xl pl-8 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink transition-all font-bold text-ofit-text text-base"
-              />
+              <input type="number" value={costPrice} onChange={e => setCostPrice(e.target.value)} placeholder="0" className="w-full bg-white border border-gray-300 rounded-xl pl-8 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink transition-all font-bold text-ofit-text text-base" />
             </div>
           </div>
         </div>
-        
+
         <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm cursor-pointer" onClick={() => setShowPrice(!showPrice)}>
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${showPrice ? 'bg-ofit-pink/10 text-ofit-pink' : 'bg-gray-100 text-gray-500'}`}>
-                <DollarSign size={20} />
-              </div>
-              <div>
-                <p className="font-bold text-gray-800">Mostrar Precio</p>
-                <p className="text-xs text-gray-500">{showPrice ? 'El precio es visible al compartir' : 'Consultar por precio'}</p>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${showPrice ? 'bg-ofit-pink/10 text-ofit-pink' : 'bg-gray-100 text-gray-500'}`}><DollarSign size={20} /></div>
+            <div>
+              <p className="font-bold text-gray-800">Mostrar Precio</p>
+              <p className="text-xs text-gray-500">{showPrice ? 'El precio es visible al compartir' : 'Consultar por precio'}</p>
             </div>
-            <div className={`w-12 h-6 rounded-full p-1 transition-colors ${showPrice ? 'bg-ofit-pink' : 'bg-gray-300'}`}>
-              <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${showPrice ? 'translate-x-6' : 'translate-x-0'}`} />
-            </div>
+          </div>
+          <div className={`w-12 h-6 rounded-full p-1 transition-colors ${showPrice ? 'bg-ofit-pink' : 'bg-gray-300'}`}>
+            <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${showPrice ? 'translate-x-6' : 'translate-x-0'}`} />
+          </div>
         </div>
 
-        {/* Stock y Visible */}
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
             <label className="text-sm font-bold text-gray-700">¿Cuántas tenés? (Stock)</label>
-            <input 
-              type="number"
-              value={stock}
-              onChange={e => setStock(e.target.value)}
-              min="0"
-              className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink transition-all font-bold text-ofit-text text-base text-center"
-            />
+            <input type="number" value={stock} onChange={e => setStock(e.target.value)} min="0" className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink transition-all font-bold text-ofit-text text-base text-center" />
           </div>
-
           <div className="flex flex-col gap-2">
             <label className="text-sm font-bold text-gray-700">Estado</label>
-            <div 
-              onClick={() => setIsVisible(!isVisible)}
-              className={`w-full flex items-center justify-center gap-2 cursor-pointer border rounded-xl px-4 py-3.5 font-bold transition-all select-none ${
-                isVisible ? 'bg-green-50 border-green-200 text-green-700' : 'bg-gray-100 border-gray-300 text-gray-500'
-              }`}
-            >
-              {isVisible ? (
-                <><span className="text-green-600 font-black text-xl leading-none">●</span> Visible</>
-              ) : (
-                <><span className="text-gray-400 font-black text-xl leading-none">●</span> Oculto</>
-              )}
+            <div onClick={() => setIsVisible(!isVisible)} className={`w-full flex items-center justify-center gap-2 cursor-pointer border rounded-xl px-4 py-3.5 font-bold transition-all select-none ${isVisible ? 'bg-green-50 border-green-200 text-green-700' : 'bg-gray-100 border-gray-300 text-gray-500'}`}>
+              {isVisible ? <><span className="text-green-600 font-black text-xl leading-none">●</span> Visible</> : <><span className="text-gray-400 font-black text-xl leading-none">●</span> Oculto</>}
             </div>
           </div>
         </div>
 
-        {/* Más Opciones (Acordeón) */}
         <div className="mt-2 border-t border-gray-200 pt-4">
-          <button 
-            type="button" 
-            onClick={() => setShowMoreOptions(!showMoreOptions)}
-            className="w-full flex items-center justify-between text-gray-600 font-bold p-2 hover:bg-gray-100 rounded-xl transition-colors"
-          >
+          <button type="button" onClick={() => setShowMoreOptions(!showMoreOptions)} className="w-full flex items-center justify-between text-gray-600 font-bold p-2 hover:bg-gray-100 rounded-xl transition-colors">
             <span>Más opciones (Mayorista, Talles, Proveedor...)</span>
             <ChevronDown size={20} className={`transition-transform duration-300 ${showMoreOptions ? 'rotate-180' : ''}`} />
           </button>
@@ -439,94 +377,47 @@ export default function EditarProductoPage() {
                 <label className="text-sm font-bold text-gray-700">Precio Mayorista</label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
-                  <input 
-                    type="number"
-                    value={wholesalePrice}
-                    onChange={e => setWholesalePrice(e.target.value)}
-                    placeholder="0"
-                    className="w-full bg-gray-50 border border-gray-300 rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 transition-all font-bold text-gray-700"
-                  />
+                  <input type="number" value={wholesalePrice} onChange={e => setWholesalePrice(e.target.value)} placeholder="0" className="w-full bg-gray-50 border border-gray-300 rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 transition-all font-bold text-gray-700" />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-bold text-gray-700">Talle</label>
-                  <input 
-                    type="text"
-                    value={size}
-                    onChange={e => setSize(e.target.value)}
-                    placeholder="Ej: S, M, Único"
-                    className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 transition-all font-medium text-gray-700"
-                  />
+                  <input type="text" value={size} onChange={e => setSize(e.target.value)} placeholder="Ej: S, M, Único" className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 transition-all font-medium text-gray-700" />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-bold text-gray-700">Color</label>
-                  <input 
-                    type="text"
-                    value={color}
-                    onChange={e => setColor(e.target.value)}
-                    placeholder="Ej: Negro"
-                    className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 transition-all font-medium text-gray-700"
-                  />
+                  <input type="text" value={color} onChange={e => setColor(e.target.value)} placeholder="Ej: Negro" className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 transition-all font-medium text-gray-700" />
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-bold text-gray-700">Proveedor</label>
-                <input 
-                  type="text"
-                  value={supplierName}
-                  onChange={e => setSupplierName(e.target.value)}
-                  placeholder="Ej: Mandarina (Texto libre)"
-                  className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 transition-all font-medium text-gray-700"
-                />
+                <input type="text" value={supplierName} onChange={e => setSupplierName(e.target.value)} placeholder="Ej: Mandarina (Texto libre)" className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 transition-all font-medium text-gray-700" />
               </div>
 
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-bold text-gray-700">Notas privadas</label>
-                <textarea 
-                  value={notes}
-                  onChange={e => setNotes(e.target.value)}
-                  placeholder="Detalles de tela, ubicación en depósito..."
-                  rows={3}
-                  className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 transition-all font-medium text-gray-700 resize-none"
-                />
+                <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Detalles de tela, ubicación en depósito..." rows={3} className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 transition-all font-medium text-gray-700 resize-none" />
               </div>
             </div>
           )}
         </div>
 
-        {/* Eliminar Producto */}
         <div className="mt-2 flex justify-center">
-          <button
-            type="button"
-            onClick={handleDelete}
-            disabled={loading || uploadingImage}
-            className="flex items-center gap-2 text-red-500 font-bold hover:bg-red-50 px-4 py-2 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Trash2 size={20} />
-            Eliminar producto
+          <button type="button" onClick={handleDelete} disabled={loading || uploadingImage} className="flex items-center gap-2 text-red-500 font-bold hover:bg-red-50 px-4 py-2 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            <Trash2 size={20} /> Eliminar producto
           </button>
         </div>
 
-        {/* Sticky Botón Guardar */}
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 z-10 flex justify-center">
           <div className="w-full max-w-lg">
-            <button 
-              type="submit" 
-              disabled={loading || uploadingImage}
-              className="w-full bg-ofit-pink hover:bg-ofit-pink-hover text-white py-4 rounded-xl font-black text-lg transition-all shadow-md flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <><Loader2 className="animate-spin" size={24} /> Actualizando...</>
-              ) : (
-                'Guardar cambios'
-              )}
+            <button type="submit" disabled={loading || uploadingImage} className="w-full bg-ofit-pink hover:bg-ofit-pink-hover text-white py-4 rounded-xl font-black text-lg transition-all shadow-md flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+              {loading ? <><Loader2 className="animate-spin" size={24} /> Actualizando...</> : 'Guardar cambios'}
             </button>
           </div>
         </div>
-
       </form>
     </div>
   );
