@@ -1,9 +1,5 @@
 -- Fase 4: al marcar una compra como CONSEGUIDO también registrar la salida real de caja.
--- Todo ocurre dentro de UNA sola transacción PostgreSQL:
---   1) congela el costo histórico en orders.items.wholesaleCost
---   2) registra un EGRESO de mercadería en EFECTIVO o VIRTUAL
---   3) marca pending_purchases como CONSEGUIDO
--- Si cualquiera de los pasos falla, PostgreSQL revierte todo.
+-- Todo ocurre en una sola transacción PostgreSQL.
 
 CREATE OR REPLACE FUNCTION public.resolve_pending_purchase_with_payment(
   p_purchase_id uuid,
@@ -34,10 +30,10 @@ BEGIN
   END IF;
 
   SELECT *
-  INTO v_purchase
-  FROM public.pending_purchases
-  WHERE id = p_purchase_id
-  FOR UPDATE;
+    INTO v_purchase
+    FROM public.pending_purchases
+   WHERE id = p_purchase_id
+   FOR UPDATE;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Compra pendiente inexistente';
@@ -48,52 +44,49 @@ BEGIN
   END IF;
 
   SELECT items
-  INTO v_items
-  FROM public.orders
-  WHERE id = v_purchase.order_id
-  FOR UPDATE;
+    INTO v_items
+    FROM public.orders
+   WHERE id = v_purchase.order_id
+   FOR UPDATE;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'No existe el pedido original';
   END IF;
 
   IF v_items IS NULL OR jsonb_typeof(v_items) <> 'array' THEN
-    RAISE EXCEPTION 'El pedido original no contiene una lista de items válida';
+    RAISE EXCEPTION 'El pedido original no contiene una lista de items valida';
   END IF;
 
-  SELECT COUNT(*)
-  INTO v_match_count
-  FROM jsonb_array_elements(v_items) AS elem
-  WHERE elem->>'id' = v_purchase.item_id;
+  SELECT count(*)
+    INTO v_match_count
+    FROM jsonb_array_elements(v_items) AS elem
+   WHERE elem->>'id' = v_purchase.item_id;
 
   IF v_match_count <> 1 THEN
-    RAISE EXCEPTION 'Se esperaba exactamente 1 item histórico y se encontraron %', v_match_count;
+    RAISE EXCEPTION 'Se esperaba exactamente 1 item historico y se encontraron %', v_match_count;
   END IF;
 
   SELECT jsonb_agg(
-    CASE
-      WHEN elem->>'id' = v_purchase.item_id
-        THEN jsonb_set(elem, '{wholesaleCost}', to_jsonb(p_cost_price), true)
-      ELSE elem
-    END
-    ORDER BY ord
-  )
-  INTO v_new_items
-  FROM jsonb_array_elements(v_items) WITH ORDINALITY AS x(elem, ord);
+           CASE
+             WHEN elem->>'id' = v_purchase.item_id
+               THEN jsonb_set(elem, '{wholesaleCost}', to_jsonb(p_cost_price), true)
+             ELSE elem
+           END
+           ORDER BY ord
+         )
+    INTO v_new_items
+    FROM jsonb_array_elements(v_items) WITH ORDINALITY AS x(elem, ord);
 
   UPDATE public.orders
-  SET items = v_new_items
-  WHERE id = v_purchase.order_id;
+     SET items = v_new_items
+   WHERE id = v_purchase.order_id;
 
   v_quantity := GREATEST(1, COALESCE(v_purchase.quantity, 1));
   v_total_cost := p_cost_price * v_quantity;
-  v_supplier := COALESCE(NULLIF(trim(v_purchase.supplier_name), ''), 'Sin proveedor');
-  v_description := format(
-    '[MERCADERIA] Compra a %s - %s (%sx)',
-    v_supplier,
-    v_purchase.product_name,
-    v_quantity
-  );
+  v_supplier := COALESCE(NULLIF(btrim(v_purchase.supplier_name), ''), 'Sin proveedor');
+  v_description := '[MERCADERIA] Compra a ' || v_supplier || ' - ' ||
+                   COALESCE(v_purchase.product_name, 'Producto') || ' (' ||
+                   v_quantity::text || 'x)';
 
   INSERT INTO public.transactions (
     order_id,
@@ -101,7 +94,8 @@ BEGIN
     amount,
     description,
     cuenta
-  ) VALUES (
+  )
+  VALUES (
     v_purchase.order_id,
     'EGRESO',
     v_total_cost,
@@ -110,15 +104,12 @@ BEGIN
   );
 
   UPDATE public.pending_purchases
-  SET
-    status = 'CONSEGUIDO',
-    cost_price = p_cost_price,
-    resolved_at = NOW(),
-    updated_at = NOW()
-  WHERE id = p_purchase_id;
+     SET status = 'CONSEGUIDO',
+         cost_price = p_cost_price,
+         resolved_at = now(),
+         updated_at = now()
+   WHERE id = p_purchase_id;
 END;
 $$;
 
--- El backoffice todavía utiliza la anon key. Cambiar a authenticated cuando
--- se implemente Supabase Auth antes de exponer escritura en la tienda pública.
 GRANT EXECUTE ON FUNCTION public.resolve_pending_purchase_with_payment(uuid, bigint, text) TO anon;
