@@ -39,6 +39,7 @@ export default function ComprasPendientesPage() {
 
   const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [resolveCost, setResolveCost] = useState('');
+  const [resolveAccount, setResolveAccount] = useState<'EFECTIVO' | 'VIRTUAL'>('VIRTUAL');
   const [assigningId, setAssigningId] = useState<string | null>(null);
   const [supplierDraft, setSupplierDraft] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -129,18 +130,20 @@ export default function ComprasPendientesPage() {
     const parsedCost = Number(resolveCost);
     const newCostCents = Number.isFinite(parsedCost) ? Math.round(parsedCost * 100) : 0;
     if (newCostCents <= 0) {
-      alert('Ingresá un costo real mayor a $0.');
+      alert('Ingresá un costo real por unidad mayor a $0.');
       return;
     }
 
     try {
       setIsSubmitting(true);
 
-      // La RPC actualiza orders.items.wholesaleCost y pending_purchases en una sola
-      // transacción PostgreSQL. Si algo falla, no queda un estado a medias.
-      const { error } = await supabase.rpc('resolve_pending_purchase', {
+      // La RPC hace las tres operaciones en una única transacción PostgreSQL:
+      // 1) congela el costo histórico del item, 2) crea el egreso de mercadería
+      // en la cuenta elegida y 3) marca la compra como CONSEGUIDO.
+      const { error } = await supabase.rpc('resolve_pending_purchase_with_payment', {
         p_purchase_id: purchase.id,
         p_cost_price: newCostCents,
+        p_cuenta: resolveAccount,
       });
 
       if (error) throw error;
@@ -161,6 +164,7 @@ export default function ComprasPendientesPage() {
       );
       setResolvingId(null);
       setResolveCost('');
+      setResolveAccount('VIRTUAL');
     } catch (err: any) {
       alert('Error al resolver compra: ' + err.message);
     } finally {
@@ -236,6 +240,12 @@ export default function ComprasPendientesPage() {
       setIsSubmitting(false);
     }
   };
+
+  const resolvingPurchase = purchases.find((p) => p.id === resolvingId);
+  const resolvingUnitCostCents = Math.max(0, Math.round((Number(resolveCost) || 0) * 100));
+  const resolvingTotalCostCents = resolvingPurchase
+    ? resolvingUnitCostCents * Math.max(1, resolvingPurchase.quantity || 1)
+    : 0;
 
   return (
     <div className="p-4 flex flex-col gap-6 max-w-3xl mx-auto w-full pb-24">
@@ -333,6 +343,7 @@ export default function ComprasPendientesPage() {
                               onClick={() => {
                                 setResolvingId(p.id);
                                 setResolveCost(p.cost_price ? (p.cost_price / 100).toString() : '');
+                                setResolveAccount('VIRTUAL');
                               }}
                               disabled={isSubmitting}
                               className="w-10 h-10 rounded-full bg-green-50 text-green-600 hover:bg-green-100 flex items-center justify-center transition-colors disabled:opacity-50"
@@ -370,14 +381,16 @@ export default function ComprasPendientesPage() {
         </div>
       )}
 
-      {resolvingId && (
+      {resolvingId && resolvingPurchase && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4">
           <div className="bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-6 pb-10 sm:pb-6 shadow-xl">
             <h2 className="text-xl font-bold text-ofit-text mb-2">Prenda Conseguida</h2>
-            <p className="text-sm text-gray-500 mb-6">Confirmá el costo real pagado. El costo y el estado se guardan juntos para no dejar las finanzas a medias.</p>
+            <p className="text-sm text-gray-500 mb-5">
+              Confirmá cuánto pagaste por cada unidad y de qué cuenta salió la plata. Al confirmar también se registra el egreso en Finanzas.
+            </p>
             <form onSubmit={handleResolveSubmit} className="flex flex-col gap-5">
               <div>
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Costo Real Pagado</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Costo real por unidad</label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
                   <input
@@ -393,13 +406,53 @@ export default function ComprasPendientesPage() {
                     placeholder="0.00"
                   />
                 </div>
+                {resolvingTotalCostCents > 0 && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    Egreso total: <strong>${(resolvingTotalCostCents / 100).toLocaleString('es-AR')}</strong>
+                    {resolvingPurchase.quantity > 1 ? ` (${resolvingPurchase.quantity} unidades)` : ''}
+                  </p>
+                )}
               </div>
-              <div className="flex gap-3 mt-2">
+
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">¿De dónde salió la plata?</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setResolveAccount('VIRTUAL')}
+                    className={`h-12 rounded-xl border font-bold text-sm transition-all ${
+                      resolveAccount === 'VIRTUAL'
+                        ? 'bg-blue-50 border-blue-300 text-blue-700 ring-2 ring-blue-100'
+                        : 'bg-white border-gray-200 text-gray-500'
+                    }`}
+                  >
+                    📱 Virtual
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setResolveAccount('EFECTIVO')}
+                    className={`h-12 rounded-xl border font-bold text-sm transition-all ${
+                      resolveAccount === 'EFECTIVO'
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-700 ring-2 ring-emerald-100'
+                        : 'bg-white border-gray-200 text-gray-500'
+                    }`}
+                  >
+                    💵 Efectivo
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-xs text-amber-800">
+                Se registrará como <strong>Compra de mercadería</strong>. Baja la caja, pero no se descuenta dos veces de la ganancia: el costo de la prenda ya forma parte del CMV.
+              </div>
+
+              <div className="flex gap-3 mt-1">
                 <button
                   type="button"
                   onClick={() => {
                     setResolvingId(null);
                     setResolveCost('');
+                    setResolveAccount('VIRTUAL');
                   }}
                   disabled={isSubmitting}
                   className="flex-1 h-12 font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors disabled:opacity-50"
