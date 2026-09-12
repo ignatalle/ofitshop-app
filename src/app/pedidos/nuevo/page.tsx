@@ -93,6 +93,7 @@ function NuevoPedidoContent() {
     unitPrice: '',
     needsPurchase: true,
     costAccount: 'VIRTUAL',
+    supplierName: '',
   });
 
   useEffect(() => {
@@ -154,7 +155,7 @@ function NuevoPedidoContent() {
         needsPurchase: true,
         costAccount: 'VIRTUAL',
         supplierId: product.supplier_id || undefined,
-        supplierName,
+        supplierName: supplierName || '',
       },
     ]);
     setIsCatalogModalOpen(false);
@@ -165,6 +166,10 @@ function NuevoPedidoContent() {
       prev.map((item) => {
         if (item.id !== id) return item;
         const next = { ...item, [field]: value } as DraftItem;
+
+        if (field === 'supplierName') {
+          next.supplierId = undefined;
+        }
 
         if (field === 'wholesaleCost') {
           const cost = parseFloat(value as string);
@@ -226,9 +231,34 @@ function NuevoPedidoContent() {
           costPaid: !item.needsPurchase,
           costAccount: !item.needsPurchase ? item.costAccount : null,
           supplierId: item.supplierId || null,
-          supplierName: item.supplierName || null,
+          supplierName: item.supplierName?.trim() || null,
         };
       });
+
+  const getOrCreateSupplier = async (rawName: string | null) => {
+    const cleanName = (rawName || '').trim();
+    if (!cleanName) return { id: null as string | null, name: null as string | null };
+
+    const { data: existing, error: findError } = await supabase
+      .from('suppliers')
+      .select('id, name')
+      .ilike('name', cleanName)
+      .limit(1);
+
+    if (findError) throw findError;
+    if (existing && existing.length > 0) {
+      return { id: existing[0].id as string, name: existing[0].name as string };
+    }
+
+    const { data: created, error: createError } = await supabase
+      .from('suppliers')
+      .insert([{ name: cleanName }])
+      .select('id, name')
+      .single();
+
+    if (createError) throw createError;
+    return { id: created.id as string, name: created.name as string };
+  };
 
   const handleCreateCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -281,16 +311,28 @@ function NuevoPedidoContent() {
     try {
       setIsSubmitting(true);
       const warnings: string[] = [];
+
+      const itemsWithSuppliers = await Promise.all(
+        cleanItems.map(async (item) => {
+          const supplier = await getOrCreateSupplier(item.supplierName);
+          return {
+            ...item,
+            supplierId: supplier.id,
+            supplierName: supplier.name,
+          };
+        }),
+      );
+
       const advanceCents = clientPayment ? Math.round((parseFloat(clientPayment) || 0) * 100) : 0;
-      const total = cleanItems.reduce((acc, item) => acc + item.subtotal, 0);
-      const details = cleanItems.map((item) => `${item.quantity}x ${item.productName}`).join(', ');
+      const total = itemsWithSuppliers.reduce((acc, item) => acc + item.subtotal, 0);
+      const details = itemsWithSuppliers.map((item) => `${item.quantity}x ${item.productName}`).join(', ');
 
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert([{
           customer_id: selectedCustomerId,
           details,
-          items: cleanItems,
+          items: itemsWithSuppliers,
           total_amount: total,
           advance_payment: advanceCents,
           status: 'PENDIENTE',
@@ -326,7 +368,7 @@ function NuevoPedidoContent() {
         }
       }
 
-      const pending = cleanItems
+      const pending = itemsWithSuppliers
         .filter((item) => item.needsPurchase)
         .map((item) => ({
           order_id: orderId,
@@ -422,6 +464,17 @@ function NuevoPedidoContent() {
             <div className="grid grid-cols-2 gap-2 min-w-0">
               <input value={item.size || ''} onChange={(e) => handleRowChange(item.id, 'size', e.target.value)} placeholder="Talle" className="w-full min-w-0 h-9 px-3 border rounded-lg text-sm" />
               <input value={item.color || ''} onChange={(e) => handleRowChange(item.id, 'color', e.target.value)} placeholder="Color" className="w-full min-w-0 h-9 px-3 border rounded-lg text-sm" />
+            </div>
+
+            <div className="min-w-0">
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Proveedor</label>
+              <input
+                value={item.supplierName || ''}
+                onChange={(e) => handleRowChange(item.id, 'supplierName', e.target.value)}
+                placeholder="Ej: Mandarina"
+                className="w-full min-w-0 h-10 mt-1 px-3 border rounded-lg bg-gray-50 text-sm"
+              />
+              <p className="text-[10px] text-gray-400 mt-1 leading-snug">Si no existe, se crea al guardar el pedido.</p>
             </div>
 
             <div className="grid grid-cols-3 gap-1.5 min-[380px]:gap-2 min-w-0">
@@ -540,7 +593,7 @@ function NuevoPedidoContent() {
             {loadingCatalog ? <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div> : filteredCatalog.map((p) => (
               <button key={p.id} type="button" onClick={() => addFromCatalog(p)} className="w-full min-w-0 bg-white p-3 rounded-2xl border shadow-sm flex gap-3 items-center mb-3 text-left overflow-hidden">
                 <div className="w-14 h-14 min-[380px]:w-16 min-[380px]:h-16 rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center shrink-0">{p.image_url ? <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" /> : <ImageIcon className="text-gray-300" />}</div>
-                <div className="flex-1 min-w-0"><p className="font-bold truncate">{p.name}</p><p className="text-sm text-ofit-pink font-bold truncate">${((p.retail_price || 0) / 100).toLocaleString('es-AR')}</p></div><Plus className="text-ofit-pink shrink-0" />
+                <div className="flex-1 min-w-0"><p className="font-bold truncate">{p.name}</p><p className="text-sm text-ofit-pink font-bold truncate">${((p.retail_price || 0) / 100).toLocaleString('es-AR')}</p>{Array.isArray(p.suppliers) ? p.suppliers[0]?.name : p.suppliers?.name ? <p className="text-[11px] text-gray-500 truncate">Proveedor: {Array.isArray(p.suppliers) ? p.suppliers[0]?.name : p.suppliers?.name}</p> : null}</div><Plus className="text-ofit-pink shrink-0" />
               </button>
             ))}
           </div>
