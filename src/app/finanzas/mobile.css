@@ -1,0 +1,194 @@
+/* Ajustes mobile-first exclusivos para Finanzas */
+
+@media (max-width: 640px) {
+  html,
+  body {
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .finanzas-mobile-shell,
+  .finanzas-mobile-shell * {
+    box-sizing: border-box;
+  }
+
+  .finanzas-mobile-shell {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .finanzas-mobile-shell > div {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)) !important;
+    gap: 1rem !important;
+  }
+
+  .finanzas-mobile-shell input,
+  .finanzas-mobile-shell select,
+  .finanzas-mobile-shell textarea,
+  .finanzas-mobile-shell button {
+    font-size: 16px;
+  }
+
+  .finanzas-mobile-shell input,
+  .finanzas-mobile-shell select,
+  .finanzas-mobile-shell textarea,
+  .finanzas-mobile-shell button,
+  .finanzas-mobile-shell a,
+  .finanzas-mobile-shell div {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* Tarjeta principal de caja */
+  .finanzas-mobile-shell .col-span-2.bg-ofit-pink {
+    padding: 14px !important;
+  }
+
+  .finanzas-mobile-shell .col-span-2.bg-ofit-pink > div:nth-child(2) {
+    font-size: 1.75rem !important;
+    line-height: 1.05;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .finanzas-mobile-shell .col-span-2.bg-ofit-pink > div:last-child {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 6px !important;
+  }
+
+  .finanzas-mobile-shell .col-span-2.bg-ofit-pink > div:last-child > .w-px {
+    display: none;
+  }
+
+  .finanzas-mobile-shell .col-span-2.bg-ofit-pink > div:last-child > div {
+    width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  /* Resumen ingresos / egresos */
+  .finanzas-mobile-shell .grid.grid-cols-2.gap-4 {
+    gap: 10px !important;
+  }
+
+  .finanzas-mobile-shell .grid.grid-cols-2.gap-4 > div:not(.col-span-2) {
+    padding: 12px !important;
+  }
+
+  .finanzas-mobile-shell .grid.grid-cols-2.gap-4 > div:not(.col-span-2) .text-xl {
+    font-size: 1rem !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+
+  /* Botones Egreso / Mover plata */
+  .finanzas-mobile-shell > div > .flex.gap-4 {
+    gap: 10px !important;
+  }
+
+  .finanzas-mobile-shell > div > .flex.gap-4 > button {
+    min-height: 52px;
+    height: auto !important;
+    padding: 10px 8px;
+    font-size: 0.9rem !important;
+    line-height: 1.15;
+  }
+
+  /* Historial */
+  .finanzas-mobile-shell .card.flex.items-center.gap-4 {
+    gap: 10px !important;
+    padding: 12px !important;
+    align-items: flex-start !important;
+  }
+
+  .finanzas-mobile-shell .card.flex.items-center.gap-4 > div:first-child {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .finanzas-mobile-shell .card.flex.items-center.gap-4 > div:nth-last-child(2) {
+    font-size: 0.9rem !important;
+    white-space: normal !important;
+    max-width: 34%;
+    overflow-wrap: anywhere;
+  }
+
+  .finanzas-mobile-shell .card.flex.items-center.gap-4 span {
+    overflow-wrap: anywhere;
+  }
+
+  /* Modales tipo bottom-sheet, seguros con teclado y safe-area */
+  .finanzas-mobile-shell .fixed.inset-0 {
+    align-items: flex-end !important;
+    padding: env(safe-area-inset-top) 0 0 !important;
+  }
+
+  .finanzas-mobile-shell .fixed.inset-0 > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: calc(100dvh - env(safe-area-inset-top)) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 24px 24px 0 0 !important;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+
+  .finanzas-mobile-shell .fixed.inset-0 form {
+    min-width: 0;
+  }
+
+  .finanzas-mobile-shell .fixed.inset-0 form input,
+  .finanzas-mobile-shell .fixed.inset-0 form select,
+  .finanzas-mobile-shell .fixed.inset-0 form textarea {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+  }
+
+  .finanzas-mobile-shell .fixed.inset-0 form .grid.grid-cols-2 {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .finanzas-mobile-shell .fixed.inset-0 form > .flex.gap-3:last-child,
+  .finanzas-mobile-shell .fixed.inset-0 form > .flex.gap-4:last-child {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    background: white;
+    padding-top: 10px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 360px) {
+  .finanzas-mobile-shell > div {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .finanzas-mobile-shell .grid.grid-cols-2.gap-4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .finanzas-mobile-shell .grid.grid-cols-2.gap-4 > .col-span-2 {
+    grid-column: span 1 / span 1 !important;
+  }
+
+  .finanzas-mobile-shell .card.flex.items-center.gap-4 {
+    display: grid !important;
+    grid-template-columns: 40px minmax(0,1fr);
+  }
+
+  .finanzas-mobile-shell .card.flex.items-center.gap-4 > div:nth-last-child(2) {
+    grid-column: 2;
+    max-width: 100%;
+    text-align: left !important;
+  }
+}
