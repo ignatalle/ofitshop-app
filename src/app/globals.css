@@ -7,20 +7,19 @@
   
   --pink-main: #D98FA0;
   --pink-hover: #C97F92;
-  --pink-soft: #FDF1F4; /* Even softer for backgrounds */
+  --pink-soft: #FDF1F4;
   --pink-bg: #F7E4E9;
   
-  --navy-main: #1C2B4B; /* Azul profundo del logo */
-  --rose-gold: #B78482; /* Detalle Rose Gold */
-  --sage-green: #E8F3EE; /* Verde salvia para positivos */
+  --navy-main: #1C2B4B;
+  --rose-gold: #B78482;
+  --sage-green: #E8F3EE;
   --sage-green-text: #4A7A61;
   
   --text-main: #30282A;
   --text-secondary: #75666A;
   
-  --border-soft: #F2E6E8; /* Más sutil */
+  --border-soft: #F2E6E8;
   
-  /* Status Colors */
   --status-success-bg: var(--sage-green);
   --status-success-text: var(--sage-green-text);
   --status-warning-bg: #FFF5E5;
@@ -37,8 +36,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  
-  /* Extending Tailwind Colors */
   --color-ofit-bg: var(--bg-main);
   --color-ofit-pink: var(--pink-main);
   --color-ofit-pink-hover: var(--pink-hover);
@@ -50,12 +47,19 @@
   --color-ofit-border: var(--border-soft);
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   background: var(--bg-main);
   color: var(--text-main);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
 }
 
 /* Custom UI Components */
@@ -65,6 +69,7 @@ body {
   border-radius: 24px;
   box-shadow: 0 8px 30px rgba(48, 40, 42, 0.04);
   transition: all 0.3s ease;
+  min-width: 0;
 }
 
 /* Buttons */
@@ -80,6 +85,8 @@ body {
   transition: all 0.2s ease;
   padding: 0 24px;
   box-shadow: 0 4px 15px rgba(217, 143, 160, 0.25);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -110,20 +117,13 @@ body {
   justify-content: center;
   transition: all 0.2s ease;
   padding: 0 20px;
+  min-width: 0;
+  max-width: 100%;
 }
 
-.btn-secondary:hover:not(:disabled) {
-  background: #EEDDE1;
-}
-
-.btn-secondary:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.btn-secondary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.btn-secondary:hover:not(:disabled) { background: #EEDDE1; }
+.btn-secondary:active:not(:disabled) { transform: scale(0.98); }
+.btn-secondary:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .btn-tertiary {
   background: transparent;
@@ -137,6 +137,8 @@ body {
   justify-content: center;
   transition: all 0.2s ease;
   padding: 0 16px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .btn-tertiary:hover:not(:disabled) {
@@ -144,15 +146,8 @@ body {
   color: var(--text-main);
   border-color: #D4C3C7;
 }
-
-.btn-tertiary:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.btn-tertiary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.btn-tertiary:active:not(:disabled) { transform: scale(0.98); }
+.btn-tertiary:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* Form Inputs */
 .input-field {
@@ -164,6 +159,8 @@ body {
   color: var(--text-main);
   transition: all 0.2s ease;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .input-field:focus {
@@ -171,10 +168,7 @@ body {
   border-color: var(--pink-main);
   box-shadow: 0 0 0 3px rgba(217, 143, 160, 0.15);
 }
-
-.input-field::placeholder {
-  color: #A09396;
-}
+.input-field::placeholder { color: #A09396; }
 
 .input-label {
   display: block;
@@ -184,35 +178,113 @@ body {
   margin-bottom: 6px;
 }
 
-/* Scrollbar hiding util */
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Modals */
 .modal-content {
   max-height: calc(100dvh - 32px);
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
-/* Badges */
-.badge-success {
-  background: var(--status-success-bg);
-  color: var(--status-success-text);
+.badge-success { background: var(--status-success-bg); color: var(--status-success-text); }
+.badge-warning { background: var(--status-warning-bg); color: var(--status-warning-text); }
+.badge-error { background: var(--status-error-bg); color: var(--status-error-text); }
+.badge-neutral { background: var(--bg-main); color: var(--text-secondary); }
+
+/* Base mobile-first safeguards: Dashboard + resto de la app */
+@media (max-width: 640px) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  main,
+  section,
+  article,
+  form,
+  nav,
+  header,
+  footer,
+  div {
+    min-width: 0;
+  }
+
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+    max-width: 100%;
+  }
+
+  button,
+  a {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  p,
+  span {
+    overflow-wrap: anywhere;
+  }
+
+  .card {
+    border-radius: 18px;
+  }
+
+  .btn-primary {
+    min-height: 50px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .btn-secondary {
+    min-height: 46px;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  /* Evita que montos largos rompan tarjetas como las del Dashboard */
+  .card [class*="text-3xl"],
+  .card [class*="text-4xl"],
+  .card [class*="text-5xl"] {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Bottom sheets y overlays deben respetar iPhone/Android */
+  .fixed.inset-0 {
+    padding-top: env(safe-area-inset-top);
+  }
 }
-.badge-warning {
-  background: var(--status-warning-bg);
-  color: var(--status-warning-text);
-}
-.badge-error {
-  background: var(--status-error-bg);
-  color: var(--status-error-text);
-}
-.badge-neutral {
-  background: var(--bg-main);
-  color: var(--text-secondary);
+
+@media (max-width: 380px) {
+  .card {
+    border-radius: 16px;
+  }
+
+  .btn-primary {
+    min-height: 48px;
+    font-size: 0.95rem;
+  }
+
+  .card [class*="p-6"] {
+    padding: 16px;
+  }
+
+  .card [class*="p-5"] {
+    padding: 14px;
+  }
 }
