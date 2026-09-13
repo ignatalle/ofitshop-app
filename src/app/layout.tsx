@@ -32,12 +32,11 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen relative`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-[100dvh] relative overflow-x-hidden`}
       >
         <Sidebar />
-        
-        {/* Main content with padding top for the fixed top bar and padding bottom for BottomNav */}
-        <main className="pt-[calc(4rem+env(safe-area-inset-top))] pb-24 md:pb-[calc(1.5rem+env(safe-area-inset-bottom))] min-h-[100dvh]">
+
+        <main className="pt-[calc(4rem+env(safe-area-inset-top))] pb-[calc(6.25rem+env(safe-area-inset-bottom))] md:pb-[calc(1.5rem+env(safe-area-inset-bottom))] min-h-[100dvh] w-full min-w-0 overflow-x-hidden">
           {children}
         </main>
 
