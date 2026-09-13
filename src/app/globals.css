@@ -268,6 +268,81 @@ body {
   .fixed.inset-0 {
     padding-top: env(safe-area-inset-top);
   }
+
+  /* Ajustes */
+  .ajustes-mobile-page .card {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .ajustes-mobile-page form,
+  .ajustes-mobile-page input,
+  .ajustes-mobile-page button {
+    width: 100%;
+  }
+
+  /* Costos pendientes */
+  .costos-mobile-page {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .costos-mobile-page > div {
+    min-height: auto;
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+    overflow-x: hidden;
+  }
+
+  .costos-mobile-page .sticky {
+    top: 0;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .costos-mobile-page .sticky > div,
+  .costos-mobile-page .sticky + div,
+  .costos-mobile-page .bg-white,
+  .costos-mobile-page .rounded-2xl {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .costos-mobile-page .fixed.inset-0 {
+    align-items: flex-end !important;
+    justify-content: center;
+    padding: env(safe-area-inset-top) 0 0 !important;
+    z-index: 100 !important;
+  }
+
+  .costos-mobile-page .fixed.inset-0 > div {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100dvh - env(safe-area-inset-top));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: 24px 24px 0 0;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-bottom: calc(1rem + 6rem + env(safe-area-inset-bottom));
+  }
+
+  .costos-mobile-page input,
+  .costos-mobile-page select,
+  .costos-mobile-page textarea,
+  .costos-mobile-page button,
+  .costos-mobile-page a {
+    max-width: 100%;
+  }
+
+  .costos-mobile-page [class*="justify-between"] {
+    gap: 10px;
+  }
+
+  .costos-mobile-page [class*="text-2xl"],
+  .costos-mobile-page [class*="text-xl"] {
+    overflow-wrap: anywhere;
+  }
 }
 
 @media (max-width: 380px) {
@@ -286,5 +361,22 @@ body {
 
   .card [class*="p-5"] {
     padding: 14px;
+  }
+
+  .costos-mobile-page .sticky {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .costos-mobile-page .sticky h1 {
+    font-size: 1.05rem;
+  }
+
+  .costos-mobile-page [class*="p-5"] {
+    padding: 14px;
+  }
+
+  .costos-mobile-page [class*="p-4"] {
+    padding: 12px;
   }
 }
