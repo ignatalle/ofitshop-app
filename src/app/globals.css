@@ -31,6 +31,31 @@
   --foreground: var(--text-main);
 }
 
+/* Tema opcional: Rosa + Negro + Dorado */
+html[data-theme="luxe"] {
+  --bg-main: #0B090B;
+  --bg-card: #171317;
+  --pink-main: #E57698;
+  --pink-hover: #F08BA8;
+  --pink-soft: #301923;
+  --pink-bg: #3A1D29;
+  --navy-main: #D4AF37;
+  --rose-gold: #D4AF37;
+  --sage-green: #183126;
+  --sage-green-text: #8FD6AE;
+  --text-main: #FFF7F9;
+  --text-secondary: #CDBFC4;
+  --border-soft: #4B3840;
+  --status-success-bg: #183126;
+  --status-success-text: #8FD6AE;
+  --status-warning-bg: #332913;
+  --status-warning-text: #E7C869;
+  --status-error-bg: #3B1D25;
+  --status-error-text: #FF9FB5;
+  --background: var(--bg-main);
+  --foreground: var(--text-main);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -60,6 +85,45 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+/* Superficies principales del tema Luxe. Mantiene los colores funcionales
+   (verde/rojo/amarillo) de estados y alertas. */
+html[data-theme="luxe"] header[class*="bg-white"],
+html[data-theme="luxe"] aside[class*="bg-white"],
+html[data-theme="luxe"] nav.fixed[class*="bg-white"] {
+  background-color: rgba(15, 12, 15, 0.96) !important;
+  border-color: #5A4721 !important;
+}
+
+html[data-theme="luxe"] .card {
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(212, 175, 55, 0.05);
+}
+
+html[data-theme="luxe"] .input-field {
+  background-color: #211A20;
+  border-color: #59444D;
+  color: #FFF7F9;
+}
+
+html[data-theme="luxe"] .input-field::placeholder {
+  color: #9F8D94;
+}
+
+html[data-theme="luxe"] .btn-primary {
+  box-shadow: 0 5px 18px rgba(229, 118, 152, 0.28), 0 0 0 1px rgba(212, 175, 55, 0.16);
+}
+
+html[data-theme="luxe"] .btn-secondary,
+html[data-theme="luxe"] .btn-tertiary {
+  background-color: #171317;
+  border-color: #5A4721;
+}
+
+html[data-theme="luxe"] ::selection {
+  background: #D4AF37;
+  color: #0B090B;
 }
 
 /* Custom UI Components */
@@ -121,7 +185,7 @@ body {
   max-width: 100%;
 }
 
-.btn-secondary:hover:not(:disabled) { background: #EEDDE1; }
+.btn-secondary:hover:not(:disabled) { background: var(--pink-soft); }
 .btn-secondary:active:not(:disabled) { transform: scale(0.98); }
 .btn-secondary:disabled { opacity: 0.6; cursor: not-allowed; }
 
@@ -144,7 +208,7 @@ body {
 .btn-tertiary:hover:not(:disabled) {
   background: var(--bg-main);
   color: var(--text-main);
-  border-color: #D4C3C7;
+  border-color: var(--rose-gold);
 }
 .btn-tertiary:active:not(:disabled) { transform: scale(0.98); }
 .btn-tertiary:disabled { opacity: 0.6; cursor: not-allowed; }
