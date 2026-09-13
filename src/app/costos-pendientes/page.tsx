@@ -27,7 +27,7 @@ export default async function CostosPendientesPage() {
   const currentYear = now.getFullYear();
 
   return (
-    <div className="flex-1 max-w-lg mx-auto w-full relative">
+    <div className="costos-mobile-page flex-1 max-w-lg mx-auto w-full relative min-w-0 overflow-x-hidden">
       <CostosPendientesClient 
         initialOrders={orders} 
         products={products}
