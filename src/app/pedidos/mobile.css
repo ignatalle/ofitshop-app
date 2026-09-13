@@ -1,0 +1,197 @@
+/* Ajustes mobile-first compartidos para /pedidos, /pedidos/nuevo y /pedidos/[id] */
+
+@media (max-width: 640px) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  body {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Evita zoom automático de Safari iOS al enfocar inputs pequeños */
+  input,
+  select,
+  textarea,
+  button {
+    font-size: 16px;
+  }
+
+  input,
+  select,
+  textarea,
+  button,
+  a {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .pedidos-mobile-shell {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
+  }
+
+  .pedidos-mobile-header {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .pedidos-mobile-header > * {
+    min-width: 0;
+  }
+
+  .pedidos-mobile-title {
+    font-size: 1.25rem;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  .pedidos-mobile-new {
+    flex-shrink: 0;
+    padding-left: 12px;
+    padding-right: 12px;
+    white-space: nowrap;
+  }
+
+  .pedidos-mobile-tabs {
+    width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+  }
+
+  .pedidos-mobile-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pedidos-mobile-tabs button {
+    min-width: 92px;
+    flex: 1 0 auto;
+    white-space: nowrap;
+  }
+
+  .pedidos-mobile-card {
+    min-width: 0;
+    overflow: hidden;
+    padding: 12px;
+  }
+
+  .pedidos-mobile-card h3,
+  .pedidos-mobile-card p,
+  .pedidos-mobile-card span {
+    overflow-wrap: anywhere;
+  }
+
+  .pedidos-mobile-card-top {
+    gap: 10px;
+  }
+
+  .pedidos-mobile-card-bottom {
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .pedidos-mobile-badges {
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .pedidos-mobile-detail-header {
+    min-width: 0;
+  }
+
+  .pedidos-mobile-detail-header > div {
+    min-width: 0;
+  }
+
+  .pedidos-mobile-status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pedidos-mobile-status-grid button {
+    min-height: 46px;
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .pedidos-mobile-panel {
+    padding: 14px;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .pedidos-mobile-panel input,
+  .pedidos-mobile-panel select,
+  .pedidos-mobile-panel textarea {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pedidos-mobile-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .pedidos-mobile-actions button,
+  .pedidos-mobile-actions a {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pedidos-mobile-scroll-x {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+
+  .pedidos-mobile-modal {
+    align-items: flex-end;
+    padding: env(safe-area-inset-top) 0 0;
+  }
+
+  .pedidos-mobile-modal-card {
+    width: 100%;
+    max-height: calc(100dvh - env(safe-area-inset-top));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: 24px 24px 0 0;
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  }
+
+  .pedidos-mobile-sticky-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    background: white;
+    padding-top: 10px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 360px) {
+  .pedidos-mobile-shell {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .pedidos-mobile-new span {
+    display: none;
+  }
+
+  .pedidos-mobile-card {
+    padding: 10px;
+  }
+
+  .pedidos-mobile-panel {
+    padding: 12px;
+  }
+}
