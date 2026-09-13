@@ -1,0 +1,80 @@
+/* Auditoría transversal mobile: iPhone, Android y pantallas angostas */
+
+@media (max-width: 640px) {
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    overscroll-behavior-x: none;
+  }
+
+  body {
+    min-height: 100dvh;
+  }
+
+  main {
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  /* Evita que headers internos sticky se escondan detrás de la barra superior global */
+  main .sticky.top-0 {
+    top: calc(4rem + env(safe-area-inset-top));
+  }
+
+  /* Cualquier overlay debe quedar por encima de la barra inferior */
+  main .fixed.inset-0 {
+    z-index: 100 !important;
+  }
+
+  /* Contenedores de formularios y tarjetas nunca deben forzar scroll horizontal */
+  main form,
+  main .card,
+  main [class*="max-w-"],
+  main [class*="grid-cols-"] {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* Controles seguros para iOS: evita zoom al enfocar */
+  main input,
+  main select,
+  main textarea {
+    font-size: 16px !important;
+  }
+
+  /* Mejor respuesta táctil en dispositivos touch */
+  main button,
+  main a {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Montos y textos extensos no rompen el ancho de la pantalla */
+  main h1,
+  main h2,
+  main h3,
+  main h4,
+  main p,
+  main span,
+  main label {
+    overflow-wrap: anywhere;
+  }
+
+  /* Scroll horizontal solo cuando realmente es necesario */
+  main [class*="overflow-x-auto"] {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+}
+
+@media (max-width: 360px) {
+  main .card {
+    max-width: calc(100vw - 20px);
+  }
+
+  main [class*="px-6"] {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
