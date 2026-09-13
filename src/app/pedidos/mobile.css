@@ -10,188 +10,175 @@
     -webkit-text-size-adjust: 100%;
   }
 
-  /* Evita zoom automático de Safari iOS al enfocar inputs pequeños */
-  input,
-  select,
-  textarea,
-  button {
-    font-size: 16px;
-  }
-
-  input,
-  select,
-  textarea,
-  button,
-  a {
-    min-width: 0;
-    max-width: 100%;
-  }
-
   .pedidos-mobile-shell {
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
-    padding-left: 12px;
-    padding-right: 12px;
+    padding-left: 0;
+    padding-right: 0;
     padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
   }
 
-  .pedidos-mobile-header {
-    align-items: flex-start;
-    gap: 10px;
+  .pedidos-mobile-shell > * {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-left: auto;
+    margin-right: auto;
   }
 
-  .pedidos-mobile-header > * {
+  .pedidos-mobile-shell input,
+  .pedidos-mobile-shell select,
+  .pedidos-mobile-shell textarea,
+  .pedidos-mobile-shell button {
+    font-size: 16px;
+  }
+
+  .pedidos-mobile-shell input,
+  .pedidos-mobile-shell select,
+  .pedidos-mobile-shell textarea,
+  .pedidos-mobile-shell button,
+  .pedidos-mobile-shell a,
+  .pedidos-mobile-shell div {
     min-width: 0;
+    max-width: 100%;
   }
 
-  .pedidos-mobile-title {
-    font-size: 1.25rem;
-    line-height: 1.2;
+  .pedidos-mobile-shell .card {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .pedidos-mobile-shell h1,
+  .pedidos-mobile-shell h2,
+  .pedidos-mobile-shell h3,
+  .pedidos-mobile-shell p,
+  .pedidos-mobile-shell span {
     overflow-wrap: anywhere;
   }
 
-  .pedidos-mobile-new {
-    flex-shrink: 0;
-    padding-left: 12px;
-    padding-right: 12px;
-    white-space: nowrap;
+  /* Primera fila de la vista principal: título + Carga Rápida */
+  .pedidos-mobile-shell > div > div:first-child {
+    min-width: 0;
   }
 
-  .pedidos-mobile-tabs {
-    width: 100%;
+  /* Los grupos horizontales pueden envolver sin romper el viewport */
+  .pedidos-mobile-shell .flex {
+    min-width: 0;
+  }
+
+  .pedidos-mobile-shell .flex-wrap {
+    row-gap: 6px;
+  }
+
+  /* Tabs: siempre utilizables incluso en 320px */
+  .pedidos-mobile-shell .bg-gray-100.rounded-xl.p-1 {
     overflow-x: auto;
     overscroll-behavior-inline: contain;
     scrollbar-width: none;
   }
 
-  .pedidos-mobile-tabs::-webkit-scrollbar {
+  .pedidos-mobile-shell .bg-gray-100.rounded-xl.p-1::-webkit-scrollbar {
     display: none;
   }
 
-  .pedidos-mobile-tabs button {
+  .pedidos-mobile-shell .bg-gray-100.rounded-xl.p-1 > button {
     min-width: 92px;
     flex: 1 0 auto;
     white-space: nowrap;
   }
 
-  .pedidos-mobile-card {
-    min-width: 0;
-    overflow: hidden;
+  /* Tarjetas del listado */
+  .pedidos-mobile-shell a.card {
     padding: 12px;
   }
 
-  .pedidos-mobile-card h3,
-  .pedidos-mobile-card p,
-  .pedidos-mobile-card span {
-    overflow-wrap: anywhere;
-  }
-
-  .pedidos-mobile-card-top {
+  .pedidos-mobile-shell a.card > div:first-child {
     gap: 10px;
   }
 
-  .pedidos-mobile-card-bottom {
+  .pedidos-mobile-shell a.card > div:last-child {
     gap: 8px;
     align-items: flex-start;
   }
 
-  .pedidos-mobile-badges {
-    min-width: 0;
+  .pedidos-mobile-shell a.card > div:last-child > div:first-child {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-  }
-
-  .pedidos-mobile-detail-header {
     min-width: 0;
   }
 
-  .pedidos-mobile-detail-header > div {
-    min-width: 0;
-  }
-
-  .pedidos-mobile-status-grid {
+  /* Detalle del pedido: estados en vertical en pantallas realmente chicas */
+  .pedidos-mobile-shell .grid.grid-cols-3 {
     grid-template-columns: 1fr;
   }
 
-  .pedidos-mobile-status-grid button {
+  .pedidos-mobile-shell .grid.grid-cols-3 > button {
     min-height: 46px;
     flex-direction: row;
     justify-content: center;
   }
 
-  .pedidos-mobile-panel {
-    padding: 14px;
-    min-width: 0;
-    overflow: hidden;
-  }
-
-  .pedidos-mobile-panel input,
-  .pedidos-mobile-panel select,
-  .pedidos-mobile-panel textarea {
-    width: 100%;
+  /* Inputs y filas de precio/costo nunca deben salir del ancho */
+  .pedidos-mobile-shell form,
+  .pedidos-mobile-shell form > div,
+  .pedidos-mobile-shell .relative {
     min-width: 0;
   }
 
-  .pedidos-mobile-actions {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  .pedidos-mobile-actions button,
-  .pedidos-mobile-actions a {
+  .pedidos-mobile-shell input,
+  .pedidos-mobile-shell select,
+  .pedidos-mobile-shell textarea {
     width: 100%;
-    justify-content: center;
   }
 
-  .pedidos-mobile-scroll-x {
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 4px;
+  /* Acciones inferiores: apilar cuando no entran */
+  .pedidos-mobile-shell .grid.grid-cols-2 {
+    gap: 8px;
   }
 
-  .pedidos-mobile-modal {
-    align-items: flex-end;
-    padding: env(safe-area-inset-top) 0 0;
+  /* Modales/sheets dentro de pedidos */
+  .pedidos-mobile-shell .fixed.inset-0 {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: 0;
   }
 
-  .pedidos-mobile-modal-card {
-    width: 100%;
+  .pedidos-mobile-shell .fixed.inset-0 > div,
+  .pedidos-mobile-shell .fixed.inset-0 > form {
     max-height: calc(100dvh - env(safe-area-inset-top));
     overflow-y: auto;
     overscroll-behavior: contain;
-    border-radius: 24px 24px 0 0;
     padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
-  }
-
-  .pedidos-mobile-sticky-actions {
-    position: sticky;
-    bottom: 0;
-    z-index: 5;
-    background: white;
-    padding-top: 10px;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom));
   }
 }
 
-@media (max-width: 360px) {
-  .pedidos-mobile-shell {
-    padding-left: 10px;
-    padding-right: 10px;
+@media (max-width: 380px) {
+  .pedidos-mobile-shell > div {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
   }
 
-  .pedidos-mobile-new span {
-    display: none;
+  .pedidos-mobile-shell h1 {
+    font-size: 1.25rem;
+    line-height: 1.2;
   }
 
-  .pedidos-mobile-card {
+  .pedidos-mobile-shell a.card {
     padding: 10px;
   }
 
-  .pedidos-mobile-panel {
-    padding: 12px;
+  /* En la cabecera de Pedidos deja el CTA compacto */
+  .pedidos-mobile-shell a[href="/pedidos/nuevo"] {
+    padding-left: 10px;
+    padding-right: 10px;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  /* Resumen de estado del detalle */
+  .pedidos-mobile-shell .card {
+    padding-left: 12px;
+    padding-right: 12px;
   }
 }
