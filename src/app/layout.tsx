@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./mobile-audit.css";
 import Sidebar from "../components/Sidebar";
 import BottomNav from "../components/BottomNav";
 
@@ -22,6 +23,13 @@ export const metadata: Metadata = {
     apple: '/img/LOGO.png',
   },
   manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#FFF9F7",
 };
 
 export default function RootLayout({
