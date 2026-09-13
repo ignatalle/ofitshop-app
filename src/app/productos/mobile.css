@@ -1,0 +1,83 @@
+.productos-mobile {
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.productos-mobile * {
+  min-width: 0;
+}
+
+.productos-mobile input,
+.productos-mobile select,
+.productos-mobile textarea,
+.productos-mobile button {
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+  .productos-mobile {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .productos-mobile input,
+  .productos-mobile select,
+  .productos-mobile textarea {
+    font-size: 16px !important;
+  }
+
+  .productos-mobile form {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .productos-mobile .sticky {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .productos-mobile .grid.grid-cols-2 {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .productos-mobile .fixed.bottom-0 {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .productos-mobile .fixed.bottom-0 > div {
+    width: 100%;
+  }
+
+  .productos-mobile .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  .productos-mobile .rounded-2xl,
+  .productos-mobile .rounded-xl {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  .productos-mobile form {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    gap: 16px !important;
+  }
+
+  .productos-mobile .p-6 {
+    padding: 16px !important;
+  }
+
+  .productos-mobile .px-6 {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .productos-mobile .text-2xl {
+    font-size: 1.25rem !important;
+    line-height: 1.75rem !important;
+  }
+}
