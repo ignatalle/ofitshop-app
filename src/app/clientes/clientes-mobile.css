@@ -1,0 +1,97 @@
+.clientes-mobile {
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.clientes-mobile *,
+.clientes-mobile *::before,
+.clientes-mobile *::after {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.clientes-mobile input,
+.clientes-mobile select,
+.clientes-mobile textarea,
+.clientes-mobile button {
+  max-width: 100%;
+}
+
+/* Evita el zoom automático de iOS al enfocar campos. */
+.clientes-mobile input,
+.clientes-mobile select,
+.clientes-mobile textarea {
+  font-size: 16px;
+}
+
+/* Cualquier modal de esta ruta debe respetar notch, barra inferior y teclado. */
+.clientes-mobile .fixed.inset-0 {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: 0;
+}
+
+.clientes-mobile .fixed.inset-0 > div {
+  max-height: calc(100dvh - env(safe-area-inset-top));
+}
+
+@media (max-width: 640px) {
+  .clientes-mobile .fixed.inset-0 {
+    align-items: flex-end !important;
+    justify-content: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .clientes-mobile .fixed.inset-0 > div {
+    width: 100% !important;
+    max-width: none !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)) !important;
+  }
+
+  /* El formulario de abono debe poder desplazarse con el teclado abierto. */
+  .clientes-mobile .fixed.inset-0 form {
+    overflow: visible;
+  }
+
+  /* Tarjetas y cabeceras: permitir salto de línea en teléfonos angostos. */
+  .clientes-mobile [class*='justify-between'] {
+    min-width: 0;
+  }
+
+  .clientes-mobile [class*='truncate'] {
+    max-width: 100%;
+  }
+
+  /* Acciones de cobro: no forzar una fila demasiado ancha. */
+  .clientes-mobile a,
+  .clientes-mobile button {
+    touch-action: manipulation;
+  }
+}
+
+@media (max-width: 380px) {
+  .clientes-mobile > div {
+    padding-left: 0.65rem !important;
+    padding-right: 0.65rem !important;
+  }
+
+  .clientes-mobile h1 {
+    font-size: 1.25rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .clientes-mobile h3,
+  .clientes-mobile h4 {
+    overflow-wrap: anywhere;
+  }
+
+  .clientes-mobile button,
+  .clientes-mobile a {
+    font-size: 0.78rem;
+  }
+}
