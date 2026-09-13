@@ -574,13 +574,18 @@ function NuevoPedidoContent() {
       </div>
 
       {isCustomerModalOpen && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center">
-          <form onSubmit={handleCreateCustomer} className="bg-white w-full sm:max-w-md p-5 sm:p-6 rounded-t-3xl sm:rounded-3xl pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pb-6">
-            <div className="flex justify-between items-center mb-4"><h2 className="text-xl font-bold">Nuevo Cliente</h2><button type="button" onClick={() => setIsCustomerModalOpen(false)} aria-label="Cerrar"><X /></button></div>
+        <div className="fixed inset-0 bg-black/40 z-[100] flex items-end sm:items-center justify-center overflow-y-auto overscroll-contain">
+          <form onSubmit={handleCreateCustomer} className="bg-white w-full sm:max-w-md max-h-[calc(100dvh-0.75rem)] overflow-y-auto p-4 min-[360px]:p-5 sm:p-6 rounded-t-3xl sm:rounded-3xl pb-[calc(6rem+env(safe-area-inset-bottom))] sm:pb-6 shadow-2xl">
+            <div className="sticky top-0 bg-white flex justify-between items-center mb-4 pb-1 z-10">
+              <h2 className="text-lg min-[360px]:text-xl font-bold">Nuevo Cliente</h2>
+              <button type="button" onClick={() => setIsCustomerModalOpen(false)} aria-label="Cerrar" className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 shrink-0"><X size={20} /></button>
+            </div>
             <input required value={newCustomerName} onChange={(e) => setNewCustomerName(e.target.value)} placeholder="Nombre" className="w-full h-11 px-3 border rounded-xl mb-3" />
-            <input required value={newCustomerPhone} onChange={(e) => setNewCustomerPhone(e.target.value)} placeholder="WhatsApp" className="w-full h-11 px-3 border rounded-xl mb-3" />
+            <input required value={newCustomerPhone} onChange={(e) => setNewCustomerPhone(e.target.value)} placeholder="WhatsApp" inputMode="tel" className="w-full h-11 px-3 border rounded-xl mb-3" />
             <select value={newCustomerType} onChange={(e) => setNewCustomerType(e.target.value)} className="w-full h-11 px-3 border rounded-xl mb-4"><option value="MINORISTA">Minorista</option><option value="MAYORISTA">Mayorista</option></select>
-            <button disabled={isSubmittingCustomer} className="w-full h-11 bg-ofit-pink text-white rounded-xl font-bold">{isSubmittingCustomer ? 'Guardando...' : 'Guardar cliente'}</button>
+            <button disabled={isSubmittingCustomer} className="sticky bottom-0 w-full min-h-12 px-4 bg-ofit-pink text-white rounded-xl font-bold shadow-lg disabled:opacity-50 flex items-center justify-center">
+              {isSubmittingCustomer ? 'Guardando...' : 'Guardar cliente'}
+            </button>
           </form>
         </div>
       )}
