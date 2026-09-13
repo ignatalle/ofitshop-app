@@ -1,19 +1,37 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { Save, Loader2 } from 'lucide-react';
+import { Save, Loader2, Palette, Check } from 'lucide-react';
+
+type AppTheme = 'classic' | 'luxe';
 
 function AjustesContent() {
   const [alias, setAlias] = useState('');
   const [titular, setTitular] = useState('');
   const [isSaved, setIsSaved] = useState(false);
+  const [theme, setTheme] = useState<AppTheme>('classic');
 
   useEffect(() => {
     const savedAlias = localStorage.getItem('ofitshop_alias');
     const savedTitular = localStorage.getItem('ofitshop_titular');
+    const savedTheme = localStorage.getItem('ofitshop_theme');
     if (savedAlias) setAlias(savedAlias);
     if (savedTitular) setTitular(savedTitular);
+    if (savedTheme === 'luxe') {
+      setTheme('luxe');
+      document.documentElement.dataset.theme = 'luxe';
+    }
   }, []);
+
+  const changeTheme = (nextTheme: AppTheme) => {
+    setTheme(nextTheme);
+    localStorage.setItem('ofitshop_theme', nextTheme);
+    if (nextTheme === 'luxe') {
+      document.documentElement.dataset.theme = 'luxe';
+    } else {
+      delete document.documentElement.dataset.theme;
+    }
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,16 +48,70 @@ function AjustesContent() {
           Ajustes
         </h1>
         <p className="text-sm text-ofit-text-soft font-medium leading-snug">
-          Configurá los datos de tu negocio
+          Configurá los datos y el estilo de Outfit Shop
         </p>
+      </div>
+
+      <div className="card p-4 min-[360px]:p-5 sm:p-6 border-none shadow-sm flex flex-col gap-4 min-w-0">
+        <div className="flex items-center gap-2">
+          <Palette size={20} className="text-ofit-pink" />
+          <h2 className="text-base min-[360px]:text-lg font-bold text-ofit-text">Estilo de la app</h2>
+        </div>
+        <p className="text-sm text-ofit-text-soft leading-relaxed">
+          Podés cambiar el look cuando quieras. No modifica datos, pedidos ni finanzas.
+        </p>
+
+        <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => changeTheme('classic')}
+            className={`relative min-h-[112px] rounded-2xl border-2 p-3 text-left transition-all ${
+              theme === 'classic' ? 'border-ofit-pink ring-2 ring-ofit-pink/15' : 'border-ofit-border'
+            }`}
+          >
+            {theme === 'classic' && (
+              <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-ofit-pink text-white flex items-center justify-center">
+                <Check size={14} strokeWidth={3} />
+              </span>
+            )}
+            <div className="flex gap-1.5 mb-3">
+              <span className="w-7 h-7 rounded-full bg-[#FFF9F7] border border-[#EBD9DE]" />
+              <span className="w-7 h-7 rounded-full bg-[#D98FA0]" />
+              <span className="w-7 h-7 rounded-full bg-[#1C2B4B]" />
+            </div>
+            <span className="block font-black text-ofit-text">Clásico</span>
+            <span className="block text-xs text-ofit-text-soft mt-1">El estilo actual, suave y claro.</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => changeTheme('luxe')}
+            className={`relative min-h-[112px] rounded-2xl border-2 p-3 text-left transition-all bg-[#120F12] ${
+              theme === 'luxe' ? 'border-[#D4AF37] ring-2 ring-[#D4AF37]/20' : 'border-[#4B3840]'
+            }`}
+          >
+            {theme === 'luxe' && (
+              <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[#D4AF37] text-black flex items-center justify-center">
+                <Check size={14} strokeWidth={3} />
+              </span>
+            )}
+            <div className="flex gap-1.5 mb-3">
+              <span className="w-7 h-7 rounded-full bg-[#0B090B] border border-[#4B3840]" />
+              <span className="w-7 h-7 rounded-full bg-[#E57698]" />
+              <span className="w-7 h-7 rounded-full bg-[#D4AF37]" />
+            </div>
+            <span className="block font-black text-white">Rosa · Negro · Dorado</span>
+            <span className="block text-xs text-[#CDBFC4] mt-1">Más elegante, fuerte y premium.</span>
+          </button>
+        </div>
       </div>
 
       <div className="card p-4 min-[360px]:p-5 sm:p-6 border-none shadow-sm flex flex-col gap-5 sm:gap-6 min-w-0">
         <div className="min-w-0">
-          <h2 className="text-base min-[360px]:text-lg font-bold text-ofit-text mb-3 sm:mb-4 border-b border-gray-100 pb-2">
+          <h2 className="text-base min-[360px]:text-lg font-bold text-ofit-text mb-3 sm:mb-4 border-b border-ofit-border pb-2">
             Datos de Cobro
           </h2>
-          <p className="text-sm text-gray-500 mb-4 leading-relaxed">
+          <p className="text-sm text-ofit-text-soft mb-4 leading-relaxed">
             Estos datos se van a agregar automáticamente al final de los mensajes de WhatsApp cuando le mandes el saldo a tus clientas.
           </p>
 
@@ -76,7 +148,7 @@ function AjustesContent() {
               />
             </div>
 
-            <div className="pt-2 sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] sm:static bg-white/95 backdrop-blur-sm -mx-1 px-1 pb-1 z-10">
+            <div className="pt-2 sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] sm:static bg-[var(--bg-card)]/95 backdrop-blur-sm -mx-1 px-1 pb-1 z-10">
               <button
                 type="submit"
                 className="w-full btn-primary flex items-center justify-center gap-2"
@@ -87,7 +159,7 @@ function AjustesContent() {
             </div>
             
             {isSaved && (
-              <div className="text-center text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-100 leading-snug">
+              <div className="text-center text-sm font-bold badge-success px-3 py-2 rounded-xl border border-ofit-border leading-snug">
                 ¡Datos guardados correctamente!
               </div>
             )}
