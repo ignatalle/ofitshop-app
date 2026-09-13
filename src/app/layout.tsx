@@ -32,13 +32,25 @@ export const viewport: Viewport = {
   themeColor: "#FFF9F7",
 };
 
+const themeBootScript = `
+  try {
+    const savedTheme = localStorage.getItem('ofitshop_theme');
+    if (savedTheme === 'luxe') {
+      document.documentElement.dataset.theme = 'luxe';
+    }
+  } catch (_) {}
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-[100dvh] relative overflow-x-hidden`}
       >
