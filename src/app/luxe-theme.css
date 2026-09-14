@@ -1,0 +1,282 @@
+/* Outfit Shop — Premium Dark / Rosa · Negro · Dorado
+   Solo se activa con html[data-theme="luxe"]. */
+
+html[data-theme="luxe"] {
+  --bg-main: #09090B;
+  --bg-card: #141216;
+  --pink-main: #D66F91;
+  --pink-hover: #E27D9E;
+  --pink-soft: #2A171F;
+  --pink-bg: #341B26;
+  --navy-main: #D0AC62;
+  --rose-gold: #C9A55C;
+  --sage-green: #14271F;
+  --sage-green-text: #79C79D;
+  --text-main: #F7F2F4;
+  --text-secondary: #B8ABB2;
+  --border-soft: #302831;
+  --status-success-bg: #14271F;
+  --status-success-text: #79C79D;
+  --status-warning-bg: #292214;
+  --status-warning-text: #E4C478;
+  --status-error-bg: #30181F;
+  --status-error-text: #ED8FA8;
+  --background: var(--bg-main);
+  --foreground: var(--text-main);
+  color-scheme: dark;
+}
+
+html[data-theme="luxe"] body {
+  background:
+    radial-gradient(circle at 12% -10%, rgba(214,111,145,.10), transparent 32rem),
+    radial-gradient(circle at 90% 5%, rgba(201,165,92,.07), transparent 28rem),
+    #09090B;
+  color: #F7F2F4;
+}
+
+/* Header, drawer y navegación inferior */
+html[data-theme="luxe"] header,
+html[data-theme="luxe"] aside,
+html[data-theme="luxe"] nav.fixed {
+  background: rgba(11,10,12,.94) !important;
+  border-color: rgba(201,165,92,.28) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,.22) !important;
+  backdrop-filter: blur(18px);
+}
+
+html[data-theme="luxe"] header h1,
+html[data-theme="luxe"] aside,
+html[data-theme="luxe"] nav.fixed {
+  color: #F7F2F4;
+}
+
+html[data-theme="luxe"] nav.fixed a {
+  color: #AFA2A9;
+}
+
+html[data-theme="luxe"] nav.fixed a [class*="bg-ofit-pink-soft"] {
+  background: rgba(214,111,145,.16) !important;
+  box-shadow: inset 0 0 0 1px rgba(214,111,145,.22);
+}
+
+/* Superficies neutras: elimina blancos perdidos sin tocar estados de negocio */
+html[data-theme="luxe"] .card,
+html[data-theme="luxe"] .bg-white,
+html[data-theme="luxe"] [class~="bg-white"],
+html[data-theme="luxe"] [class*="bg-white/"] {
+  background-color: #141216 !important;
+  color: #F7F2F4;
+  border-color: #302831 !important;
+}
+
+html[data-theme="luxe"] .card {
+  border: 1px solid rgba(201,165,92,.16) !important;
+  box-shadow: 0 16px 40px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.025) !important;
+}
+
+html[data-theme="luxe"] .bg-gray-50,
+html[data-theme="luxe"] [class*="bg-gray-50/"] {
+  background-color: #18151A !important;
+}
+
+html[data-theme="luxe"] .bg-gray-100,
+html[data-theme="luxe"] [class*="bg-gray-100/"] {
+  background-color: #1E1A20 !important;
+}
+
+html[data-theme="luxe"] .bg-gray-200,
+html[data-theme="luxe"] [class*="bg-gray-200/"] {
+  background-color: #262128 !important;
+}
+
+html[data-theme="luxe"] .border-gray-100,
+html[data-theme="luxe"] .border-gray-200,
+html[data-theme="luxe"] .border-gray-300,
+html[data-theme="luxe"] [class*="border-gray-"] {
+  border-color: #332B34 !important;
+}
+
+/* Tipografía neutra */
+html[data-theme="luxe"] .text-gray-800,
+html[data-theme="luxe"] .text-gray-700,
+html[data-theme="luxe"] .text-gray-600 {
+  color: #E9E1E5 !important;
+}
+
+html[data-theme="luxe"] .text-gray-500,
+html[data-theme="luxe"] .text-gray-400 {
+  color: #9F9299 !important;
+}
+
+/* Inputs / selects / buscadores */
+html[data-theme="luxe"] input,
+html[data-theme="luxe"] select,
+html[data-theme="luxe"] textarea,
+html[data-theme="luxe"] .input-field {
+  background: #111014 !important;
+  color: #F7F2F4 !important;
+  border-color: #3B323C !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+html[data-theme="luxe"] input::placeholder,
+html[data-theme="luxe"] textarea::placeholder {
+  color: #746A70 !important;
+}
+
+html[data-theme="luxe"] input:focus,
+html[data-theme="luxe"] select:focus,
+html[data-theme="luxe"] textarea:focus,
+html[data-theme="luxe"] .input-field:focus {
+  border-color: #D66F91 !important;
+  box-shadow: 0 0 0 3px rgba(214,111,145,.14), 0 8px 24px rgba(0,0,0,.18) !important;
+}
+
+/* CTA principal */
+html[data-theme="luxe"] .btn-primary,
+html[data-theme="luxe"] button.bg-ofit-pink,
+html[data-theme="luxe"] a.bg-ofit-pink {
+  background: linear-gradient(180deg, #DF7B9B 0%, #C95F83 100%) !important;
+  color: #FFF9FB !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: 0 12px 28px rgba(201,95,131,.24), inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+
+html[data-theme="luxe"] .btn-primary:hover,
+html[data-theme="luxe"] button.bg-ofit-pink:hover,
+html[data-theme="luxe"] a.bg-ofit-pink:hover {
+  background: linear-gradient(180deg, #E587A5 0%, #D3688B 100%) !important;
+}
+
+html[data-theme="luxe"] .btn-secondary,
+html[data-theme="luxe"] .btn-tertiary {
+  background: #161318 !important;
+  color: #F1E9ED !important;
+  border-color: rgba(201,165,92,.24) !important;
+}
+
+/* Dashboard: Plata en la Calle */
+html[data-theme="luxe"] [class*="bg-[#FFF8ED]"] {
+  background: linear-gradient(145deg, #171315 0%, #121013 100%) !important;
+  border: 1px solid rgba(201,165,92,.28) !important;
+  box-shadow: 0 18px 45px rgba(0,0,0,.32) !important;
+}
+
+html[data-theme="luxe"] [class*="text-amber-900"],
+html[data-theme="luxe"] [class*="text-amber-800"],
+html[data-theme="luxe"] [class*="text-amber-700"],
+html[data-theme="luxe"] [class*="text-amber-600"] {
+  color: #D8B66A !important;
+}
+
+html[data-theme="luxe"] [class*="bg-amber-100"] {
+  background: rgba(201,165,92,.12) !important;
+  border-color: rgba(201,165,92,.25) !important;
+}
+
+/* Alertas y tarjetas funcionales: oscuras, legibles y refinadas */
+html[data-theme="luxe"] [class*="bg-amber-50"] {
+  background-color: #201A11 !important;
+  border-color: rgba(201,165,92,.25) !important;
+}
+
+html[data-theme="luxe"] [class*="bg-blue-50"] {
+  background-color: #121823 !important;
+  border-color: rgba(91,124,250,.22) !important;
+}
+
+html[data-theme="luxe"] [class*="bg-emerald-50"] {
+  background-color: #101D18 !important;
+  border-color: rgba(79,175,122,.22) !important;
+}
+
+html[data-theme="luxe"] [class*="bg-red-50"] {
+  background-color: #241216 !important;
+  border-color: rgba(217,92,92,.20) !important;
+}
+
+/* Clientes: las fichas dejan de ser blancas y pasan a grafito premium */
+html[data-theme="luxe"] .clientes-mobile [class*="rounded-2xl"][class*="border"] {
+  border-color: rgba(201,165,92,.15);
+}
+
+html[data-theme="luxe"] .clientes-mobile > div > div > div > .bg-white,
+html[data-theme="luxe"] .clientes-mobile .bg-white.rounded-2xl {
+  background: linear-gradient(145deg, #171419, #121014) !important;
+  border-color: rgba(201,165,92,.15) !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,.27) !important;
+}
+
+html[data-theme="luxe"] .clientes-mobile [class*="bg-blue-100"] {
+  background: rgba(214,111,145,.14) !important;
+  color: #E9A2B9 !important;
+  border-color: rgba(214,111,145,.18) !important;
+}
+
+html[data-theme="luxe"] .clientes-mobile [class*="bg-red-50"] {
+  background: rgba(217,92,92,.09) !important;
+  border-color: rgba(217,92,92,.22) !important;
+}
+
+html[data-theme="luxe"] .clientes-mobile [class*="text-red-700"] {
+  color: #F08C99 !important;
+}
+
+html[data-theme="luxe"] .clientes-mobile [class*="bg-emerald-50"] {
+  background: rgba(79,175,122,.10) !important;
+  border-color: rgba(79,175,122,.20) !important;
+}
+
+/* Chips / filtros */
+html[data-theme="luxe"] button[class*="rounded-full"],
+html[data-theme="luxe"] button[class*="rounded-xl"] {
+  border-color: #3A313B;
+}
+
+html[data-theme="luxe"] button[class*="bg-ofit-pink"] {
+  color: white !important;
+}
+
+/* Etiquetas doradas discretas */
+html[data-theme="luxe"] .text-ofit-navy {
+  color: #D0AC62 !important;
+}
+
+/* Modales y bottom sheets */
+html[data-theme="luxe"] .fixed.inset-0 > div[class*="bg-white"],
+html[data-theme="luxe"] .modal-content {
+  background: #151217 !important;
+  border: 1px solid rgba(201,165,92,.18) !important;
+  box-shadow: 0 24px 70px rgba(0,0,0,.55) !important;
+}
+
+/* Divisores y sombras */
+html[data-theme="luxe"] [class*="border-ofit-border"] {
+  border-color: rgba(201,165,92,.20) !important;
+}
+
+html[data-theme="luxe"] [class*="shadow-sm"],
+html[data-theme="luxe"] [class*="shadow-lg"],
+html[data-theme="luxe"] [class*="shadow-xl"] {
+  --tw-shadow-color: rgba(0,0,0,.35) !important;
+}
+
+/* Scrollbar discreta */
+html[data-theme="luxe"] * {
+  scrollbar-color: #3B3038 #0B0A0C;
+}
+
+/* Mobile premium: respiración y radios un poco más sobrios */
+@media (max-width: 640px) {
+  html[data-theme="luxe"] .card {
+    border-radius: 20px;
+  }
+
+  html[data-theme="luxe"] .btn-primary {
+    border-radius: 16px;
+  }
+
+  html[data-theme="luxe"] main {
+    background: transparent;
+  }
+}
