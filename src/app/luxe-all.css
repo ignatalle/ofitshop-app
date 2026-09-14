@@ -1,0 +1,285 @@
+/* Outfit Shop — Luxe feminine polish across the full app
+   Rosa + negro + dorado + destellos. Sin coronas. */
+
+html[data-theme="luxe"] {
+  --luxe-pink: #F1A4C0;
+  --luxe-pink-strong: #DD6F9A;
+  --luxe-pink-deep: #8C315A;
+  --luxe-gold: #E5CB88;
+  --luxe-gold-soft: #F7E8B9;
+  --luxe-ivory: #FFF8FB;
+  --luxe-panel: #171218;
+  --luxe-panel-2: #20161E;
+  --luxe-border: rgba(229,203,136,.24);
+}
+
+/* Fondo general más femenino y profundo */
+html[data-theme="luxe"] body {
+  background:
+    radial-gradient(circle at 10% 6%, rgba(241,164,192,.12), transparent 24rem),
+    radial-gradient(circle at 92% 16%, rgba(229,203,136,.08), transparent 22rem),
+    radial-gradient(circle at 50% 92%, rgba(221,111,154,.06), transparent 28rem),
+    linear-gradient(180deg, #09070A 0%, #100A10 52%, #080708 100%) !important;
+}
+
+/* Header / nav / drawer */
+html[data-theme="luxe"] header,
+html[data-theme="luxe"] aside,
+html[data-theme="luxe"] nav.fixed {
+  background:
+    linear-gradient(180deg, rgba(20,14,19,.97), rgba(12,10,13,.97)) !important;
+  border-color: rgba(229,203,136,.30) !important;
+  box-shadow: 0 10px 34px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.025) !important;
+}
+
+html[data-theme="luxe"] header::after,
+html[data-theme="luxe"] nav.fixed::before {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(229,203,136,.62), rgba(241,164,192,.42), transparent);
+  pointer-events: none;
+}
+
+html[data-theme="luxe"] header::after { bottom: 0; }
+html[data-theme="luxe"] nav.fixed::before { top: 0; }
+
+html[data-theme="luxe"] nav.fixed a,
+html[data-theme="luxe"] aside a {
+  transition: color .2s ease, background .2s ease, transform .2s ease;
+}
+
+html[data-theme="luxe"] nav.fixed a:active,
+html[data-theme="luxe"] aside a:active {
+  transform: scale(.97);
+}
+
+/* Títulos principales */
+html[data-theme="luxe"] main h1,
+html[data-theme="luxe"] main h2 {
+  color: var(--luxe-ivory) !important;
+}
+
+html[data-theme="luxe"] main h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  letter-spacing: -.025em;
+  text-shadow: 0 0 22px rgba(241,164,192,.12);
+}
+
+/* Cards: acabado joyero suave */
+html[data-theme="luxe"] main .card,
+html[data-theme="luxe"] main [class*="rounded-2xl"][class*="border"],
+html[data-theme="luxe"] main [class*="rounded-3xl"][class*="border"] {
+  border-color: var(--luxe-border) !important;
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.025) !important;
+}
+
+/* Superficies neutras en rutas no estilizadas */
+html[data-theme="luxe"] main .bg-white,
+html[data-theme="luxe"] main [class~="bg-white"],
+html[data-theme="luxe"] main [class*="bg-white/"] {
+  background: linear-gradient(145deg, #19131A, #121014) !important;
+}
+
+html[data-theme="luxe"] main .bg-gray-50,
+html[data-theme="luxe"] main [class*="bg-gray-50/"] {
+  background: #181318 !important;
+}
+
+html[data-theme="luxe"] main .bg-gray-100,
+html[data-theme="luxe"] main [class*="bg-gray-100/"] {
+  background: #211920 !important;
+}
+
+html[data-theme="luxe"] main .bg-gray-200,
+html[data-theme="luxe"] main [class*="bg-gray-200/"] {
+  background: #2A2028 !important;
+}
+
+/* Inputs y selects */
+html[data-theme="luxe"] main input,
+html[data-theme="luxe"] main select,
+html[data-theme="luxe"] main textarea,
+html[data-theme="luxe"] main .input-field {
+  background: linear-gradient(180deg, rgba(31,22,30,.98), rgba(23,17,23,.98)) !important;
+  color: #FFF8FB !important;
+  border-color: rgba(229,203,136,.28) !important;
+}
+
+html[data-theme="luxe"] main input:focus,
+html[data-theme="luxe"] main select:focus,
+html[data-theme="luxe"] main textarea:focus {
+  border-color: rgba(241,164,192,.72) !important;
+  box-shadow: 0 0 0 3px rgba(241,164,192,.11), 0 0 22px rgba(241,164,192,.06) !important;
+}
+
+/* CTA */
+html[data-theme="luxe"] main .btn-primary,
+html[data-theme="luxe"] main button.bg-ofit-pink,
+html[data-theme="luxe"] main a.bg-ofit-pink,
+html[data-theme="luxe"] main [class*="bg-[#D98FA0]"] {
+  background: linear-gradient(135deg, #F0A0BD 0%, #DC6F99 54%, #BD4D79 100%) !important;
+  color: white !important;
+  border: 1px solid rgba(255,236,195,.42) !important;
+  box-shadow: 0 12px 30px rgba(171,57,102,.26), inset 0 1px 0 rgba(255,255,255,.24) !important;
+}
+
+/* =========================================================
+   DASHBOARD / INICIO
+   ========================================================= */
+html[data-theme="luxe"] main > div:first-child {
+  position: relative;
+}
+
+html[data-theme="luxe"] main > div:first-child::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 88% 3%, rgba(247,232,185,.055), transparent 18rem);
+}
+
+html[data-theme="luxe"] main [class*="bg-[#FFF8ED]"] {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(145deg, rgba(43,29,20,.96), rgba(23,17,19,.99)) !important;
+  border: 1px solid rgba(229,203,136,.38) !important;
+  box-shadow: 0 18px 42px rgba(0,0,0,.31), inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+
+html[data-theme="luxe"] main [class*="bg-[#FFF8ED]"]::after {
+  content: "✦";
+  position: absolute;
+  right: 16px;
+  top: 12px;
+  color: var(--luxe-gold-soft);
+  text-shadow: 0 0 14px rgba(247,232,185,.65);
+}
+
+/* =========================================================
+   PEDIDOS / CARGA RÁPIDA
+   ========================================================= */
+html[data-theme="luxe"] .pedidos-mobile-shell {
+  position: relative;
+}
+
+html[data-theme="luxe"] .pedidos-mobile-shell .card,
+html[data-theme="luxe"] .pedidos-mobile-shell [class*="rounded-2xl"],
+html[data-theme="luxe"] .pedidos-mobile-shell [class*="rounded-xl"] {
+  border-color: rgba(229,203,136,.22) !important;
+}
+
+html[data-theme="luxe"] .pedidos-mobile-shell [class*="bg-blue-50"],
+html[data-theme="luxe"] .pedidos-mobile-shell [class*="bg-blue-100"] {
+  background: rgba(241,164,192,.10) !important;
+  border-color: rgba(241,164,192,.24) !important;
+  color: #F2ABC3 !important;
+}
+
+html[data-theme="luxe"] .pedidos-mobile-shell [class*="bg-green-50"],
+html[data-theme="luxe"] .pedidos-mobile-shell [class*="bg-emerald-50"] {
+  background: rgba(79,175,122,.09) !important;
+}
+
+html[data-theme="luxe"] .pedidos-mobile-shell [class*="bg-red-50"] {
+  background: rgba(221,111,154,.09) !important;
+  border-color: rgba(221,111,154,.22) !important;
+}
+
+html[data-theme="luxe"] .pedidos-mobile-shell button[class*="rounded-full"] {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+/* =========================================================
+   PRODUCTOS
+   ========================================================= */
+html[data-theme="luxe"] .productos-mobile-shell .card,
+html[data-theme="luxe"] .productos-mobile-shell [class*="rounded-2xl"] {
+  background: linear-gradient(145deg, #1A141B, #121014) !important;
+  border-color: rgba(229,203,136,.22) !important;
+}
+
+html[data-theme="luxe"] .productos-mobile-shell img {
+  box-shadow: 0 10px 26px rgba(0,0,0,.30);
+}
+
+html[data-theme="luxe"] .productos-mobile-shell [class*="bg-green-"],
+html[data-theme="luxe"] .productos-mobile-shell [class*="bg-emerald-"] {
+  background-color: rgba(79,175,122,.10) !important;
+}
+
+html[data-theme="luxe"] .productos-mobile-shell [class*="bg-purple-"] {
+  background-color: rgba(241,164,192,.10) !important;
+  color: #F1A4C0 !important;
+}
+
+/* =========================================================
+   COMPRAS / COSTOS PENDIENTES
+   ========================================================= */
+html[data-theme="luxe"] .costos-mobile-page,
+html[data-theme="luxe"] [class*="compras-pendientes"] {
+  color: var(--luxe-ivory);
+}
+
+html[data-theme="luxe"] .costos-mobile-page .bg-white,
+html[data-theme="luxe"] .costos-mobile-page [class*="rounded-2xl"] {
+  background: linear-gradient(145deg, #1B141B, #121014) !important;
+  border-color: rgba(229,203,136,.22) !important;
+}
+
+html[data-theme="luxe"] .costos-mobile-page .sticky {
+  background: linear-gradient(180deg, rgba(11,8,11,.98), rgba(11,8,11,.90)) !important;
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(229,203,136,.18);
+}
+
+/* =========================================================
+   AJUSTES
+   ========================================================= */
+html[data-theme="luxe"] .ajustes-mobile-page .card {
+  background:
+    radial-gradient(circle at 90% 4%, rgba(241,164,192,.07), transparent 12rem),
+    linear-gradient(145deg, #1B141B, #121014) !important;
+  border-color: rgba(229,203,136,.24) !important;
+}
+
+html[data-theme="luxe"] .ajustes-mobile-page h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+/* =========================================================
+   MODALES GLOBALES
+   ========================================================= */
+html[data-theme="luxe"] main .fixed.inset-0 {
+  background: rgba(7,4,8,.76) !important;
+  backdrop-filter: blur(10px) saturate(112%);
+}
+
+html[data-theme="luxe"] main .fixed.inset-0 > div {
+  border-color: rgba(229,203,136,.30) !important;
+  box-shadow: 0 26px 72px rgba(0,0,0,.56), 0 0 30px rgba(241,164,192,.06) !important;
+}
+
+/* Sparkles elegantes, nunca coronas */
+html[data-theme="luxe"] .luxe-sparkle::after {
+  content: "✦";
+  color: var(--luxe-gold-soft);
+  text-shadow: 0 0 14px rgba(247,232,185,.66);
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  html[data-theme="luxe"] main h1 {
+    font-size: clamp(1.35rem, 6vw, 1.75rem);
+  }
+
+  html[data-theme="luxe"] main .card,
+  html[data-theme="luxe"] main [class*="rounded-2xl"] {
+    border-radius: 20px;
+  }
+}
