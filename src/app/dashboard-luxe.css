@@ -1,206 +1,411 @@
-/* Dashboard / Inicio — Premium Dark femenino completo */
+/* =========================================================
+   OUTFIT SHOP — DASHBOARD FUTURISTA PREMIUM
+   Solo se activa con html[data-theme="luxe"].
+   Rosa neón + negro grafito + champagne, femenino y tech.
+   ========================================================= */
+
 html[data-theme="luxe"] main > .max-w-4xl {
   position: relative;
+  isolation: isolate;
+  --dash-pink: #f08bb1;
+  --dash-pink-2: #cf5f8d;
+  --dash-pink-soft: #f7b7ce;
+  --dash-gold: #e7c783;
+  --dash-gold-soft: #f5e1ad;
+  --dash-panel: rgba(20, 15, 21, .86);
+  --dash-panel-2: rgba(29, 19, 28, .90);
+  --dash-line: rgba(240, 139, 177, .22);
+  --dash-line-gold: rgba(231, 199, 131, .28);
+  --dash-text: #fff8fb;
+  --dash-muted: #bcaeb6;
 }
 
+/* Fondo tecnológico sutil */
 html[data-theme="luxe"] main > .max-w-4xl::before {
   content: "";
-  position: absolute;
-  inset: -24px -10px auto;
-  height: 280px;
+  position: fixed;
+  inset: 0;
+  z-index: -2;
   pointer-events: none;
   background:
-    radial-gradient(circle at 12% 20%, rgba(241,164,192,.16), transparent 15rem),
-    radial-gradient(circle at 88% 12%, rgba(229,203,136,.11), transparent 12rem);
-  filter: blur(3px);
-  z-index: -1;
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
+    radial-gradient(circle at 12% 8%, rgba(240,139,177,.18), transparent 21rem),
+    radial-gradient(circle at 88% 12%, rgba(231,199,131,.10), transparent 18rem),
+    radial-gradient(circle at 50% 82%, rgba(207,95,141,.09), transparent 24rem),
+    linear-gradient(180deg, #08070a 0%, #0d0910 46%, #08070a 100%);
+  background-size: 28px 28px, 28px 28px, auto, auto, auto, auto;
 }
 
-/* saludo */
+html[data-theme="luxe"] main > .max-w-4xl::after {
+  content: "";
+  position: absolute;
+  inset: -8px 0 auto;
+  height: 220px;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(110deg, transparent 0 20%, rgba(240,139,177,.07) 38%, transparent 58%),
+    radial-gradient(circle at 50% 10%, rgba(255,255,255,.035), transparent 62%);
+  filter: blur(2px);
+}
+
+/* ===== Encabezado ===== */
 html[data-theme="luxe"] main > .max-w-4xl > .flex.flex-col.gap-1:first-child {
   position: relative;
-  padding: 8px 4px 2px;
+  padding: 8px 4px 4px;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl > .flex.flex-col.gap-1:first-child::before {
+  content: "OUTFIT CONTROL  •  LIVE";
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-bottom: 7px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(240,139,177,.20);
+  background: rgba(240,139,177,.07);
+  color: #f1a8c2;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 0 18px rgba(240,139,177,.04);
 }
 
 html[data-theme="luxe"] main > .max-w-4xl > .flex.flex-col.gap-1:first-child::after {
-  content: "✦  ✧";
+  content: "✦";
   position: absolute;
-  top: 0;
-  right: 2px;
-  color: #F7E8B9;
-  font-size: 12px;
-  letter-spacing: .18em;
-  text-shadow: 0 0 14px rgba(247,232,185,.7);
+  right: 6px;
+  top: 4px;
+  color: var(--dash-gold-soft);
+  font-size: 13px;
+  text-shadow: 0 0 16px rgba(245,225,173,.72);
 }
 
 html[data-theme="luxe"] main > .max-w-4xl > .flex.flex-col.gap-1:first-child h1 {
-  font-family: Georgia, 'Times New Roman', serif;
-  color: #FFF8FB !important;
-  text-shadow: 0 0 22px rgba(241,164,192,.15);
+  color: var(--dash-text) !important;
+  font-family: var(--font-geist-sans), Arial, sans-serif !important;
+  font-weight: 850 !important;
+  letter-spacing: -.045em !important;
+  text-shadow: 0 0 24px rgba(240,139,177,.14);
 }
 
-/* botón nuevo pedido */
+html[data-theme="luxe"] main > .max-w-4xl > .flex.flex-col.gap-1:first-child p {
+  color: #c8bac2 !important;
+}
+
+/* ===== CTA Nuevo Pedido ===== */
+html[data-theme="luxe"] main > .max-w-4xl > a.w-full {
+  position: relative;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl > a.w-full::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 21px;
+  z-index: 0;
+  background: linear-gradient(90deg, rgba(240,139,177,.55), rgba(245,225,173,.22), rgba(240,139,177,.55));
+  filter: blur(10px);
+  opacity: .45;
+}
+
 html[data-theme="luxe"] main > .max-w-4xl > a.w-full .btn-primary {
-  min-height: 58px;
+  position: relative;
+  z-index: 1;
+  min-height: 60px;
   border-radius: 20px !important;
+  overflow: hidden;
   background:
-    linear-gradient(120deg, rgba(255,255,255,.16), transparent 28%),
-    linear-gradient(135deg, #F2A5C1 0%, #DD719C 52%, #BA4A76 100%) !important;
-  border: 1px solid rgba(255,235,193,.52) !important;
+    linear-gradient(110deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 30%),
+    linear-gradient(135deg, #f3a2c0 0%, #e176a0 40%, #c45282 100%) !important;
+  color: white !important;
+  border: 1px solid rgba(255,238,204,.52) !important;
   box-shadow:
-    0 18px 34px rgba(171,58,102,.30),
-    0 0 24px rgba(241,164,192,.09),
-    inset 0 1px 0 rgba(255,255,255,.32) !important;
-  font-family: Georgia, 'Times New Roman', serif;
+    0 18px 38px rgba(181,65,111,.30),
+    0 0 26px rgba(240,139,177,.13),
+    inset 0 1px 0 rgba(255,255,255,.34) !important;
+  font-size: 1.02rem !important;
   letter-spacing: .01em;
 }
 
-/* Plata en la calle */
+html[data-theme="luxe"] main > .max-w-4xl > a.w-full .btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 0 38%, rgba(255,255,255,.24) 48%, transparent 58%);
+  transform: translateX(-130%);
+  animation: dash-shine 5.5s ease-in-out infinite;
+}
+
+@keyframes dash-shine {
+  0%, 72%, 100% { transform: translateX(-130%); }
+  82% { transform: translateX(130%); }
+}
+
+/* ===== Plata en la calle / tarjeta hero ===== */
 html[data-theme="luxe"] main > .max-w-4xl > .card.bg-\[\#FFF8ED\] {
-  border-radius: 26px !important;
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px !important;
   background:
-    radial-gradient(circle at 92% 8%, rgba(247,232,185,.11), transparent 10rem),
-    linear-gradient(145deg, #21171C 0%, #161116 58%, #110F12 100%) !important;
-  border: 1px solid rgba(229,203,136,.36) !important;
-  box-shadow: 0 18px 42px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.035) !important;
+    linear-gradient(145deg, rgba(240,139,177,.08), rgba(231,199,131,.025) 42%, transparent 70%),
+    linear-gradient(155deg, rgba(31,22,30,.96), rgba(16,13,18,.96)) !important;
+  border: 1px solid rgba(240,139,177,.28) !important;
+  box-shadow:
+    0 18px 46px rgba(0,0,0,.36),
+    0 0 28px rgba(240,139,177,.06),
+    inset 0 1px 0 rgba(255,255,255,.04) !important;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl > .card.bg-\[\#FFF8ED\]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(240,139,177,.55), rgba(231,199,131,.42)) top left / 110px 1px no-repeat,
+    linear-gradient(180deg, rgba(240,139,177,.55), transparent) top left / 1px 78px no-repeat,
+    radial-gradient(circle at 88% 10%, rgba(240,139,177,.15), transparent 10rem);
+}
+
+html[data-theme="luxe"] main > .max-w-4xl > .card.bg-\[\#FFF8ED\]::after {
+  content: "LIVE";
+  position: absolute;
+  right: 16px;
+  top: 15px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(240,139,177,.09);
+  border: 1px solid rgba(240,139,177,.20);
+  color: #f4aec7;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .15em;
 }
 
 html[data-theme="luxe"] main > .max-w-4xl > .card.bg-\[\#FFF8ED\] h2,
 html[data-theme="luxe"] main > .max-w-4xl > .card.bg-\[\#FFF8ED\] .text-amber-900,
 html[data-theme="luxe"] main > .max-w-4xl > .card.bg-\[\#FFF8ED\] .text-amber-800\/70,
 html[data-theme="luxe"] main > .max-w-4xl > .card.bg-\[\#FFF8ED\] .text-amber-800\/80 {
-  color: #E9D39B !important;
+  color: #ebd29b !important;
 }
 
 html[data-theme="luxe"] main > .max-w-4xl > .card.bg-\[\#FFF8ED\] .text-3xl {
-  color: #FFF8FB !important;
-  font-family: Georgia, 'Times New Roman', serif;
-  text-shadow: 0 2px 18px rgba(229,203,136,.10);
+  color: #fff9fb !important;
+  font-family: var(--font-geist-sans), Arial, sans-serif !important;
+  font-weight: 900 !important;
+  letter-spacing: -.055em !important;
+  text-shadow: 0 0 26px rgba(240,139,177,.11);
 }
 
 html[data-theme="luxe"] main > .max-w-4xl > .card.bg-\[\#FFF8ED\] a {
-  background: linear-gradient(135deg, rgba(229,203,136,.16), rgba(241,164,192,.10)) !important;
-  color: #F7E8B9 !important;
-  border: 1px solid rgba(229,203,136,.28) !important;
+  background: linear-gradient(135deg, rgba(240,139,177,.16), rgba(231,199,131,.08)) !important;
+  color: #f7e6b7 !important;
+  border: 1px solid rgba(240,139,177,.24) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
 }
 
-/* encabezados de cada bloque */
+/* ===== Títulos de sección ===== */
 html[data-theme="luxe"] main > .max-w-4xl > .flex.flex-col.gap-3 > h3,
 html[data-theme="luxe"] main > .max-w-4xl > .flex.flex-col.gap-3 > .flex.items-center.justify-between h3 {
-  font-family: Georgia, 'Times New Roman', serif;
-  color: #FFF8FB !important;
-  letter-spacing: -.01em;
+  color: #fff8fb !important;
+  font-family: var(--font-geist-sans), Arial, sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: -.025em;
 }
 
 html[data-theme="luxe"] main > .max-w-4xl > .flex.flex-col.gap-3 > h3::after {
-  content: "  ✧";
-  color: #E5CB88;
-  font-size: .72em;
-  text-shadow: 0 0 12px rgba(229,203,136,.55);
+  content: "";
+  display: inline-block;
+  width: 32px;
+  height: 1px;
+  margin-left: 10px;
+  vertical-align: middle;
+  background: linear-gradient(90deg, var(--dash-pink), transparent);
+  box-shadow: 0 0 8px rgba(240,139,177,.38);
 }
 
-/* atención */
+/* ===== Necesita tu atención ===== */
 html[data-theme="luxe"] main > .max-w-4xl [class*="bg-amber-50"],
 html[data-theme="luxe"] main > .max-w-4xl [class*="bg-red-50"],
 html[data-theme="luxe"] main > .max-w-4xl [class*="bg-blue-50"] {
-  background: linear-gradient(145deg, rgba(34,23,31,.98), rgba(18,14,19,.99)) !important;
-  border-color: rgba(229,203,136,.20) !important;
+  background:
+    linear-gradient(145deg, rgba(32,22,30,.96), rgba(17,13,19,.98)) !important;
+  border-color: rgba(240,139,177,.18) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 10px 26px rgba(0,0,0,.20);
 }
 
 html[data-theme="luxe"] main > .max-w-4xl [class*="rounded-full"][class*="bg-white"] {
-  background: linear-gradient(145deg, rgba(241,164,192,.11), rgba(229,203,136,.07)) !important;
-  border-color: rgba(229,203,136,.22) !important;
+  background: linear-gradient(145deg, rgba(240,139,177,.14), rgba(231,199,131,.07)) !important;
+  border-color: rgba(240,139,177,.22) !important;
+  box-shadow: 0 0 18px rgba(240,139,177,.05);
 }
 
-/* mi plata */
+html[data-theme="luxe"] main > .max-w-4xl [class*="px-2.5"][class*="rounded-full"] {
+  background: rgba(240,139,177,.08) !important;
+  border-color: rgba(240,139,177,.20) !important;
+}
+
+/* ===== Mi Plata ===== */
 html[data-theme="luxe"] main > .max-w-4xl .bg-emerald-50\/50,
 html[data-theme="luxe"] main > .max-w-4xl .bg-blue-50\/50 {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(145deg, #1C151C, #121014) !important;
-  border: 1px solid rgba(229,203,136,.22) !important;
-  box-shadow: 0 14px 30px rgba(0,0,0,.27), inset 0 1px 0 rgba(255,255,255,.025) !important;
+  background:
+    linear-gradient(145deg, rgba(28,21,29,.97), rgba(15,12,17,.98)) !important;
+  border: 1px solid rgba(240,139,177,.17) !important;
+  box-shadow: 0 14px 34px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.03) !important;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl .bg-emerald-50\/50::before,
+html[data-theme="luxe"] main > .max-w-4xl .bg-blue-50\/50::before {
+  content: "";
+  position: absolute;
+  right: -34px;
+  top: -38px;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(240,139,177,.14), transparent 65%);
 }
 
 html[data-theme="luxe"] main > .max-w-4xl .bg-emerald-50\/50::after,
 html[data-theme="luxe"] main > .max-w-4xl .bg-blue-50\/50::after {
-  content: "✦";
+  content: "↗";
   position: absolute;
-  right: 12px;
-  top: 10px;
-  color: #E5CB88;
-  font-size: 11px;
-  opacity: .8;
+  right: 13px;
+  bottom: 11px;
+  color: rgba(247,230,183,.58);
+  font-size: 13px;
 }
 
 html[data-theme="luxe"] main > .max-w-4xl .bg-emerald-50\/50 .text-emerald-800,
 html[data-theme="luxe"] main > .max-w-4xl .bg-blue-50\/50 .text-blue-800 {
-  color: #FFF8FB !important;
-  font-family: Georgia, 'Times New Roman', serif;
+  color: #fff8fb !important;
+  font-weight: 900 !important;
+  letter-spacing: -.035em;
 }
 
 html[data-theme="luxe"] main > .max-w-4xl .bg-emerald-50\/50 .text-emerald-700\/70 {
-  color: #E6D6A7 !important;
+  color: #8dd8ad !important;
 }
 
 html[data-theme="luxe"] main > .max-w-4xl .bg-blue-50\/50 .text-blue-700\/70 {
-  color: #F0A9C0 !important;
+  color: #ef9cba !important;
 }
 
-/* distribución sugerida */
+/* ===== Distribución Sugerida ===== */
 html[data-theme="luxe"] main > .max-w-4xl .card.p-5.sm\:p-6 {
+  position: relative;
+  overflow: hidden;
   background:
-    radial-gradient(circle at 88% 0%, rgba(241,164,192,.07), transparent 10rem),
-    linear-gradient(145deg, #1B141B, #121014) !important;
-  border: 1px solid rgba(229,203,136,.22) !important;
+    radial-gradient(circle at 83% 10%, rgba(240,139,177,.08), transparent 10rem),
+    linear-gradient(145deg, rgba(29,20,28,.97), rgba(15,12,17,.98)) !important;
+  border: 1px solid rgba(231,199,131,.22) !important;
+  box-shadow: 0 14px 36px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.03) !important;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl .card.p-5.sm\:p-6::after {
+  content: "";
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  right: -36px;
+  bottom: -45px;
+  border-radius: 50%;
+  border: 12px solid rgba(240,139,177,.08);
+  border-right-color: rgba(231,199,131,.18);
+  transform: rotate(28deg);
 }
 
 html[data-theme="luxe"] main > .max-w-4xl .card.p-5.sm\:p-6 input {
-  background: transparent !important;
+  background: rgba(255,255,255,.02) !important;
+  border-color: rgba(240,139,177,.24) !important;
   box-shadow: none !important;
 }
 
-html[data-theme="luxe"] main > .max-w-4xl .card.p-5.sm\:p-6 .text-ofit-navy,
+html[data-theme="luxe"] main > .max-w-4xl .card.p-5.sm\:p-6 .text-ofit-navy {
+  color: #e7c783 !important;
+}
+
 html[data-theme="luxe"] main > .max-w-4xl .card.p-5.sm\:p-6 .text-ofit-pink {
-  color: #E5CB88 !important;
+  color: #ef9fbc !important;
 }
 
 html[data-theme="luxe"] main > .max-w-4xl .card.p-5.sm\:p-6 .border-l {
-  border-color: rgba(241,164,192,.18) !important;
+  border-color: rgba(240,139,177,.16) !important;
 }
 
-/* rendimiento */
+/* ===== Rendimiento del mes ===== */
 html[data-theme="luxe"] main > .max-w-4xl .card.p-6.border-none.shadow-sm.flex.flex-col.gap-6 {
+  position: relative;
+  overflow: hidden;
   background:
-    radial-gradient(circle at 50% -20%, rgba(241,164,192,.08), transparent 15rem),
-    linear-gradient(145deg, #1B141B, #121014) !important;
-  border: 1px solid rgba(229,203,136,.22) !important;
+    linear-gradient(rgba(255,255,255,.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.015) 1px, transparent 1px),
+    radial-gradient(circle at 50% 0%, rgba(240,139,177,.09), transparent 14rem),
+    linear-gradient(145deg, rgba(28,20,28,.98), rgba(14,12,16,.99)) !important;
+  background-size: 24px 24px, 24px 24px, auto, auto;
+  border: 1px solid rgba(240,139,177,.20) !important;
+  box-shadow: 0 18px 42px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl .card.p-6.border-none.shadow-sm.flex.flex-col.gap-6::before {
+  content: "PERFORMANCE";
+  position: absolute;
+  top: 13px;
+  right: 14px;
+  color: rgba(240,139,177,.55);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .16em;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl .card.p-6.border-none.shadow-sm.flex.flex-col.gap-6::after {
+  content: "";
+  position: absolute;
+  left: 9%;
+  right: 9%;
+  bottom: 20px;
+  height: 42px;
+  pointer-events: none;
+  opacity: .33;
+  background:
+    linear-gradient(165deg, transparent 0 12%, rgba(240,139,177,.70) 13% 15%, transparent 16% 28%, rgba(240,139,177,.55) 29% 31%, transparent 32% 45%, rgba(231,199,131,.46) 46% 48%, transparent 49% 63%, rgba(240,139,177,.58) 64% 66%, transparent 67% 81%, rgba(240,139,177,.70) 82% 84%, transparent 85%);
+  filter: drop-shadow(0 0 5px rgba(240,139,177,.30));
 }
 
 html[data-theme="luxe"] main > .max-w-4xl .card.p-6.border-none.shadow-sm.flex.flex-col.gap-6 .text-\[40px\] {
-  font-family: Georgia, 'Times New Roman', serif;
-  color: #FFF8FB !important;
-  text-shadow: 0 0 18px rgba(241,164,192,.10);
+  color: #fff9fb !important;
+  font-weight: 900 !important;
+  letter-spacing: -.055em !important;
+  text-shadow: 0 0 22px rgba(240,139,177,.10);
 }
 
 html[data-theme="luxe"] main > .max-w-4xl .card.p-6.border-none.shadow-sm.flex.flex-col.gap-6 .bg-gray-100 {
-  background: #2A1C27 !important;
+  background: #291b27 !important;
 }
 
 html[data-theme="luxe"] main > .max-w-4xl .card.p-6.border-none.shadow-sm.flex.flex-col.gap-6 .bg-red-400 {
-  background: linear-gradient(90deg, #8E315A, #D96F98) !important;
+  background: linear-gradient(90deg, #863052, #d96591) !important;
+  box-shadow: 0 0 10px rgba(217,101,145,.16);
 }
 
 html[data-theme="luxe"] main > .max-w-4xl .card.p-6.border-none.shadow-sm.flex.flex-col.gap-6 .bg-ofit-navy {
-  background: linear-gradient(90deg, #C6A65D, #E5CB88) !important;
+  background: linear-gradient(90deg, #c6a45f, #ebce8a) !important;
+  box-shadow: 0 0 10px rgba(235,206,138,.14);
 }
 
-/* pedidos recientes */
+/* ===== Pedidos recientes ===== */
 html[data-theme="luxe"] main > .max-w-4xl a > .card.p-4,
 html[data-theme="luxe"] main > .max-w-4xl a > .card.p-5 {
   position: relative;
-  background: linear-gradient(145deg, #1A141B, #121014) !important;
-  border: 1px solid rgba(229,203,136,.18) !important;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(27,20,27,.97), rgba(14,12,16,.99)) !important;
+  border: 1px solid rgba(240,139,177,.15) !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.025) !important;
 }
 
 html[data-theme="luxe"] main > .max-w-4xl a > .card.p-4::before,
@@ -212,31 +417,46 @@ html[data-theme="luxe"] main > .max-w-4xl a > .card.p-5::before {
   bottom: 18%;
   width: 2px;
   border-radius: 4px;
-  background: linear-gradient(#F1A4C0,#E5CB88);
-  opacity: .68;
+  background: linear-gradient(#f08bb1,#e7c783);
+  box-shadow: 0 0 10px rgba(240,139,177,.30);
+}
+
+html[data-theme="luxe"] main > .max-w-4xl a > .card.p-4::after,
+html[data-theme="luxe"] main > .max-w-4xl a > .card.p-5::after {
+  content: "›";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(231,199,131,.52);
+  font-size: 22px;
 }
 
 html[data-theme="luxe"] main > .max-w-4xl a > .card .font-black.text-lg {
-  font-family: Georgia, 'Times New Roman', serif;
-  color: #FFF8FB !important;
+  color: #fff8fb !important;
 }
 
 html[data-theme="luxe"] main > .max-w-4xl a > .card [class*="bg-emerald-100"] {
-  background: rgba(79,175,122,.12) !important;
+  background: rgba(79,175,122,.10) !important;
+  border: 1px solid rgba(79,175,122,.12);
 }
 
 html[data-theme="luxe"] main > .max-w-4xl a > .card [class*="bg-blue-100"] {
-  background: rgba(241,164,192,.10) !important;
-  color: #F1A4C0 !important;
+  background: rgba(240,139,177,.10) !important;
+  color: #efa4bf !important;
+  border: 1px solid rgba(240,139,177,.12);
 }
 
 html[data-theme="luxe"] main > .max-w-4xl a > .card [class*="bg-amber-100"] {
-  background: rgba(229,203,136,.10) !important;
+  background: rgba(231,199,131,.10) !important;
+  border: 1px solid rgba(231,199,131,.12);
 }
 
+/* ===== Ajuste mobile ===== */
 @media (max-width: 640px) {
   html[data-theme="luxe"] main > .max-w-4xl {
-    gap: 1.3rem !important;
+    gap: 1.15rem !important;
+    padding-top: 12px !important;
   }
 
   html[data-theme="luxe"] main > .max-w-4xl > .card.bg-\[\#FFF8ED\] {
@@ -245,6 +465,21 @@ html[data-theme="luxe"] main > .max-w-4xl a > .card [class*="bg-amber-100"] {
 
   html[data-theme="luxe"] main > .max-w-4xl .bg-emerald-50\/50,
   html[data-theme="luxe"] main > .max-w-4xl .bg-blue-50\/50 {
-    padding: 16px !important;
+    padding: 15px !important;
+    border-radius: 18px !important;
+  }
+
+  html[data-theme="luxe"] main > .max-w-4xl > a.w-full .btn-primary {
+    min-height: 58px;
+  }
+
+  html[data-theme="luxe"] main > .max-w-4xl > .flex.flex-col.gap-1:first-child::before {
+    font-size: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="luxe"] main > .max-w-4xl > a.w-full .btn-primary::after {
+    animation: none;
   }
 }
