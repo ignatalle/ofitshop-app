@@ -1,0 +1,250 @@
+/* Dashboard / Inicio — Premium Dark femenino completo */
+html[data-theme="luxe"] main > .max-w-4xl {
+  position: relative;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl::before {
+  content: "";
+  position: absolute;
+  inset: -24px -10px auto;
+  height: 280px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(241,164,192,.16), transparent 15rem),
+    radial-gradient(circle at 88% 12%, rgba(229,203,136,.11), transparent 12rem);
+  filter: blur(3px);
+  z-index: -1;
+}
+
+/* saludo */
+html[data-theme="luxe"] main > .max-w-4xl > .flex.flex-col.gap-1:first-child {
+  position: relative;
+  padding: 8px 4px 2px;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl > .flex.flex-col.gap-1:first-child::after {
+  content: "✦  ✧";
+  position: absolute;
+  top: 0;
+  right: 2px;
+  color: #F7E8B9;
+  font-size: 12px;
+  letter-spacing: .18em;
+  text-shadow: 0 0 14px rgba(247,232,185,.7);
+}
+
+html[data-theme="luxe"] main > .max-w-4xl > .flex.flex-col.gap-1:first-child h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #FFF8FB !important;
+  text-shadow: 0 0 22px rgba(241,164,192,.15);
+}
+
+/* botón nuevo pedido */
+html[data-theme="luxe"] main > .max-w-4xl > a.w-full .btn-primary {
+  min-height: 58px;
+  border-radius: 20px !important;
+  background:
+    linear-gradient(120deg, rgba(255,255,255,.16), transparent 28%),
+    linear-gradient(135deg, #F2A5C1 0%, #DD719C 52%, #BA4A76 100%) !important;
+  border: 1px solid rgba(255,235,193,.52) !important;
+  box-shadow:
+    0 18px 34px rgba(171,58,102,.30),
+    0 0 24px rgba(241,164,192,.09),
+    inset 0 1px 0 rgba(255,255,255,.32) !important;
+  font-family: Georgia, 'Times New Roman', serif;
+  letter-spacing: .01em;
+}
+
+/* Plata en la calle */
+html[data-theme="luxe"] main > .max-w-4xl > .card.bg-\[\#FFF8ED\] {
+  border-radius: 26px !important;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(247,232,185,.11), transparent 10rem),
+    linear-gradient(145deg, #21171C 0%, #161116 58%, #110F12 100%) !important;
+  border: 1px solid rgba(229,203,136,.36) !important;
+  box-shadow: 0 18px 42px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl > .card.bg-\[\#FFF8ED\] h2,
+html[data-theme="luxe"] main > .max-w-4xl > .card.bg-\[\#FFF8ED\] .text-amber-900,
+html[data-theme="luxe"] main > .max-w-4xl > .card.bg-\[\#FFF8ED\] .text-amber-800\/70,
+html[data-theme="luxe"] main > .max-w-4xl > .card.bg-\[\#FFF8ED\] .text-amber-800\/80 {
+  color: #E9D39B !important;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl > .card.bg-\[\#FFF8ED\] .text-3xl {
+  color: #FFF8FB !important;
+  font-family: Georgia, 'Times New Roman', serif;
+  text-shadow: 0 2px 18px rgba(229,203,136,.10);
+}
+
+html[data-theme="luxe"] main > .max-w-4xl > .card.bg-\[\#FFF8ED\] a {
+  background: linear-gradient(135deg, rgba(229,203,136,.16), rgba(241,164,192,.10)) !important;
+  color: #F7E8B9 !important;
+  border: 1px solid rgba(229,203,136,.28) !important;
+}
+
+/* encabezados de cada bloque */
+html[data-theme="luxe"] main > .max-w-4xl > .flex.flex-col.gap-3 > h3,
+html[data-theme="luxe"] main > .max-w-4xl > .flex.flex-col.gap-3 > .flex.items-center.justify-between h3 {
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #FFF8FB !important;
+  letter-spacing: -.01em;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl > .flex.flex-col.gap-3 > h3::after {
+  content: "  ✧";
+  color: #E5CB88;
+  font-size: .72em;
+  text-shadow: 0 0 12px rgba(229,203,136,.55);
+}
+
+/* atención */
+html[data-theme="luxe"] main > .max-w-4xl [class*="bg-amber-50"],
+html[data-theme="luxe"] main > .max-w-4xl [class*="bg-red-50"],
+html[data-theme="luxe"] main > .max-w-4xl [class*="bg-blue-50"] {
+  background: linear-gradient(145deg, rgba(34,23,31,.98), rgba(18,14,19,.99)) !important;
+  border-color: rgba(229,203,136,.20) !important;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl [class*="rounded-full"][class*="bg-white"] {
+  background: linear-gradient(145deg, rgba(241,164,192,.11), rgba(229,203,136,.07)) !important;
+  border-color: rgba(229,203,136,.22) !important;
+}
+
+/* mi plata */
+html[data-theme="luxe"] main > .max-w-4xl .bg-emerald-50\/50,
+html[data-theme="luxe"] main > .max-w-4xl .bg-blue-50\/50 {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(145deg, #1C151C, #121014) !important;
+  border: 1px solid rgba(229,203,136,.22) !important;
+  box-shadow: 0 14px 30px rgba(0,0,0,.27), inset 0 1px 0 rgba(255,255,255,.025) !important;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl .bg-emerald-50\/50::after,
+html[data-theme="luxe"] main > .max-w-4xl .bg-blue-50\/50::after {
+  content: "✦";
+  position: absolute;
+  right: 12px;
+  top: 10px;
+  color: #E5CB88;
+  font-size: 11px;
+  opacity: .8;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl .bg-emerald-50\/50 .text-emerald-800,
+html[data-theme="luxe"] main > .max-w-4xl .bg-blue-50\/50 .text-blue-800 {
+  color: #FFF8FB !important;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl .bg-emerald-50\/50 .text-emerald-700\/70 {
+  color: #E6D6A7 !important;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl .bg-blue-50\/50 .text-blue-700\/70 {
+  color: #F0A9C0 !important;
+}
+
+/* distribución sugerida */
+html[data-theme="luxe"] main > .max-w-4xl .card.p-5.sm\:p-6 {
+  background:
+    radial-gradient(circle at 88% 0%, rgba(241,164,192,.07), transparent 10rem),
+    linear-gradient(145deg, #1B141B, #121014) !important;
+  border: 1px solid rgba(229,203,136,.22) !important;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl .card.p-5.sm\:p-6 input {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl .card.p-5.sm\:p-6 .text-ofit-navy,
+html[data-theme="luxe"] main > .max-w-4xl .card.p-5.sm\:p-6 .text-ofit-pink {
+  color: #E5CB88 !important;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl .card.p-5.sm\:p-6 .border-l {
+  border-color: rgba(241,164,192,.18) !important;
+}
+
+/* rendimiento */
+html[data-theme="luxe"] main > .max-w-4xl .card.p-6.border-none.shadow-sm.flex.flex-col.gap-6 {
+  background:
+    radial-gradient(circle at 50% -20%, rgba(241,164,192,.08), transparent 15rem),
+    linear-gradient(145deg, #1B141B, #121014) !important;
+  border: 1px solid rgba(229,203,136,.22) !important;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl .card.p-6.border-none.shadow-sm.flex.flex-col.gap-6 .text-\[40px\] {
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #FFF8FB !important;
+  text-shadow: 0 0 18px rgba(241,164,192,.10);
+}
+
+html[data-theme="luxe"] main > .max-w-4xl .card.p-6.border-none.shadow-sm.flex.flex-col.gap-6 .bg-gray-100 {
+  background: #2A1C27 !important;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl .card.p-6.border-none.shadow-sm.flex.flex-col.gap-6 .bg-red-400 {
+  background: linear-gradient(90deg, #8E315A, #D96F98) !important;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl .card.p-6.border-none.shadow-sm.flex.flex-col.gap-6 .bg-ofit-navy {
+  background: linear-gradient(90deg, #C6A65D, #E5CB88) !important;
+}
+
+/* pedidos recientes */
+html[data-theme="luxe"] main > .max-w-4xl a > .card.p-4,
+html[data-theme="luxe"] main > .max-w-4xl a > .card.p-5 {
+  position: relative;
+  background: linear-gradient(145deg, #1A141B, #121014) !important;
+  border: 1px solid rgba(229,203,136,.18) !important;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl a > .card.p-4::before,
+html[data-theme="luxe"] main > .max-w-4xl a > .card.p-5::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 18%;
+  bottom: 18%;
+  width: 2px;
+  border-radius: 4px;
+  background: linear-gradient(#F1A4C0,#E5CB88);
+  opacity: .68;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl a > .card .font-black.text-lg {
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #FFF8FB !important;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl a > .card [class*="bg-emerald-100"] {
+  background: rgba(79,175,122,.12) !important;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl a > .card [class*="bg-blue-100"] {
+  background: rgba(241,164,192,.10) !important;
+  color: #F1A4C0 !important;
+}
+
+html[data-theme="luxe"] main > .max-w-4xl a > .card [class*="bg-amber-100"] {
+  background: rgba(229,203,136,.10) !important;
+}
+
+@media (max-width: 640px) {
+  html[data-theme="luxe"] main > .max-w-4xl {
+    gap: 1.3rem !important;
+  }
+
+  html[data-theme="luxe"] main > .max-w-4xl > .card.bg-\[\#FFF8ED\] {
+    padding: 18px !important;
+  }
+
+  html[data-theme="luxe"] main > .max-w-4xl .bg-emerald-50\/50,
+  html[data-theme="luxe"] main > .max-w-4xl .bg-blue-50\/50 {
+    padding: 16px !important;
+  }
+}
