@@ -1,0 +1,289 @@
+/* Finanzas — capa Princess Premium sobre el tema luxe */
+html[data-theme="luxe"] .finanzas-mobile-shell {
+  --fin-rose: #f3a9c3;
+  --fin-rose-strong: #df6f9a;
+  --fin-rose-deep: #7d294d;
+  --fin-gold: #e8cf91;
+  --fin-gold-soft: #f7e8b9;
+  --fin-ivory: #fff8fb;
+  --fin-panel: #171018;
+  --fin-panel-2: #21131d;
+  --fin-line: rgba(232, 207, 145, 0.28);
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell::before {
+  background:
+    radial-gradient(circle at 14% 8%, rgba(243, 169, 195, 0.20), transparent 22rem),
+    radial-gradient(circle at 88% 18%, rgba(247, 232, 185, 0.12), transparent 18rem),
+    radial-gradient(circle at 50% 82%, rgba(223, 111, 154, 0.08), transparent 24rem),
+    linear-gradient(180deg, #09070b 0%, #110b11 48%, #09070b 100%) !important;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell > div > .pt-2 {
+  padding: 12px 6px 4px;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell > div > .pt-2::before {
+  content: "♕";
+  position: absolute;
+  right: 34px;
+  top: 1px;
+  color: var(--fin-rose);
+  font-size: 15px;
+  opacity: .82;
+  text-shadow: 0 0 14px rgba(243,169,195,.55);
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell > div > .pt-2::after {
+  content: "✦  ✧";
+  right: 4px;
+  top: 4px;
+  color: var(--fin-gold-soft);
+  font-size: 13px;
+  letter-spacing: .18em;
+  text-shadow: 0 0 14px rgba(247,232,185,.72);
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700 !important;
+  color: var(--fin-ivory) !important;
+  letter-spacing: -0.02em !important;
+  text-shadow: 0 0 22px rgba(243,169,195,.16);
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell > div > .pt-2 p {
+  color: #d8c7cf !important;
+  letter-spacing: .01em;
+}
+
+/* Card reina: caja */
+html[data-theme="luxe"] .finanzas-mobile-shell .col-span-2.bg-ofit-pink {
+  border-radius: 26px !important;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.14) 0%, transparent 28%),
+    linear-gradient(315deg, rgba(247,232,185,.13) 0%, transparent 26%),
+    linear-gradient(145deg, #f19abb 0%, #df6f9a 42%, #aa466f 100%) !important;
+  border: 1px solid rgba(247,232,185,.62) !important;
+  box-shadow:
+    0 24px 50px rgba(157,53,94,.32),
+    0 0 28px rgba(243,169,195,.10),
+    inset 0 1px 0 rgba(255,255,255,.35),
+    inset 0 -1px 0 rgba(113,35,66,.28) !important;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .col-span-2.bg-ofit-pink::before {
+  width: 220px;
+  height: 220px;
+  right: -86px;
+  top: -108px;
+  background:
+    radial-gradient(circle, rgba(255,255,255,.48) 0%, rgba(255,255,255,.09) 30%, transparent 68%) !important;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .col-span-2.bg-ofit-pink::after {
+  content: "♕   ✦" !important;
+  color: #fff2c7 !important;
+  font-size: 18px !important;
+  letter-spacing: .18em;
+  text-shadow: 0 0 18px rgba(255,242,199,.9) !important;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .col-span-2.bg-ofit-pink > div:first-child span {
+  font-family: Georgia, 'Times New Roman', serif;
+  letter-spacing: .02em;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .col-span-2.bg-ofit-pink > div:nth-child(2) {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700 !important;
+  text-shadow: 0 3px 18px rgba(93,24,52,.22);
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .col-span-2.bg-ofit-pink > div:last-child {
+  background: linear-gradient(180deg, rgba(72,24,46,.28), rgba(51,17,33,.38)) !important;
+  border: 1px solid rgba(255,240,201,.34) !important;
+  border-radius: 18px !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+/* Ingresos / egresos con look joyero */
+html[data-theme="luxe"] .finanzas-mobile-shell .grid.grid-cols-2.gap-4 > div:not(.col-span-2) {
+  border-radius: 22px !important;
+  background:
+    linear-gradient(145deg, rgba(39,24,35,.98), rgba(20,14,20,.98)) !important;
+  border: 1px solid var(--fin-line) !important;
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 0 0 1px rgba(243,169,195,.03) !important;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .grid.grid-cols-2.gap-4 > div:not(.col-span-2)::before {
+  content: "✧";
+  position: absolute;
+  right: 12px;
+  top: 10px;
+  color: var(--fin-gold);
+  font-size: 12px;
+  text-shadow: 0 0 12px rgba(232,207,145,.7);
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .grid.grid-cols-2.gap-4 > div:nth-child(2) > div:first-child {
+  color: #f2dca3 !important;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .grid.grid-cols-2.gap-4 > div:nth-child(3) > div:first-child {
+  color: #f0a8bf !important;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .grid.grid-cols-2.gap-4 > div:not(.col-span-2) > div:last-child {
+  font-family: Georgia, 'Times New Roman', serif;
+  color: var(--fin-ivory) !important;
+}
+
+/* Botones principales: más coquetos */
+html[data-theme="luxe"] .finanzas-mobile-shell > div > .flex.gap-4 > button {
+  border-radius: 18px !important;
+  position: relative;
+  overflow: hidden;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell > div > .flex.gap-4 > button::after {
+  content: "✦";
+  position: absolute;
+  right: 12px;
+  top: 8px;
+  font-size: 10px;
+  opacity: .72;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell > div > .flex.gap-4 > button:first-child {
+  background: linear-gradient(145deg, rgba(123,41,73,.66), rgba(62,25,42,.88)) !important;
+  color: #ffd2e1 !important;
+  border-color: rgba(243,169,195,.48) !important;
+  box-shadow: 0 12px 30px rgba(129,42,76,.22), inset 0 1px 0 rgba(255,255,255,.07) !important;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell > div > .flex.gap-4 > button:last-child {
+  background: linear-gradient(145deg, rgba(91,70,34,.62), rgba(38,29,19,.94)) !important;
+  color: #f8e7b6 !important;
+  border-color: rgba(232,207,145,.48) !important;
+  box-shadow: 0 12px 30px rgba(96,75,34,.18), inset 0 1px 0 rgba(255,255,255,.07) !important;
+}
+
+/* Títulos de secciones */
+html[data-theme="luxe"] .finanzas-mobile-shell h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #fff7fa !important;
+  letter-spacing: -.01em;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell h2.text-lg::after {
+  content: "  ♕  ✧" !important;
+  color: var(--fin-gold) !important;
+  font-size: .74em;
+  letter-spacing: .12em;
+}
+
+/* Historial: oscuro, femenino, nada clínico */
+html[data-theme="luxe"] .finanzas-mobile-shell .card.flex.items-center.gap-4 {
+  border-radius: 20px !important;
+  background:
+    linear-gradient(145deg, rgba(34,22,31,.98), rgba(18,13,19,.99)) !important;
+  border: 1px solid rgba(232,207,145,.18) !important;
+  box-shadow: 0 10px 26px rgba(0,0,0,.23), inset 0 1px 0 rgba(255,255,255,.025) !important;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .card.flex.items-center.gap-4::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 16%;
+  bottom: 16%;
+  width: 2px;
+  border-radius: 4px;
+  background: linear-gradient(#f3a9c3, #e8cf91);
+  opacity: .72;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .card.flex.items-center.gap-4 > div:first-child {
+  background: linear-gradient(145deg, rgba(243,169,195,.11), rgba(232,207,145,.08)) !important;
+  border: 1px solid rgba(243,169,195,.18) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .card.flex.items-center.gap-4 > div:nth-last-child(2) {
+  color: #f6df9f !important;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+/* Modales princesa premium */
+html[data-theme="luxe"] .finanzas-mobile-shell .fixed.inset-0 {
+  background: rgba(7,4,8,.76) !important;
+  backdrop-filter: blur(10px) saturate(110%);
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .fixed.inset-0 > div {
+  background:
+    radial-gradient(circle at 85% 0%, rgba(243,169,195,.10), transparent 13rem),
+    linear-gradient(180deg, #21131d 0%, #140f15 100%) !important;
+  border: 1px solid rgba(232,207,145,.34) !important;
+  box-shadow: 0 24px 70px rgba(0,0,0,.54), 0 0 34px rgba(243,169,195,.08) !important;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .fixed.inset-0 > div::before {
+  content: "♕   ✦";
+  position: absolute;
+  right: 20px;
+  top: 16px;
+  color: var(--fin-gold-soft);
+  font-size: 12px;
+  letter-spacing: .16em;
+  opacity: .74;
+  pointer-events: none;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .fixed.inset-0 form {
+  background: transparent !important;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .fixed.inset-0 .input-field,
+html[data-theme="luxe"] .finanzas-mobile-shell .fixed.inset-0 input,
+html[data-theme="luxe"] .finanzas-mobile-shell .fixed.inset-0 select,
+html[data-theme="luxe"] .finanzas-mobile-shell .fixed.inset-0 textarea {
+  background: linear-gradient(180deg, rgba(32,22,30,.98), rgba(24,17,24,.98)) !important;
+  color: #fff8fb !important;
+  border-color: rgba(232,207,145,.26) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.02);
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .fixed.inset-0 .input-field:focus,
+html[data-theme="luxe"] .finanzas-mobile-shell .fixed.inset-0 input:focus,
+html[data-theme="luxe"] .finanzas-mobile-shell .fixed.inset-0 select:focus,
+html[data-theme="luxe"] .finanzas-mobile-shell .fixed.inset-0 textarea:focus {
+  border-color: rgba(243,169,195,.65) !important;
+  box-shadow: 0 0 0 3px rgba(243,169,195,.11), 0 0 20px rgba(243,169,195,.07) !important;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .fixed.inset-0 .btn-primary {
+  background: linear-gradient(135deg, #f0a0bd 0%, #dc6f99 55%, #bd4d79 100%) !important;
+  border: 1px solid rgba(255,236,195,.46) !important;
+  box-shadow: 0 12px 28px rgba(172,58,102,.29), inset 0 1px 0 rgba(255,255,255,.26) !important;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .fixed.inset-0 .btn-secondary {
+  background: rgba(36,25,34,.9) !important;
+  border-color: rgba(232,207,145,.28) !important;
+  color: #f8e7ee !important;
+}
+
+@media (max-width: 640px) {
+  html[data-theme="luxe"] .finanzas-mobile-shell .col-span-2.bg-ofit-pink {
+    padding: 17px !important;
+  }
+
+  html[data-theme="luxe"] .finanzas-mobile-shell .grid.grid-cols-2.gap-4 > div:not(.col-span-2) {
+    padding: 14px !important;
+  }
+}
