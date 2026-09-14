@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./mobile-audit.css";
+import "./luxe-theme.css";
 import Sidebar from "../components/Sidebar";
 import BottomNav from "../components/BottomNav";
 
@@ -37,6 +38,10 @@ const themeBootScript = `
     const savedTheme = localStorage.getItem('ofitshop_theme');
     if (savedTheme === 'luxe') {
       document.documentElement.dataset.theme = 'luxe';
+      document.documentElement.style.backgroundColor = '#09090B';
+    } else {
+      delete document.documentElement.dataset.theme;
+      document.documentElement.style.backgroundColor = '#FFF9F7';
     }
   } catch (_) {}
 `;
