@@ -28,8 +28,10 @@ function AjustesContent() {
     localStorage.setItem('ofitshop_theme', nextTheme);
     if (nextTheme === 'luxe') {
       document.documentElement.dataset.theme = 'luxe';
+      document.documentElement.style.backgroundColor = '#09090B';
     } else {
       delete document.documentElement.dataset.theme;
+      document.documentElement.style.backgroundColor = '#FFF9F7';
     }
   };
 
@@ -65,7 +67,7 @@ function AjustesContent() {
           <button
             type="button"
             onClick={() => changeTheme('classic')}
-            className={`relative min-h-[112px] rounded-2xl border-2 p-3 text-left transition-all ${
+            className={`relative min-h-[118px] rounded-2xl border-2 p-3 text-left transition-all ${
               theme === 'classic' ? 'border-ofit-pink ring-2 ring-ofit-pink/15' : 'border-ofit-border'
             }`}
           >
@@ -80,28 +82,28 @@ function AjustesContent() {
               <span className="w-7 h-7 rounded-full bg-[#1C2B4B]" />
             </div>
             <span className="block font-black text-ofit-text">Clásico</span>
-            <span className="block text-xs text-ofit-text-soft mt-1">El estilo actual, suave y claro.</span>
+            <span className="block text-xs text-ofit-text-soft mt-1">Claro, suave y femenino.</span>
           </button>
 
           <button
             type="button"
             onClick={() => changeTheme('luxe')}
-            className={`relative min-h-[112px] rounded-2xl border-2 p-3 text-left transition-all bg-[#120F12] ${
-              theme === 'luxe' ? 'border-[#D4AF37] ring-2 ring-[#D4AF37]/20' : 'border-[#4B3840]'
+            className={`relative min-h-[118px] rounded-2xl border-2 p-3 text-left transition-all bg-[#111014] shadow-[0_10px_26px_rgba(0,0,0,.28)] ${
+              theme === 'luxe' ? 'border-[#C9A55C] ring-2 ring-[#C9A55C]/20' : 'border-[#302831]'
             }`}
           >
             {theme === 'luxe' && (
-              <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[#D4AF37] text-black flex items-center justify-center">
+              <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[#C9A55C] text-black flex items-center justify-center">
                 <Check size={14} strokeWidth={3} />
               </span>
             )}
             <div className="flex gap-1.5 mb-3">
-              <span className="w-7 h-7 rounded-full bg-[#0B090B] border border-[#4B3840]" />
-              <span className="w-7 h-7 rounded-full bg-[#E57698]" />
-              <span className="w-7 h-7 rounded-full bg-[#D4AF37]" />
+              <span className="w-7 h-7 rounded-full bg-[#09090B] border border-[#302831]" />
+              <span className="w-7 h-7 rounded-full bg-[#D66F91]" />
+              <span className="w-7 h-7 rounded-full bg-[#C9A55C]" />
             </div>
-            <span className="block font-black text-white">Rosa · Negro · Dorado</span>
-            <span className="block text-xs text-[#CDBFC4] mt-1">Más elegante, fuerte y premium.</span>
+            <span className="block font-black text-[#F7F2F4]">Premium Dark</span>
+            <span className="block text-xs text-[#B8ABB2] mt-1">Rosa · negro · dorado.</span>
           </button>
         </div>
       </div>
