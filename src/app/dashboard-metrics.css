@@ -1,5 +1,14 @@
 #dashboard-live-metrics-slot { width: 100%; }
 
+/* Inicio: mantener saludo primero y mostrar métricas/gráficos inmediatamente después. */
+main > div.max-w-4xl > div:first-child {
+  order: -2;
+}
+
+#dashboard-live-metrics-slot {
+  order: -1;
+}
+
 .dashboard-live-metrics {
   display: flex;
   flex-direction: column;
