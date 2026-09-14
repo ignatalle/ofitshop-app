@@ -12,6 +12,7 @@ import {
   calculateOperatingExpenses,
   calculateSales,
   getArgentinaDate,
+  isCustomerPayment,
   isSameMonthArgentina,
   isValidSale,
 } from '@/lib/finance';
@@ -35,6 +36,14 @@ type Transaction = {
   created_at: string;
 };
 
+type TrendPoint = {
+  key: string;
+  label: string;
+  sales: number;
+  collected: number;
+  orders: number;
+};
+
 const pct = (current: number, previous: number) => {
   if (previous === 0) return current > 0 ? 100 : 0;
   return ((current - previous) / Math.abs(previous)) * 100;
@@ -42,6 +51,19 @@ const pct = (current: number, previous: number) => {
 
 const formatPct = (value: number) => `${value >= 0 ? '+' : ''}${Math.round(value)}%`;
 const formatMoney = (value: number) => `$${(value / 100).toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
+
+const dateKey = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+const pointString = (values: number[], max: number, width = 320, height = 116) => {
+  if (!values.length) return '';
+  const safeMax = Math.max(1, max);
+  return values.map((value, index) => {
+    const x = values.length === 1 ? width / 2 : (index / (values.length - 1)) * width;
+    const y = height - (value / safeMax) * (height - 12) - 6;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+};
 
 export default function DashboardMetricsPortal() {
   const pathname = usePathname();
@@ -141,7 +163,59 @@ export default function DashboardMetricsPortal() {
     ];
   }, [orders, transactions, productsMap]);
 
+  const trends = useMemo(() => {
+    const now = getArgentinaDate(new Date().toISOString());
+    const days: TrendPoint[] = [];
+
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      days.push({
+        key: dateKey(d),
+        label: d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }),
+        sales: 0,
+        collected: 0,
+        orders: 0,
+      });
+    }
+
+    const byKey = new Map(days.map(point => [point.key, point]));
+
+    for (const order of orders) {
+      if (!isValidSale(order)) continue;
+      const d = getArgentinaDate(order.created_at);
+      const point = byKey.get(dateKey(d));
+      if (!point) continue;
+      point.sales += Math.max(0, Number(order.total_amount || 0));
+      point.orders += 1;
+    }
+
+    for (const tx of transactions) {
+      if (!isCustomerPayment(tx as any)) continue;
+      const d = getArgentinaDate(tx.created_at);
+      const point = byKey.get(dateKey(d));
+      if (!point) continue;
+      point.collected += Math.max(0, Number(tx.amount || 0));
+    }
+
+    const salesTotal = days.reduce((sum, d) => sum + d.sales, 0);
+    const collectedTotal = days.reduce((sum, d) => sum + d.collected, 0);
+    const orderTotal = days.reduce((sum, d) => sum + d.orders, 0);
+    const collectionRate = salesTotal > 0 ? (collectedTotal / salesTotal) * 100 : 0;
+
+    return { days, salesTotal, collectedTotal, orderTotal, collectionRate };
+  }, [orders, transactions]);
+
   if (pathname !== '/' || !mountNode) return null;
+
+  const salesValues = trends.days.map(d => d.sales);
+  const collectedValues = trends.days.map(d => d.collected);
+  const orderValues = trends.days.map(d => d.orders);
+  const moneyMax = Math.max(...salesValues, ...collectedValues, 1);
+  const ordersMax = Math.max(...orderValues, 1);
+
+  const firstLabel = trends.days[0]?.label || '';
+  const middleLabel = trends.days[Math.floor(trends.days.length / 2)]?.label || '';
+  const lastLabel = trends.days[trends.days.length - 1]?.label || '';
 
   return createPortal(
     <section className="dashboard-live-metrics" aria-label="Métricas rápidas del negocio">
@@ -152,6 +226,7 @@ export default function DashboardMetricsPortal() {
         </div>
         <span className="dashboard-live-metrics__period">vs. mes anterior</span>
       </div>
+
       <div className="dashboard-live-metrics__grid">
         {metrics.map(({ label, value, delta, icon: Icon }) => (
           <article className="dashboard-live-metrics__card" key={label}>
@@ -163,6 +238,55 @@ export default function DashboardMetricsPortal() {
             </span>
           </article>
         ))}
+      </div>
+
+      <div className="dashboard-trends">
+        <div className="dashboard-trends__head">
+          <div>
+            <span className="dashboard-live-metrics__eyebrow">ÚLTIMOS 14 DÍAS</span>
+            <h3>Ventas vs. cobros</h3>
+          </div>
+          <div className="dashboard-trends__rate">
+            <span>Cobrado / vendido</span>
+            <strong>{Math.round(trends.collectionRate)}%</strong>
+          </div>
+        </div>
+
+        <div className="dashboard-trends__summary">
+          <div><span>Vendido</span><strong>{formatMoney(trends.salesTotal)}</strong></div>
+          <div><span>Cobrado</span><strong>{formatMoney(trends.collectedTotal)}</strong></div>
+          <div><span>Pedidos</span><strong>{trends.orderTotal}</strong></div>
+        </div>
+
+        <div className="dashboard-trends__chart-card">
+          <div className="dashboard-trends__legend">
+            <span className="is-sales"><i /> Ventas</span>
+            <span className="is-collected"><i /> Cobros</span>
+          </div>
+          <svg className="dashboard-trends__chart" viewBox="0 0 320 116" role="img" aria-label="Evolución diaria de ventas y cobros de los últimos 14 días">
+            <line x1="0" y1="29" x2="320" y2="29" className="dashboard-trends__gridline" />
+            <line x1="0" y1="58" x2="320" y2="58" className="dashboard-trends__gridline" />
+            <line x1="0" y1="87" x2="320" y2="87" className="dashboard-trends__gridline" />
+            <polyline points={pointString(salesValues, moneyMax)} className="dashboard-trends__line dashboard-trends__line--sales" />
+            <polyline points={pointString(collectedValues, moneyMax)} className="dashboard-trends__line dashboard-trends__line--collected" />
+          </svg>
+          <div className="dashboard-trends__axis"><span>{firstLabel}</span><span>{middleLabel}</span><span>{lastLabel}</span></div>
+        </div>
+
+        <div className="dashboard-trends__orders-card">
+          <div className="dashboard-trends__orders-head">
+            <div>
+              <span className="dashboard-live-metrics__label">Ritmo de pedidos</span>
+              <strong>{trends.orderTotal} en 14 días</strong>
+            </div>
+            <span>Pedidos por día</span>
+          </div>
+          <svg className="dashboard-trends__spark" viewBox="0 0 320 70" role="img" aria-label="Cantidad diaria de pedidos de los últimos 14 días">
+            <polyline points={pointString(orderValues, ordersMax, 320, 70)} className="dashboard-trends__line dashboard-trends__line--orders" />
+          </svg>
+        </div>
+
+        <p className="dashboard-trends__note">Ventas muestra pedidos creados; Cobros muestra ingresos reales de clientes. Así Cami puede ver si está vendiendo más rápido de lo que está cobrando.</p>
       </div>
     </section>,
     mountNode
