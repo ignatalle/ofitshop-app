@@ -86,9 +86,9 @@ export default function DashboardMetricsPortal() {
       if (!slot) {
         slot = document.createElement('div');
         slot.id = 'dashboard-live-metrics-slot';
-        const hero = dashboard.querySelector('.card.bg-\\[\\#FFF8ED\\]');
-        if (hero?.nextSibling) dashboard.insertBefore(slot, hero.nextSibling);
-        else dashboard.appendChild(slot);
+        const greeting = dashboard.firstElementChild;
+        if (greeting?.nextSibling) dashboard.insertBefore(slot, greeting.nextSibling);
+        else dashboard.prepend(slot);
       }
       setMountNode(slot);
       return true;
@@ -219,28 +219,7 @@ export default function DashboardMetricsPortal() {
 
   return createPortal(
     <section className="dashboard-live-metrics" aria-label="Métricas rápidas del negocio">
-      <div className="dashboard-live-metrics__head">
-        <div>
-          <span className="dashboard-live-metrics__eyebrow">PULSO DEL NEGOCIO</span>
-          <h2>Métricas rápidas</h2>
-        </div>
-        <span className="dashboard-live-metrics__period">vs. mes anterior</span>
-      </div>
-
-      <div className="dashboard-live-metrics__grid">
-        {metrics.map(({ label, value, delta, icon: Icon }) => (
-          <article className="dashboard-live-metrics__card" key={label}>
-            <div className="dashboard-live-metrics__icon"><Icon size={18} /></div>
-            <span className="dashboard-live-metrics__label">{label}</span>
-            <strong>{value}</strong>
-            <span className={`dashboard-live-metrics__delta ${delta < 0 ? 'is-negative' : 'is-positive'}`}>
-              {formatPct(delta)} <small>vs. mes anterior</small>
-            </span>
-          </article>
-        ))}
-      </div>
-
-      <div className="dashboard-trends">
+      <div className="dashboard-trends dashboard-trends--priority">
         <div className="dashboard-trends__head">
           <div>
             <span className="dashboard-live-metrics__eyebrow">ÚLTIMOS 14 DÍAS</span>
@@ -287,6 +266,27 @@ export default function DashboardMetricsPortal() {
         </div>
 
         <p className="dashboard-trends__note">Ventas muestra pedidos creados; Cobros muestra ingresos reales de clientes. Así Cami puede ver si está vendiendo más rápido de lo que está cobrando.</p>
+      </div>
+
+      <div className="dashboard-live-metrics__head">
+        <div>
+          <span className="dashboard-live-metrics__eyebrow">PULSO DEL NEGOCIO</span>
+          <h2>Métricas rápidas</h2>
+        </div>
+        <span className="dashboard-live-metrics__period">vs. mes anterior</span>
+      </div>
+
+      <div className="dashboard-live-metrics__grid">
+        {metrics.map(({ label, value, delta, icon: Icon }) => (
+          <article className="dashboard-live-metrics__card" key={label}>
+            <div className="dashboard-live-metrics__icon"><Icon size={18} /></div>
+            <span className="dashboard-live-metrics__label">{label}</span>
+            <strong>{value}</strong>
+            <span className={`dashboard-live-metrics__delta ${delta < 0 ? 'is-negative' : 'is-positive'}`}>
+              {formatPct(delta)} <small>vs. mes anterior</small>
+            </span>
+          </article>
+        ))}
       </div>
     </section>,
     mountNode
