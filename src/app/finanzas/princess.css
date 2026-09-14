@@ -23,17 +23,6 @@ html[data-theme="luxe"] .finanzas-mobile-shell > div > .pt-2 {
   padding: 12px 6px 4px;
 }
 
-html[data-theme="luxe"] .finanzas-mobile-shell > div > .pt-2::before {
-  content: "♕";
-  position: absolute;
-  right: 34px;
-  top: 1px;
-  color: var(--fin-rose);
-  font-size: 15px;
-  opacity: .82;
-  text-shadow: 0 0 14px rgba(243,169,195,.55);
-}
-
 html[data-theme="luxe"] .finanzas-mobile-shell > div > .pt-2::after {
   content: "✦  ✧";
   right: 4px;
@@ -57,7 +46,7 @@ html[data-theme="luxe"] .finanzas-mobile-shell > div > .pt-2 p {
   letter-spacing: .01em;
 }
 
-/* Card reina: caja */
+/* Card principal: caja */
 html[data-theme="luxe"] .finanzas-mobile-shell .col-span-2.bg-ofit-pink {
   border-radius: 26px !important;
   background:
@@ -82,7 +71,7 @@ html[data-theme="luxe"] .finanzas-mobile-shell .col-span-2.bg-ofit-pink::before 
 }
 
 html[data-theme="luxe"] .finanzas-mobile-shell .col-span-2.bg-ofit-pink::after {
-  content: "♕   ✦" !important;
+  content: "✦  ✧" !important;
   color: #fff2c7 !important;
   font-size: 18px !important;
   letter-spacing: .18em;
@@ -180,7 +169,7 @@ html[data-theme="luxe"] .finanzas-mobile-shell h2 {
 }
 
 html[data-theme="luxe"] .finanzas-mobile-shell h2.text-lg::after {
-  content: "  ♕  ✧" !important;
+  content: "  ✧" !important;
   color: var(--fin-gold) !important;
   font-size: .74em;
   letter-spacing: .12em;
@@ -218,7 +207,7 @@ html[data-theme="luxe"] .finanzas-mobile-shell .card.flex.items-center.gap-4 > d
   font-family: Georgia, 'Times New Roman', serif;
 }
 
-/* Modales princesa premium */
+/* Modales premium */
 html[data-theme="luxe"] .finanzas-mobile-shell .fixed.inset-0 {
   background: rgba(7,4,8,.76) !important;
   backdrop-filter: blur(10px) saturate(110%);
@@ -233,7 +222,7 @@ html[data-theme="luxe"] .finanzas-mobile-shell .fixed.inset-0 > div {
 }
 
 html[data-theme="luxe"] .finanzas-mobile-shell .fixed.inset-0 > div::before {
-  content: "♕   ✦";
+  content: "✦  ✧";
   position: absolute;
   right: 20px;
   top: 16px;
