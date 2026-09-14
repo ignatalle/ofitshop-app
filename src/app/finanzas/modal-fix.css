@@ -1,0 +1,77 @@
+/* Finanzas — fix de usabilidad móvil para modales.
+   Mantiene las acciones por encima del bottom nav y visibles al hacer scroll. */
+
+@media (max-width: 640px) {
+  /* Los modales deben estar por encima de la navegación fija de la app. */
+  .finanzas-mobile-shell .fixed.inset-0 {
+    z-index: 140 !important;
+    padding-top: env(safe-area-inset-top) !important;
+    padding-bottom: 0 !important;
+  }
+
+  /* Modal Registrar Gasto: bottom sheet con header fijo + cuerpo scrolleable. */
+  .finanzas-mobile-shell .fixed.inset-0 > .card.w-full.max-w-sm {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: calc(100dvh - env(safe-area-inset-top) - 8px) !important;
+    overflow: hidden !important;
+    padding-bottom: 0 !important;
+    border-radius: 24px 24px 0 0 !important;
+  }
+
+  .finanzas-mobile-shell .fixed.inset-0 > .card.w-full.max-w-sm > div:first-child {
+    position: relative;
+    z-index: 3;
+    flex: 0 0 auto;
+    background: var(--bg-card);
+  }
+
+  .finanzas-mobile-shell .fixed.inset-0 > .card.w-full.max-w-sm > form {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0 !important;
+    scroll-padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  }
+
+  /* Confirmar Gasto siempre accesible, incluso en pantallas chicas. */
+  .finanzas-mobile-shell .fixed.inset-0 > .card.w-full.max-w-sm > form > .pt-2:last-child {
+    position: sticky;
+    bottom: 0;
+    z-index: 8;
+    margin-left: -20px;
+    margin-right: -20px;
+    padding: 12px 20px calc(12px + env(safe-area-inset-bottom)) !important;
+    background: linear-gradient(180deg, rgba(20, 15, 21, .96), rgba(13, 10, 15, .99));
+    border-top: 1px solid rgba(229, 203, 136, .18);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 -12px 28px rgba(0, 0, 0, .28);
+  }
+
+  .finanzas-mobile-shell .fixed.inset-0 > .card.w-full.max-w-sm > form > .pt-2:last-child .btn-primary {
+    min-height: 52px;
+    width: 100%;
+    font-size: 16px !important;
+  }
+
+  /* La transferencia también queda por encima del bottom nav. */
+  .finanzas-mobile-shell .fixed.inset-0 > .bg-white.w-full {
+    max-height: calc(100dvh - env(safe-area-inset-top) - 8px) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .fixed.inset-0 > .card.w-full.max-w-sm > div:first-child {
+  background: linear-gradient(180deg, #24151f 0%, #1b121a 100%) !important;
+  border-bottom-color: rgba(229, 203, 136, .18) !important;
+}
+
+html[data-theme="luxe"] .finanzas-mobile-shell .fixed.inset-0 > .card.w-full.max-w-sm > form > .pt-2:last-child {
+  background: linear-gradient(180deg, rgba(31, 20, 29, .97), rgba(15, 11, 16, .995)) !important;
+}
