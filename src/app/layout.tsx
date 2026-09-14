@@ -4,6 +4,7 @@ import "./globals.css";
 import "./mobile-audit.css";
 import "./luxe-theme.css";
 import "./luxe-all.css";
+import "./dashboard-luxe.css";
 import Sidebar from "../components/Sidebar";
 import BottomNav from "../components/BottomNav";
 
