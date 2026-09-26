@@ -40,12 +40,15 @@ export const viewport: Viewport = {
 const themeBootScript = `
   try {
     const savedTheme = localStorage.getItem('ofitshop_theme');
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
     if (savedTheme === 'luxe') {
       document.documentElement.dataset.theme = 'luxe';
       document.documentElement.style.backgroundColor = '#09090B';
+      if (themeMeta) themeMeta.setAttribute('content', '#09090B');
     } else {
       delete document.documentElement.dataset.theme;
       document.documentElement.style.backgroundColor = '#FFF9F7';
+      if (themeMeta) themeMeta.setAttribute('content', '#FFF9F7');
     }
   } catch (_) {}
 `;
