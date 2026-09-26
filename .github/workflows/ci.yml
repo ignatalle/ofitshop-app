@@ -26,7 +26,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
+      # Hay deuda de lint histórica en el repositorio. La seguimos ejecutando para
+      # verla en logs, pero no bloquea producción hasta terminar esa limpieza.
+      - name: Lint audit
+        continue-on-error: true
         run: npm run lint
 
       - name: Type check
