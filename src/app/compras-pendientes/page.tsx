@@ -88,7 +88,7 @@ export default function ComprasPendientesPage() {
   }, [filteredPurchases]);
 
   const handleMarkUnavailable = async (purchase: PendingPurchase) => {
-    if (!window.confirm(`¿Marcar "${purchase.product_name}" como NO DISPONIBLE?`)) return;
+    if (!window.confirm(`¿Marcar "${purchase.product_name}" como NO DISPONIBLE?\n\nEsto no modifica el total del pedido ni la deuda de la clienta.`)) return;
     try {
       setIsSubmitting(true);
       const now = new Date().toISOString();
