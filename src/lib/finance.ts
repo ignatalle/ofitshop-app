@@ -60,6 +60,43 @@ export const isSameMonthArgentina = (dateStr: string, month: number, year: numbe
   return argDate.getMonth() === month && argDate.getFullYear() === year;
 };
 
+/**
+ * Convierte un monto ingresado en pesos a centavos enteros.
+ * Acepta formatos habituales de Argentina: 15000, 15000.50, 15000,50,
+ * 15.000 y 15.000,50. Devuelve null si el valor no es numérico.
+ */
+export const parsePesosToCents = (value: string | number): number | null => {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? Math.round(value * 100) : null;
+  }
+
+  let raw = value.trim();
+  if (!raw) return null;
+
+  raw = raw.replace(/\s/g, '').replace(/\$/g, '');
+
+  const comma = raw.lastIndexOf(',');
+  const dot = raw.lastIndexOf('.');
+
+  if (comma >= 0 && dot >= 0) {
+    if (comma > dot) {
+      raw = raw.replace(/\./g, '').replace(',', '.');
+    } else {
+      raw = raw.replace(/,/g, '');
+    }
+  } else if (comma >= 0) {
+    raw = raw.replace(',', '.');
+  } else if (dot >= 0) {
+    const parts = raw.split('.');
+    if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
+      raw = raw.replace(/\./g, '');
+    }
+  }
+
+  const pesos = Number(raw);
+  return Number.isFinite(pesos) ? Math.round(pesos * 100) : null;
+};
+
 // ----------------------------------------------------------------------
 // 2. CLASIFICADORES DE TRANSACCIONES (Isolando lógicas difusas)
 // ----------------------------------------------------------------------
