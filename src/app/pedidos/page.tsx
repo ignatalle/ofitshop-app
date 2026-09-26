@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Loader2, Plus, Clock, Truck, CheckCircle2, ChevronRight, PackageOpen } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { calculateOrderBalance } from '@/lib/finance';
+import { calculateOrderBalance, getArgentinaDate, isValidSale } from '@/lib/finance';
 
 interface Customer {
   id: string;
@@ -28,8 +27,6 @@ interface Order {
 type FilterTab = 'TODOS' | 'PENDIENTES' | 'COMPLETADOS';
 
 export default function PedidosDashboardPage() {
-  const router = useRouter();
-  
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,9 +63,13 @@ export default function PedidosDashboardPage() {
   };
 
   const formatDate = (isoStr: string) => {
-    const d = new Date(isoStr);
+    const d = getArgentinaDate(isoStr);
     return new Intl.DateTimeFormat('es-AR', {
-      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'America/Argentina/Buenos_Aires',
     }).format(d);
   };
 
@@ -77,24 +78,22 @@ export default function PedidosDashboardPage() {
       case 'PENDIENTE': return <span className="flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md"><Clock size={10} /> Pendiente</span>;
       case 'RECIBIDO': return <span className="flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md"><Truck size={10} /> Recibido</span>;
       case 'ENTREGADO': return <span className="flex items-center gap-1 text-[10px] font-bold text-[#1da650] bg-[#25D366]/20 px-2 py-0.5 rounded-md"><CheckCircle2 size={10} /> Entregado</span>;
-      default: return null;
+      case 'CANCELADO':
+      case 'ANULADO':
+        return <span className="flex items-center gap-1 text-[10px] font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-md">Anulado</span>;
+      default: return <span className="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">{status || 'Sin estado'}</span>;
     }
   };
 
   const filteredOrders = orders.filter(order => {
     if (activeTab === 'TODOS') return true;
-    
-    const isPaid = calculateOrderBalance(order as any) <= 0;
+    if (!isValidSale(order)) return false;
+
+    const isPaid = calculateOrderBalance(order) <= 0;
     const isDelivered = order.status === 'ENTREGADO';
-    
-    if (activeTab === 'COMPLETADOS') {
-      return isPaid && isDelivered;
-    }
-    
-    if (activeTab === 'PENDIENTES') {
-      return !isPaid || !isDelivered;
-    }
-    
+
+    if (activeTab === 'COMPLETADOS') return isPaid && isDelivered;
+    if (activeTab === 'PENDIENTES') return !isPaid || !isDelivered;
     return true;
   });
 
@@ -113,7 +112,7 @@ export default function PedidosDashboardPage() {
         </div>
         <Link 
           href="/pedidos/nuevo"
-          className="btn-primary py-2.5 px-4 rounded-xl flex items-center gap-2 text-sm font-bold text-white shadow-sm transition-transform active:scale-95 hover:-translate-y-0.5"
+          className="btn-primary min-h-11 py-2.5 px-4 rounded-xl flex items-center gap-2 text-sm font-bold text-white shadow-sm transition-transform active:scale-95 hover:-translate-y-0.5"
         >
           <Plus size={18} />
           Carga Rápida
@@ -124,19 +123,19 @@ export default function PedidosDashboardPage() {
       <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
         <button
           onClick={() => setActiveTab('PENDIENTES')}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'PENDIENTES' ? 'bg-white text-ofit-pink shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          className={`flex-1 min-h-11 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'PENDIENTES' ? 'bg-white text-ofit-pink shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
         >
           Pendientes
         </button>
         <button
           onClick={() => setActiveTab('COMPLETADOS')}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'COMPLETADOS' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          className={`flex-1 min-h-11 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'COMPLETADOS' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
         >
           Completados
         </button>
         <button
           onClick={() => setActiveTab('TODOS')}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'TODOS' ? 'bg-white text-ofit-text shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          className={`flex-1 min-h-11 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'TODOS' ? 'bg-white text-ofit-text shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
         >
           Todos
         </button>
@@ -155,13 +154,13 @@ export default function PedidosDashboardPage() {
           </div>
         ) : (
           filteredOrders.map(order => {
-            const isPaid = order.advance_payment >= order.total_amount;
+            const isPaid = isValidSale(order) && calculateOrderBalance(order) <= 0;
             const hasMissingCost = order.items && order.items.some((item: any) => (!item.wholesaleCost || item.wholesaleCost === 0) && !item.productId);
             
             return (
               <Link 
                 key={order.id} 
-                href={`/clientes?expand=${order.customer_id}`}
+                href={`/pedidos/${order.id}`}
                 className={`card p-4 hover:shadow-md transition-shadow group cursor-pointer block relative ${hasMissingCost ? 'border-2 border-amber-300/50' : 'border-none'}`}
               >
                 <div className="flex justify-between items-start mb-2">
