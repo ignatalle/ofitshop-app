@@ -24,7 +24,7 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 
 ## Fase 2 — Datos y estructura
 - [ ] Auditar orders/items, transactions, customers, products, pending_purchases y suppliers.
-- [~] Revisar migraciones, triggers y RPC — primera pasada hecha; se agregaron RPC atómicas de pedido y abono.
+- [~] Revisar migraciones, triggers y RPC — pedido/abono activos; hardening de Compras Pendientes preparado y pendiente de aplicar en Supabase.
 - [ ] Detectar duplicaciones de lógica entre páginas.
 - [ ] Reducir dependencias de textos/descripciones para clasificar movimientos.
 - [ ] Revisar RLS/permisos antes de cualquier tienda pública.
@@ -33,10 +33,10 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 - [x] Nuevo pedido / Carga rápida — RPC aplicada y frontend conectado de forma atómica.
 - [x] Abonos y pagos globales — RPC aplicada y frontend conectado de forma atómica.
 - [ ] Cambios de estado y entrega.
-- [ ] Gastos, transferencias y retiros.
+- [x] Gastos, transferencias y retiros — montos validados, transferencias limitadas al saldo disponible y movimientos vinculados protegidos contra borrado manual.
 - [x] Compras pendientes y costos pendientes — separados para evitar completar CMV sin registrar la salida real de Caja.
 - [x] Edición/eliminación de pedidos e ítems — bloqueadas operaciones que romperían Caja/abonos; precios recalculan subtotal y total.
-- [ ] WhatsApp y datos incompletos de clientes.
+- [x] WhatsApp y datos incompletos de clientes — si falta teléfono ahora se muestra Agregar WhatsApp en vez de ocultar la cobranza.
 
 ## Fase 4 — Dashboard y métricas
 - [x] Asegurar que cada KPI tenga una definición única.
@@ -89,3 +89,12 @@ Estado: auditoría en curso. Matemática base corregida y etapa transaccional ac
 - Se eliminó una sugerencia hardcodeada específica de "Baggi Bordo" y $13.990, porque podía introducir un costo incorrecto.
 - Marcar una compra como NO DISPONIBLE aclara que no cambia automáticamente el total ni la deuda de la clienta.
 - El lint encontró deuda técnica histórica en muchas pantallas; se mantiene visible pero temporalmente no bloqueante mientras TypeScript, pruebas financieras y build sí bloquean.
+
+
+### Hallazgos corregidos — Finanzas y clientes
+- Finanzas ya no permite borrar desde la UI movimientos asociados a pedidos ni una sola mitad de una transferencia.
+- Mover Plata valida monto > 0 y no permite mover más que el saldo registrado en la cuenta origen.
+- Los egresos manuales validan monto positivo antes de insertar.
+- Clientes con historial de pedidos/ventas ya no pueden eliminarse desde la UI, evitando destruir referencias históricas.
+- Clientes sin teléfono muestran "Sin WhatsApp" y, si tienen deuda, un botón "Agregar WhatsApp".
+- El Dashboard tipó correctamente order_id en transacciones; la clasificación de Cobros puede usar el vínculo real al pedido.
