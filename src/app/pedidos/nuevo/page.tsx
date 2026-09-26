@@ -1,5 +1,6 @@
 'use client';
 
+import { parsePesosToCents } from '@/lib/finance';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -309,11 +310,12 @@ function NuevoPedidoContent() {
     }
 
     const orderTotalCents = cleanItems.reduce((acc, item) => acc + item.subtotal, 0);
-    const parsedAdvance = clientPayment.trim() === '' ? 0 : Number(clientPayment);
-    if (!Number.isFinite(parsedAdvance) || parsedAdvance < 0) {
+    const validatedAdvanceCents = clientPayment.trim() === ''
+      ? 0
+      : (parsePesosToCents(clientPayment) ?? -1);
+    if (validatedAdvanceCents < 0) {
       return alert('El pago inicial debe ser un monto válido.');
     }
-    const validatedAdvanceCents = Math.round(parsedAdvance * 100);
     if (validatedAdvanceCents > orderTotalCents) {
       return alert('El pago inicial no puede ser mayor al total del pedido.');
     }
@@ -323,11 +325,11 @@ function NuevoPedidoContent() {
       if (validatedAdvanceCents <= 0) {
         return alert('Para registrar una comisión primero debe existir un pago inicial.');
       }
-      const parsedRealIncome = Number(realIncome);
-      if (!Number.isFinite(parsedRealIncome) || parsedRealIncome < 0) {
+      const parsedRealIncomeCents = parsePesosToCents(realIncome);
+      if (parsedRealIncomeCents === null || parsedRealIncomeCents < 0) {
         return alert('Ingresá cuánto dinero entró realmente después de la comisión.');
       }
-      validatedRealIncomeCents = Math.round(parsedRealIncome * 100);
+      validatedRealIncomeCents = parsedRealIncomeCents;
       if (validatedRealIncomeCents > validatedAdvanceCents) {
         return alert('La plata real ingresada no puede ser mayor al pago realizado por la clienta.');
       }
