@@ -25,7 +25,6 @@ type Order = {
   items: any;
   status: string;
   created_at: string;
-  order_id?: string | null;
 };
 
 type Transaction = {
@@ -35,6 +34,7 @@ type Transaction = {
   description: string;
   cuenta: 'EFECTIVO' | 'VIRTUAL';
   created_at: string;
+  order_id?: string | null;
 };
 
 type TrendPoint = {
@@ -191,7 +191,7 @@ export default function DashboardMetricsPortal() {
     }
 
     for (const tx of transactions) {
-      if (!isCustomerPayment(tx as any)) continue;
+      if (!isCustomerPayment(tx)) continue;
       const d = getArgentinaDate(tx.created_at);
       const point = byKey.get(dateKey(d));
       if (!point) continue;
