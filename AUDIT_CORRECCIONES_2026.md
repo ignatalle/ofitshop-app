@@ -24,7 +24,7 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 
 ## Fase 2 — Datos y estructura
 - [ ] Auditar orders/items, transactions, customers, products, pending_purchases y suppliers.
-- [~] Revisar migraciones, triggers y RPC — pedido/abono activos; hardening de Compras Pendientes preparado y pendiente de aplicar en Supabase.
+- [x] Revisar migraciones, triggers y RPC — pedido, abonos y Compras Pendientes usan RPC atómicas; hardening aplicado en Supabase.
 - [ ] Detectar duplicaciones de lógica entre páginas.
 - [ ] Reducir dependencias de textos/descripciones para clasificar movimientos.
 - [ ] Revisar RLS/permisos antes de cualquier tienda pública.
@@ -126,3 +126,10 @@ Estado: auditoría en curso. Matemática base corregida y etapa transaccional ac
 ### Hallazgo corregido — saldos iniciales
 - Un saldo/ingreso inicial sigue formando parte de Caja, pero ya no se interpreta como Cobro de clientes.
 - Las tarjetas Ingresos/Egresos de Finanzas excluyen transferencias internas, conciliaciones y saldos iniciales para mostrar actividad real y no movimientos de configuración.
+
+
+### Compras Pendientes — hardening activado
+- La migración 20260926_harden_pending_purchases.sql ya fue aplicada en Supabase.
+- Marcar una compra como CONSEGUIDO actualiza snapshot histórico + pending_purchases + salida de Caja dentro de una sola transacción.
+- Asignar/cambiar proveedor ahora usa assign_pending_purchase_supplier_atomic y mantiene pedido + compra pendiente sincronizados.
+- El frontend dejó de crear/buscar proveedor y actualizar pending_purchases en pasos separados.
