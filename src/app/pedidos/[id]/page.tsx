@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Loader2, ChevronLeft, PackageOpen, DollarSign, CheckCircle2, Truck, Clock, Trash2, Edit } from 'lucide-react';
 import Link from 'next/link';
+import { getArgentinaDate } from '@/lib/finance';
 
 interface Order {
   id: string;
@@ -92,6 +93,10 @@ export default function FichaPedidoPage() {
 
   const handleStatusChange = async (newStatus: string) => {
     if (orderStatus === newStatus || !order) return;
+    if (!['PENDIENTE', 'RECIBIDO', 'ENTREGADO'].includes(newStatus)) {
+      alert('Estado de pedido inválido.');
+      return;
+    }
 
     try {
       setOrderStatus(newStatus);
@@ -254,9 +259,13 @@ export default function FichaPedidoPage() {
   if (!order) return null;
 
   const formatDate = (isoStr: string) => {
-    const d = new Date(isoStr);
+    const d = getArgentinaDate(isoStr);
     return new Intl.DateTimeFormat('es-AR', {
-      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'America/Argentina/Buenos_Aires',
     }).format(d);
   };
 
@@ -285,19 +294,19 @@ export default function FichaPedidoPage() {
         <div className="grid grid-cols-3 gap-2">
           <button 
             onClick={() => handleStatusChange('PENDIENTE')}
-            className={`py-2 px-1 text-xs font-bold rounded-xl flex flex-col items-center gap-1.5 transition-colors border ${orderStatus === 'PENDIENTE' ? 'bg-amber-100 border-amber-200 text-amber-700' : 'bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100'}`}
+            className={`min-h-12 py-2 px-1 text-xs font-bold rounded-xl flex flex-col items-center justify-center gap-1.5 transition-colors border ${orderStatus === 'PENDIENTE' ? 'bg-amber-100 border-amber-200 text-amber-700' : 'bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100'}`}
           >
             <Clock size={16} /> Pendiente
           </button>
           <button 
             onClick={() => handleStatusChange('RECIBIDO')}
-            className={`py-2 px-1 text-xs font-bold rounded-xl flex flex-col items-center gap-1.5 transition-colors border ${orderStatus === 'RECIBIDO' ? 'bg-blue-100 border-blue-200 text-blue-700' : 'bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100'}`}
+            className={`min-h-12 py-2 px-1 text-xs font-bold rounded-xl flex flex-col items-center justify-center gap-1.5 transition-colors border ${orderStatus === 'RECIBIDO' ? 'bg-blue-100 border-blue-200 text-blue-700' : 'bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100'}`}
           >
             <Truck size={16} /> Recibido
           </button>
           <button 
             onClick={() => handleStatusChange('ENTREGADO')}
-            className={`py-2 px-1 text-xs font-bold rounded-xl flex flex-col items-center gap-1.5 transition-colors border ${orderStatus === 'ENTREGADO' ? 'bg-[#25D366]/20 border-[#25D366]/30 text-[#1da650]' : 'bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100'}`}
+            className={`min-h-12 py-2 px-1 text-xs font-bold rounded-xl flex flex-col items-center justify-center gap-1.5 transition-colors border ${orderStatus === 'ENTREGADO' ? 'bg-[#25D366]/20 border-[#25D366]/30 text-[#1da650]' : 'bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100'}`}
           >
             <CheckCircle2 size={16} /> Entregado
           </button>
@@ -335,7 +344,7 @@ export default function FichaPedidoPage() {
                       <div className="flex items-center gap-1">
                         <span className="text-xs font-bold text-gray-500">$</span>
                         <input 
-                          type="number" min="0" step="0.01" 
+                          type="number" min="0.01" step="0.01" inputMode="decimal"
                           value={tempPriceValue}
                           onChange={(e) => setTempPriceValue(e.target.value)}
                           className="w-16 h-6 px-1 text-xs border border-gray-300 rounded font-bold"
@@ -362,7 +371,7 @@ export default function FichaPedidoPage() {
                         <div className="flex items-center gap-1">
                           <span className="text-xs font-bold text-gray-500">$</span>
                           <input 
-                            type="number" min="0" step="0.01" 
+                            type="number" min="0" step="0.01" inputMode="decimal"
                             value={tempCostValue}
                             onChange={(e) => setTempCostValue(e.target.value)}
                             className="w-16 h-6 px-1 text-xs border border-gray-300 rounded font-bold"
