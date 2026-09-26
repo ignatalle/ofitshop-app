@@ -4,7 +4,7 @@ import {
   isPersonalWithdrawal, isMerchandisePurchase, isCashReconciliation, calculateTotalCash, calculateAccountBalance, 
   calculateReceivables, calculateDebtorCustomers, calculateSales, calculateCOGS, calculateOperatingExpenses, 
   calculateCommissions, calculateNetProfit, calculateDistribution,
-  getOrderFinancialStatus, calculateOrderBalance, isCustomerPayment
+  getOrderFinancialStatus, calculateOrderBalance, isCustomerPayment, isOpeningBalance
 } from './finance';
 
 // Mock data builder helpers
@@ -134,6 +134,12 @@ function runTests() {
   assert.strictEqual(isCustomerPayment(linkedPayment), true, 'Caso 18: Pago con order_id es cobro');
   assert.strictEqual(isCustomerPayment(initialBalance), false, 'Caso 18: Saldo inicial no es cobro');
   assert.strictEqual(isCustomerPayment(legacyPayment), true, 'Caso 18: Abono histórico sigue siendo cobro');
+
+  // Caso 19: saldos iniciales forman Caja pero no son ingresos operativos/cobros
+  const opening = makeTx('opening', 'INGRESO', 75000, 'Saldo inicial de caja', 'EFECTIVO');
+  assert.strictEqual(isOpeningBalance(opening), true, 'Caso 19: Debe detectar saldo inicial');
+  assert.strictEqual(isCustomerPayment(opening), false, 'Caso 19: Saldo inicial no es cobro de cliente');
+  assert.strictEqual(calculateTotalCash([opening]), 75000, 'Caso 19: Saldo inicial sí forma parte de Caja');
 
   // TEST MÁS IMPORTANTE AHORA: DÍA COMPLETO DE CAMI
   const startEfectivo = makeTx('startE', 'INGRESO', 7500000, 'Start Efectivo', 'EFECTIVO');
