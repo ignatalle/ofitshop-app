@@ -4,7 +4,7 @@ import {
   isPersonalWithdrawal, isMerchandisePurchase, isCashReconciliation, calculateTotalCash, calculateAccountBalance, 
   calculateReceivables, calculateDebtorCustomers, calculateSales, calculateCOGS, calculateOperatingExpenses, 
   calculateCommissions, calculateNetProfit, calculateDistribution,
-  getOrderFinancialStatus, calculateOrderBalance, isCustomerPayment, isOpeningBalance
+  getOrderFinancialStatus, calculateOrderBalance, isCustomerPayment, isOpeningBalance, parsePesosToCents
 } from './finance';
 
 // Mock data builder helpers
@@ -140,6 +140,13 @@ function runTests() {
   assert.strictEqual(isOpeningBalance(opening), true, 'Caso 19: Debe detectar saldo inicial');
   assert.strictEqual(isCustomerPayment(opening), false, 'Caso 19: Saldo inicial no es cobro de cliente');
   assert.strictEqual(calculateTotalCash([opening]), 75000, 'Caso 19: Saldo inicial sí forma parte de Caja');
+
+  // Caso 20: conversión monetaria única pesos -> centavos
+  assert.strictEqual(parsePesosToCents('15000'), 1500000, 'Caso 20: entero en pesos');
+  assert.strictEqual(parsePesosToCents('15000,50'), 1500050, 'Caso 20: decimal con coma');
+  assert.strictEqual(parsePesosToCents('15.000'), 1500000, 'Caso 20: miles argentino');
+  assert.strictEqual(parsePesosToCents('15.000,50'), 1500050, 'Caso 20: miles + decimales');
+  assert.strictEqual(parsePesosToCents(''), null, 'Caso 20: vacío es inválido');
 
   // TEST MÁS IMPORTANTE AHORA: DÍA COMPLETO DE CAMI
   const startEfectivo = makeTx('startE', 'INGRESO', 7500000, 'Start Efectivo', 'EFECTIVO');
