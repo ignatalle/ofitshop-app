@@ -213,7 +213,7 @@ function NuevoPedidoContent() {
     draftItems
       .filter((item) => item.productName.trim() !== '' && parseFloat(item.unitPrice) > 0)
       .map((item) => {
-        const quantity = typeof item.quantity === 'number' ? item.quantity : 1;
+        const quantity = Math.max(1, Math.floor(typeof item.quantity === 'number' ? item.quantity : 1));
         const unitPrice = Math.round((parseFloat(item.unitPrice) || 0) * 100);
         const rawCost = parseFloat(item.wholesaleCost);
         const wholesaleCost = !isNaN(rawCost) && rawCost > 0 ? Math.round(rawCost * 100) : 0;
@@ -308,6 +308,31 @@ function NuevoPedidoContent() {
       return alert(`Para "${invalidPaid.productName}" marcaste que el costo ya fue pagado. Cargá un costo real mayor a $0.`);
     }
 
+    const orderTotalCents = cleanItems.reduce((acc, item) => acc + item.subtotal, 0);
+    const parsedAdvance = clientPayment.trim() === '' ? 0 : Number(clientPayment);
+    if (!Number.isFinite(parsedAdvance) || parsedAdvance < 0) {
+      return alert('El pago inicial debe ser un monto válido.');
+    }
+    const validatedAdvanceCents = Math.round(parsedAdvance * 100);
+    if (validatedAdvanceCents > orderTotalCents) {
+      return alert('El pago inicial no puede ser mayor al total del pedido.');
+    }
+
+    let validatedRealIncomeCents = 0;
+    if (hasCommission) {
+      if (validatedAdvanceCents <= 0) {
+        return alert('Para registrar una comisión primero debe existir un pago inicial.');
+      }
+      const parsedRealIncome = Number(realIncome);
+      if (!Number.isFinite(parsedRealIncome) || parsedRealIncome < 0) {
+        return alert('Ingresá cuánto dinero entró realmente después de la comisión.');
+      }
+      validatedRealIncomeCents = Math.round(parsedRealIncome * 100);
+      if (validatedRealIncomeCents > validatedAdvanceCents) {
+        return alert('La plata real ingresada no puede ser mayor al pago realizado por la clienta.');
+      }
+    }
+
     try {
       setIsSubmitting(true);
       const warnings: string[] = [];
@@ -323,7 +348,7 @@ function NuevoPedidoContent() {
         }),
       );
 
-      const advanceCents = clientPayment ? Math.round((parseFloat(clientPayment) || 0) * 100) : 0;
+      const advanceCents = validatedAdvanceCents;
       const total = itemsWithSuppliers.reduce((acc, item) => acc + item.subtotal, 0);
       const details = itemsWithSuppliers.map((item) => `${item.quantity}x ${item.productName}`).join(', ');
 
@@ -352,9 +377,8 @@ function NuevoPedidoContent() {
         }]);
         if (error) warnings.push('No se pudo registrar el pago inicial en Finanzas.');
 
-        if (hasCommission && realIncome) {
-          const realIncomeCents = Math.round((parseFloat(realIncome) || 0) * 100);
-          const commission = advanceCents - realIncomeCents;
+        if (hasCommission) {
+          const commission = advanceCents - validatedRealIncomeCents;
           if (commission > 0) {
             const { error: commissionError } = await supabase.from('transactions').insert([{
               order_id: orderId,
