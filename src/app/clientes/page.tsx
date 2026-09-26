@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Phone, AtSign, Loader2, Mail, FileText, Trash2, Pencil, ChevronDown, ChevronUp, DollarSign, CheckCircle2, History, MessageCircle, Plus, Check, X, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
-import { getItemUnitCostCents, getItemQuantity, isValidSale, calculateOrderBalance } from '@/lib/finance';
+import { getItemUnitCostCents, getItemQuantity, isValidSale, calculateOrderBalance, parsePesosToCents } from '@/lib/finance';
 
 interface Customer {
   id: string;
@@ -911,13 +911,11 @@ function ClientesContent() {
     e.preventDefault();
     if (!abonoCustomer) return;
 
-    const abonado = parseFloat(abonoAmount);
-    if (isNaN(abonado) || abonado <= 0) {
+    const abonadoCents = parsePesosToCents(abonoAmount);
+    if (abonadoCents === null || abonadoCents <= 0) {
       alert("Por favor, ingresa un monto válido mayor a 0.");
       return;
     }
-
-    const abonadoCents = Math.round(abonado * 100);
     if (abonadoCents > abonoCustomer.debt) {
       alert("El monto ingresado es mayor a la deuda total.");
       return;
