@@ -13,7 +13,7 @@ export interface Order {
   customer_id: string;
   total_amount: number;
   advance_payment: number;
-  items: any; // jsonb
+  items?: any; // jsonb; algunos pedidos históricos pueden no tener snapshot de items
   status: string;
   created_at: string;
 }
