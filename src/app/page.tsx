@@ -7,6 +7,7 @@ import {
   Plus, AlertCircle, CheckCircle2, ChevronRight, Package, Clock, CreditCard, Banknote, Users
 } from 'lucide-react';
 import Link from 'next/link';
+import DashboardMetrics from '@/components/DashboardMetrics';
 import { 
   getArgentinaDate, isSameMonthArgentina, isValidSale, 
   calculateReceivables, calculateDebtorCustomers, calculateSales, 
@@ -211,6 +212,12 @@ export default function DashboardPage() {
           Así está tu negocio hoy.
         </p>
       </div>
+
+      <DashboardMetrics
+        orders={orders}
+        transactions={transactions}
+        productsMap={productsMap}
+      />
 
       {/* 2. ACCIÓN PRINCIPAL */}
       <Link href="/pedidos/nuevo" className="w-full">
