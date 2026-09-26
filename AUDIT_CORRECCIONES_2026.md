@@ -24,14 +24,14 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 
 ## Fase 2 — Datos y estructura
 - [ ] Auditar orders/items, transactions, customers, products, pending_purchases y suppliers.
-- [ ] Revisar migraciones, triggers y RPC.
+- [~] Revisar migraciones, triggers y RPC — primera pasada hecha; se agregaron RPC atómicas de pedido y abono.
 - [ ] Detectar duplicaciones de lógica entre páginas.
 - [ ] Reducir dependencias de textos/descripciones para clasificar movimientos.
 - [ ] Revisar RLS/permisos antes de cualquier tienda pública.
 
 ## Fase 3 — Flujos funcionales
-- [ ] Nuevo pedido / Carga rápida.
-- [ ] Abonos y pagos globales.
+- [~] Nuevo pedido / Carga rápida — RPC atómica preparada; falta aplicar migración y conectar frontend.
+- [~] Abonos y pagos globales — RPC atómica preparada; falta aplicar migración y conectar frontend.
 - [ ] Cambios de estado y entrega.
 - [ ] Gastos, transferencias y retiros.
 - [ ] Compras pendientes y costos pendientes.
@@ -71,4 +71,4 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 6. Hay varias capas CSS globales y por ruta; se debe revisar precedencia para evitar regresiones móviles.
 7. Clientes oculta el botón de WhatsApp si no hay teléfono, sin explicar por qué; el flujo debe mostrar una acción para completar el dato.
 
-Estado: auditoría en curso. Primera pasada matemática aplicada: deuda canónica, cancelados/sobrepagos, cobros vinculados a pedidos, validación de señas y comisiones.
+Estado: auditoría en curso. Primera pasada matemática aplicada. Etapa transaccional iniciada: se prepararon RPC PostgreSQL para crear pedidos y aplicar abonos en una sola transacción. No conectar frontend hasta aplicar las migraciones en Supabase.
