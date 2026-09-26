@@ -4,7 +4,7 @@ import {
   isPersonalWithdrawal, isMerchandisePurchase, isCashReconciliation, calculateTotalCash, calculateAccountBalance, 
   calculateReceivables, calculateDebtorCustomers, calculateSales, calculateCOGS, calculateOperatingExpenses, 
   calculateCommissions, calculateNetProfit, calculateDistribution,
-  getOrderFinancialStatus
+  getOrderFinancialStatus, calculateOrderBalance, isCustomerPayment
 } from './finance';
 
 // Mock data builder helpers
@@ -116,6 +116,24 @@ function runTests() {
   assert.strictEqual(calculateOperatingExpenses([t_concil], new Date().getMonth(), new Date().getFullYear()), 0, 'Conciliación: Gastos sin cambios');
   assert.strictEqual(isPersonalWithdrawal(t_concil), false, 'Conciliación: No es retiro personal');
   assert.strictEqual(isCashReconciliation(t_concil), true, 'Conciliación: Debe ser reconciliacion');
+
+  // Caso 16: pedido cancelado/anulado no genera deuda ni venta
+  const cancelled = makeOrder('cancelled', 'c-cancel', 90000, 10000, 'CANCELADO', []);
+  assert.strictEqual(calculateOrderBalance(cancelled), 0, 'Caso 16: Cancelado no debe deuda');
+  assert.strictEqual(calculateReceivables([cancelled]), 0, 'Caso 16: Cancelado no entra en Plata en la Calle');
+  assert.strictEqual(calculateDebtorCustomers([cancelled]), 0, 'Caso 16: Cancelado no crea deudor');
+
+  // Caso 17: sobrepago nunca produce deuda negativa
+  const overpaid = makeOrder('overpaid', 'c-over', 50000, 70000, 'PENDIENTE', []);
+  assert.strictEqual(calculateOrderBalance(overpaid), 0, 'Caso 17: Sobrepago visual = 0');
+
+  // Caso 18: Cobros del dashboard deben ser pagos de clientes, no saldos iniciales
+  const linkedPayment = { ...makeTx('pay-linked', 'INGRESO', 25000, 'Pago cliente', 'VIRTUAL'), order_id: 'order-1' };
+  const initialBalance = makeTx('initial-balance', 'INGRESO', 100000, 'Saldo inicial de caja', 'VIRTUAL');
+  const legacyPayment = makeTx('legacy-payment', 'INGRESO', 12000, 'Abono a cuenta de Cliente', 'EFECTIVO');
+  assert.strictEqual(isCustomerPayment(linkedPayment), true, 'Caso 18: Pago con order_id es cobro');
+  assert.strictEqual(isCustomerPayment(initialBalance), false, 'Caso 18: Saldo inicial no es cobro');
+  assert.strictEqual(isCustomerPayment(legacyPayment), true, 'Caso 18: Abono histórico sigue siendo cobro');
 
   // TEST MÁS IMPORTANTE AHORA: DÍA COMPLETO DE CAMI
   const startEfectivo = makeTx('startE', 'INGRESO', 7500000, 'Start Efectivo', 'EFECTIVO');
