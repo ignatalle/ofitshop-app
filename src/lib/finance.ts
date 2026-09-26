@@ -1,10 +1,11 @@
 export interface Transaction {
   id: string;
   type: string;
-  amount: number; // Siempre en centavos (o pesos según la base de datos). Esperamos que la DB tenga montos en base a centavos o que la app normalice. TODO: Verificar base de datos (generalmente la app multiplica por 100).
+  amount: number; // Invariante: todos los montos internos se expresan en centavos enteros.
   description: string;
   cuenta: 'EFECTIVO' | 'VIRTUAL';
   created_at: string;
+  order_id?: string | null;
 }
 
 export interface Order {
@@ -118,8 +119,29 @@ export const isCustomerPayment = (tx: Transaction): boolean => {
   if (tx.type !== 'INGRESO') return false;
   if (isInternalTransfer(tx)) return false;
   if (isCashReconciliation(tx)) return false;
-  // Todo ingreso que no sea transferencia interna es ingreso real de clientes/operativo.
-  return true;
+
+  // Desde la versión actual, los cobros de pedidos guardan order_id.
+  if (tx.order_id) return true;
+
+  // Compatibilidad con movimientos históricos previos a order_id.
+  // Evitamos contar saldos/ajustes iniciales como "cobros" del negocio.
+  const d = tx.description.toLowerCase();
+  if (
+    d.includes('saldo inicial') ||
+    d.includes('ingreso inicial') ||
+    d.includes('balance inicial') ||
+    d.includes('caja inicial')
+  ) return false;
+
+  return (
+    d.includes('pago inicial pedido') ||
+    d.includes('abono a cuenta') ||
+    d.includes('seña') ||
+    d.includes('sena') ||
+    d.includes('pago final') ||
+    d.includes('cobro cliente') ||
+    d.includes('venta')
+  );
 };
 
 
