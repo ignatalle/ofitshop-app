@@ -32,7 +32,7 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 ## Fase 3 — Flujos funcionales
 - [x] Nuevo pedido / Carga rápida — RPC aplicada y frontend conectado de forma atómica.
 - [x] Abonos y pagos globales — RPC aplicada y frontend conectado de forma atómica.
-- [ ] Cambios de estado y entrega.
+- [x] Cambios de estado y entrega — estados válidos controlados, anulados excluidos de pendientes/completados y listado abre la ficha real del pedido.
 - [x] Gastos, transferencias y retiros — montos validados, transferencias limitadas al saldo disponible y movimientos vinculados protegidos contra borrado manual.
 - [x] Compras pendientes y costos pendientes — separados para evitar completar CMV sin registrar la salida real de Caja.
 - [x] Edición/eliminación de pedidos e ítems — bloqueadas operaciones que romperían Caja/abonos; precios recalculan subtotal y total.
@@ -98,3 +98,11 @@ Estado: auditoría en curso. Matemática base corregida y etapa transaccional ac
 - Clientes con historial de pedidos/ventas ya no pueden eliminarse desde la UI, evitando destruir referencias históricas.
 - Clientes sin teléfono muestran "Sin WhatsApp" y, si tienen deuda, un botón "Agregar WhatsApp".
 - El Dashboard tipó correctamente order_id en transacciones; la clasificación de Cobros puede usar el vínculo real al pedido.
+
+
+### Hallazgos corregidos — seguimiento de pedidos
+- La lista de Pedidos abría la ficha del cliente en vez de la ficha del pedido; ahora navega a /pedidos/[id].
+- Pedidos CANCELADO/ANULADO ya no contaminan las pestañas Pendientes o Completados; siguen visibles en Todos como historial.
+- Estado financiero en el listado usa calculateOrderBalance/isValidSale, no una comparación paralela.
+- Fechas de Pedidos se muestran explícitamente con timezone Argentina y no dependen del huso horario configurado en el teléfono.
+- Los controles principales de estado tienen objetivo táctil mínimo de 48 px para iPhone/Android.
