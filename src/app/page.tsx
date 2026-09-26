@@ -46,6 +46,7 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [productsMap, setProductsMap] = useState<Record<string, number>>({});
+  const [purchaseTasks, setPurchaseTasks] = useState<Array<{ order_id: string; item_id: string; status: string }>>([]);
   
   const [businessPercent, setBusinessPercent] = useState(30);
   const [personalPercent, setPersonalPercent] = useState(70);
@@ -53,11 +54,12 @@ export default function DashboardPage() {
   const fetchMetrics = async () => {
     try {
       setLoading(true);
-      const [txRes, orderRes, prodRes, custRes] = await Promise.all([
+      const [txRes, orderRes, prodRes, custRes, purchaseRes] = await Promise.all([
         supabase.from('transactions').select('*').order('created_at', { ascending: false }),
         supabase.from('orders').select('*').order('created_at', { ascending: false }),
         supabase.from('products').select('id, cost_price'),
-        supabase.from('customers').select('id, name')
+        supabase.from('customers').select('id, name'),
+        supabase.from('pending_purchases').select('order_id,item_id,status')
       ]);
 
       if (txRes.error) throw txRes.error;
@@ -66,6 +68,7 @@ export default function DashboardPage() {
       setTransactions(txRes.data || []);
       setOrders(orderRes.data || []);
       setCustomers(custRes.data || []);
+      setPurchaseTasks((purchaseRes.data || []) as Array<{ order_id: string; item_id: string; status: string }>);
       
       const pMap: Record<string, number> = {};
       if (prodRes.data) {
@@ -135,7 +138,10 @@ export default function DashboardPage() {
 
   const facturacionTotalCents = calculateSales(orders, currentMonth, currentYear);
   const { cogs: costoMercaderiaCents, hasIncompleteCosts } = calculateCOGS(orders, productsMap, currentMonth, currentYear);
-  const { pendingItemsCount: historicalPendingItems, pendingUnitsCount: historicalPendingUnits } = countHistoricalPendingCosts(orders, productsMap);
+  const purchaseKeys = new Set(purchaseTasks.map((p) => `${p.order_id}:${p.item_id}`));
+  const activePendingPurchases = purchaseTasks.filter((p) => p.status === 'PENDIENTE').length;
+  const { pendingItemsCount: historicalPendingItems, pendingUnitsCount: historicalPendingUnits } =
+    countHistoricalPendingCosts(orders, productsMap, purchaseKeys);
   
   const comisionesCents = calculateCommissions(transactions, currentMonth, currentYear);
   const otrosEgresosCents = calculateOperatingExpenses(transactions, currentMonth, currentYear);
@@ -158,22 +164,32 @@ export default function DashboardPage() {
       link: '/clientes'
     });
   }
+  if (activePendingPurchases > 0) {
+    atencionItems.push({
+      id: 'compras',
+      icon: <Package size={18} className="text-violet-600" />,
+      text: `${activePendingPurchases} ${activePendingPurchases === 1 ? 'prenda falta' : 'prendas faltan'} comprar`,
+      color: 'bg-violet-50 text-violet-800 border-violet-100',
+      link: '/compras-pendientes'
+    });
+  }
+
   if (historicalPendingItems > 0) {
     atencionItems.push({
       id: 'costos',
       icon: <AlertCircle size={18} className="text-red-500" />,
-      text: `${historicalPendingItems} ${historicalPendingItems === 1 ? 'producto tiene' : 'productos tienen'} costo pendiente`,
+      text: `${historicalPendingItems} ${historicalPendingItems === 1 ? 'producto tiene' : 'productos tienen'} costo histórico pendiente`,
       color: 'bg-red-50 text-red-800 border-red-100',
       link: '/costos-pendientes',
       subtext: historicalPendingUnits > 1 ? `Son ${historicalPendingUnits} unidades en total.` : undefined
     });
-  } else if (hasIncompleteCosts) {
+  } else if (hasIncompleteCosts && activePendingPurchases === 0) {
     atencionItems.push({
       id: 'costos',
       icon: <AlertCircle size={18} className="text-amber-500" />,
-      text: `Hay costos sin determinar`,
+      text: 'Hay costos sin determinar',
       color: 'bg-amber-50 text-amber-800 border-amber-100',
-      link: '/costos-pendientes' // Can go there even if empty, or just show a message
+      link: '/costos-pendientes'
     });
   }
   const pedidosPendientes = orders.filter(o => o.status === 'PENDIENTE').length;
