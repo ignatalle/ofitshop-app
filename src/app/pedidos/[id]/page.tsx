@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Loader2, ChevronLeft, PackageOpen, DollarSign, CheckCircle2, Truck, Clock, Trash2, Edit } from 'lucide-react';
 import Link from 'next/link';
-import { getArgentinaDate } from '@/lib/finance';
+import { getArgentinaDate, parsePesosToCents } from '@/lib/finance';
 
 interface Order {
   id: string;
@@ -119,8 +119,8 @@ export default function FichaPedidoPage() {
     if (!order || !order.items) return;
 
     const originalItem = order.items[index];
-    const parsedCost = Number(tempCostValue);
-    if (!Number.isFinite(parsedCost) || parsedCost < 0) {
+    const parsedCostCents = parsePesosToCents(tempCostValue);
+    if (parsedCostCents === null || parsedCostCents < 0) {
       alert('Ingresá un costo válido.');
       return;
     }
@@ -151,7 +151,7 @@ export default function FichaPedidoPage() {
 
     try {
       const newItems = [...order.items];
-      const newCostCents = Math.round(parsedCost * 100);
+      const newCostCents = parsedCostCents;
 
       newItems[index] = {
         ...newItems[index],
@@ -176,15 +176,15 @@ export default function FichaPedidoPage() {
   const handleSavePrice = async (index: number) => {
     if (!order || !order.items) return;
 
-    const parsedPrice = Number(tempPriceValue);
-    if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+    const parsedPriceCents = parsePesosToCents(tempPriceValue);
+    if (parsedPriceCents === null || parsedPriceCents <= 0) {
       alert('El precio de venta debe ser mayor a $0.');
       return;
     }
 
     try {
       const newItems = [...order.items];
-      const newPriceCents = Math.round(parsedPrice * 100);
+      const newPriceCents = parsedPriceCents;
       const quantity = Math.max(1, Number(newItems[index].quantity) || 1);
 
       newItems[index] = {
