@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:finance": "rm -rf .tmp-finance-tests && npx tsc src/lib/finance.ts src/lib/finance.test.ts --module commonjs --target es2020 --esModuleInterop --outDir .tmp-finance-tests --skipLibCheck && node .tmp-finance-tests/finance.test.js && rm -rf .tmp-finance-tests"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.2",
