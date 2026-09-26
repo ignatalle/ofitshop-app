@@ -136,26 +136,6 @@ export default function ComprasPendientesPage() {
     }
   };
 
-  const getOrCreateSupplier = async (rawName: string) => {
-    const cleanName = rawName.trim();
-    if (!cleanName) return { id: null as string | null, name: null as string | null };
-    const { data: existing, error: findError } = await supabase
-      .from('suppliers')
-      .select('id, name')
-      .ilike('name', cleanName)
-      .limit(1);
-    if (findError) throw findError;
-    if (existing && existing.length > 0) return { id: existing[0].id as string, name: existing[0].name as string };
-
-    const { data: created, error: createError } = await supabase
-      .from('suppliers')
-      .insert([{ name: cleanName }])
-      .select('id, name')
-      .single();
-    if (createError) throw createError;
-    return { id: created.id as string, name: created.name as string };
-  };
-
   const handleSupplierSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!assigningId) return;
@@ -164,15 +144,31 @@ export default function ComprasPendientesPage() {
 
     try {
       setIsSubmitting(true);
-      const supplier = await getOrCreateSupplier(supplierDraft);
-      const now = new Date().toISOString();
-      const { error } = await supabase
-        .from('pending_purchases')
-        .update({ supplier_id: supplier.id, supplier_name: supplier.name, updated_at: now })
-        .eq('id', purchase.id)
-        .eq('status', 'PENDIENTE');
+
+      const { data, error } = await supabase.rpc('assign_pending_purchase_supplier_atomic', {
+        p_purchase_id: purchase.id,
+        p_supplier_name: supplierDraft,
+      });
+
       if (error) throw error;
-      setPurchases((prev) => prev.map((p) => p.id === purchase.id ? { ...p, supplier_id: supplier.id, supplier_name: supplier.name, updated_at: now } : p));
+
+      const supplierId =
+        data && typeof data === 'object' && 'supplier_id' in data
+          ? (data.supplier_id as string | null)
+          : null;
+
+      const supplierName =
+        data && typeof data === 'object' && 'supplier_name' in data
+          ? (data.supplier_name as string | null)
+          : null;
+
+      const now = new Date().toISOString();
+      setPurchases((prev) => prev.map((p) =>
+        p.id === purchase.id
+          ? { ...p, supplier_id: supplierId, supplier_name: supplierName, updated_at: now }
+          : p
+      ));
+
       setAssigningId(null);
       setSupplierDraft('');
     } catch (err: any) {
