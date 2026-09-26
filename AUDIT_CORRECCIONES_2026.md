@@ -17,7 +17,7 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 ## Fase 1 — Matemática y finanzas
 - [ ] Verificar unidad monetaria y eliminar ambigüedad pesos/centavos.
 - [ ] Auditar ventas, CMV, comisiones, gastos operativos, caja y deuda.
-- [ ] Auditar pagos parciales, sobrepagos, anulaciones y pedidos cancelados.
+- [x] Auditar pagos parciales, sobrepagos, anulaciones y pedidos cancelados.
 - [ ] Revisar clasificación de ingresos para que "Cobros" no incluya ingresos que no sean pagos de clientes.
 - [ ] Revisar costos faltantes e histórico de costos.
 - [ ] Agregar pruebas para todos los invariantes.
@@ -39,9 +39,9 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 - [ ] WhatsApp y datos incompletos de clientes.
 
 ## Fase 4 — Dashboard y métricas
-- [ ] Asegurar que cada KPI tenga una definición única.
+- [x] Asegurar que cada KPI tenga una definición única.
 - [ ] Alinear períodos de métricas y gráficos.
-- [ ] Verificar Ventas vs Cobros y excluir movimientos no-cliente.
+- [x] Verificar Ventas vs Cobros y excluir movimientos no-cliente.
 - [ ] Revisar ticket promedio, pedidos, deuda y ganancia.
 
 ## Fase 5 — iPhone / Android
@@ -71,4 +71,4 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 6. Hay varias capas CSS globales y por ruta; se debe revisar precedencia para evitar regresiones móviles.
 7. Clientes oculta el botón de WhatsApp si no hay teléfono, sin explicar por qué; el flujo debe mostrar una acción para completar el dato.
 
-Estado: auditoría iniciada.
+Estado: auditoría en curso. Primera pasada matemática aplicada: deuda canónica, cancelados/sobrepagos, cobros vinculados a pedidos, validación de señas y comisiones.
