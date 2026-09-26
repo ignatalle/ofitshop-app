@@ -39,4 +39,9 @@ jobs:
         run: npm run test:finance
 
       - name: Build
+        env:
+          # El build evalúa el cliente de Supabase aunque no haga requests.
+          # Usamos valores CI válidos de forma para no depender de secretos de producción.
+          NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
         run: npm run build
