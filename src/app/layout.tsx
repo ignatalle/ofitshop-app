@@ -8,7 +8,6 @@ import "./dashboard-luxe.css";
 import "./dashboard-metrics.css";
 import Sidebar from "../components/Sidebar";
 import BottomNav from "../components/BottomNav";
-import DashboardMetricsPortal from "../components/DashboardMetricsPortal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -72,7 +71,6 @@ export default function RootLayout({
           {children}
         </main>
 
-        <DashboardMetricsPortal />
         <BottomNav />
       </body>
     </html>
