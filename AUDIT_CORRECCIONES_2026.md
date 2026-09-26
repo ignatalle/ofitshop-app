@@ -19,7 +19,7 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 - [ ] Auditar ventas, CMV, comisiones, gastos operativos, caja y deuda.
 - [x] Auditar pagos parciales, sobrepagos, anulaciones y pedidos cancelados.
 - [ ] Revisar clasificación de ingresos para que "Cobros" no incluya ingresos que no sean pagos de clientes.
-- [ ] Revisar costos faltantes e histórico de costos.
+- [x] Revisar costos faltantes e histórico de costos — Costos Pendientes queda reservado a históricos; compras actuales se resuelven con Caja en Compras Pendientes.
 - [ ] Agregar pruebas para todos los invariantes.
 
 ## Fase 2 — Datos y estructura
@@ -34,7 +34,7 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 - [x] Abonos y pagos globales — RPC aplicada y frontend conectado de forma atómica.
 - [ ] Cambios de estado y entrega.
 - [ ] Gastos, transferencias y retiros.
-- [ ] Compras pendientes y costos pendientes.
+- [x] Compras pendientes y costos pendientes — separados para evitar completar CMV sin registrar la salida real de Caja.
 - [x] Edición/eliminación de pedidos e ítems — bloqueadas operaciones que romperían Caja/abonos; precios recalculan subtotal y total.
 - [ ] WhatsApp y datos incompletos de clientes.
 
@@ -60,7 +60,7 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 - [x] Lint + TypeScript + build en CI.
 - [x] Integrar pruebas financieras al CI.
 - [ ] Eliminar hacks estructurales y portales DOM frágiles.
-- [ ] Revisar warnings y errores antes de cerrar auditoría.
+- [~] Revisar warnings y errores antes de cerrar auditoría — lint histórico detectado; TypeScript/tests/build siguen siendo bloqueantes.
 
 ## Hallazgos iniciales
 1. El CI anterior no corría en pushes directos a main, aunque main es la rama de producción.
@@ -80,3 +80,12 @@ Estado: auditoría en curso. Matemática base corregida y etapa transaccional ac
 - Cambiar precio recalcula también subtotal y total, evitando snapshots incoherentes.
 - Costos/cantidades con salida de Caja o compra CONSEGUIDO quedan bloqueados para impedir divergencia entre CMV y Caja.
 - Pedidos con movimientos financieros no pueden borrarse directamente.
+
+
+### Hallazgos corregidos — Compras y costos
+- Costos Pendientes podía mostrar también prendas del flujo actual de Compras Pendientes. Eso permitía completar un costo histórico sin registrar simultáneamente la salida de Caja.
+- Ahora todo ítem enlazado a pending_purchases se excluye de Costos Pendientes y debe resolverse desde Compras Pendientes.
+- El guardado de costos históricos escribe wholesaleCost (snapshot canónico) además de costCents por compatibilidad.
+- Se eliminó una sugerencia hardcodeada específica de "Baggi Bordo" y $13.990, porque podía introducir un costo incorrecto.
+- Marcar una compra como NO DISPONIBLE aclara que no cambia automáticamente el total ni la deuda de la clienta.
+- El lint encontró deuda técnica histórica en muchas pantallas; se mantiene visible pero temporalmente no bloqueante mientras TypeScript, pruebas financieras y build sí bloquean.
