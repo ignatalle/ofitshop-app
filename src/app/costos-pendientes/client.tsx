@@ -2,9 +2,8 @@
 
 import { useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
-import { ArrowLeft, CheckCircle2, ChevronRight, Save, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { 
   isValidSale, parseOrderItems, getItemUnitCostCents, getItemQuantity, isItemPendingCost,
   calculateSales, calculateCOGS, calculateOperatingExpenses, calculateCommissions, calculateNetProfit
@@ -33,11 +32,11 @@ interface PendingGroup {
 export default function CostosPendientesClient({ 
   initialOrders, 
   products, 
-  transactions, 
+  transactions,
+  purchaseStates = [],
   currentMonth, 
   currentYear 
 }: any) {
-  const router = useRouter();
   const [orders, setOrders] = useState<any[]>(initialOrders);
   const [loadingItemId, setLoadingItemId] = useState<string | null>(null);
   
@@ -57,6 +56,14 @@ export default function CostosPendientesClient({
     return map;
   }, [products]);
 
+  const linkedPurchaseKeys = useMemo(() => {
+    return new Set(
+      (purchaseStates as Array<{ order_id: string; item_id: string }>).map(
+        (p) => `${p.order_id}:${p.item_id}`
+      )
+    );
+  }, [purchaseStates]);
+
   // Calculate live profit
   const facturacion = calculateSales(orders, currentMonth, currentYear);
   const { cogs, hasIncompleteCosts } = calculateCOGS(orders, productsMap, currentMonth, currentYear);
@@ -74,7 +81,14 @@ export default function CostosPendientesClient({
       const items = parseOrderItems(o);
       
       items.forEach((item, index) => {
-        if (isItemPendingCost(item, productsMap)) {
+        const itemId = typeof item?.id === 'string' ? item.id : '';
+        const belongsToPurchaseFlow = itemId
+          ? linkedPurchaseKeys.has(`${o.id}:${itemId}`)
+          : false;
+
+        // Los ítems del flujo actual de Compras Pendientes se resuelven allí,
+        // porque ahí también se registra la salida real de Caja.
+        if (!belongsToPurchaseFlow && isItemPendingCost(item, productsMap)) {
           totalPendingItemsCount++;
           const qty = getItemQuantity(item);
           const name = item.productName || item.name || 'Sin nombre';
@@ -116,7 +130,7 @@ export default function CostosPendientesClient({
     });
 
     return { groups: groupsArray, totalPendingItemsCount };
-  }, [orders, productsMap]);
+  }, [orders, productsMap, linkedPurchaseKeys]);
 
   // To track progress
   const [initialPendingCount] = useState(pendingGroups.totalPendingItemsCount);
@@ -147,8 +161,10 @@ export default function CostosPendientesClient({
     if (sinCosto) {
       targetItem.sinCostoConfirmado = true;
     } else {
-      targetItem.costCents = newCost;
-      targetItem.sinCostoConfirmado = false; // clear if it was set
+      // Snapshot histórico canónico: finance.ts prioriza wholesaleCost.
+      targetItem.wholesaleCost = newCost;
+      targetItem.costCents = newCost; // compatibilidad con pedidos históricos viejos
+      targetItem.sinCostoConfirmado = false;
     }
 
     items[item.itemIndex] = targetItem;
@@ -226,8 +242,6 @@ export default function CostosPendientesClient({
     }
   };
 
-  const isBaggiBordo = (name: string) => name.toLowerCase().trim() === 'baggi bordo';
-
   if (pendingGroups.totalPendingItemsCount === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center min-h-[60vh]">
@@ -240,8 +254,6 @@ export default function CostosPendientesClient({
       </div>
     );
   }
-
-  const firstGroup = pendingGroups.groups[0];
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-ofit-bg pb-24 relative">
@@ -312,9 +324,9 @@ export default function CostosPendientesClient({
       </div>
 
       <div className="p-4 flex flex-col gap-6">
-        <p className="text-sm text-ofit-text-soft font-medium px-2">
-          Completalos para saber cuánto ganó realmente Outfit Shop.
-        </p>
+        <div className="mx-2 rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm text-blue-800 leading-relaxed">
+          Esta pantalla queda solo para <strong>pedidos históricos sin costo</strong>. Las prendas actuales que todavía faltan comprar se resuelven en <Link href="/compras-pendientes" className="font-black underline">Compras Pendientes</Link>, donde costo y Caja se actualizan juntos.
+        </div>
 
         {/* Grupos de Pendientes */}
         <div className="flex flex-col gap-8">
@@ -337,7 +349,6 @@ export default function CostosPendientesClient({
                   const uniqueId = `${item.orderId}-${item.itemIndex}`;
                   const inputVal = inputValues[uniqueId] || '';
                   const numVal = parseInt(inputVal, 10) || 0;
-                  const isSugBaggi = isBaggiBordo(item.name);
                   const isSaving = loadingItemId === uniqueId;
 
                   return (
@@ -354,19 +365,6 @@ export default function CostosPendientesClient({
                           <span className="text-sm font-medium text-ofit-text-soft mt-1">{item.qty} {item.qty === 1 ? 'unidad' : 'unidades'}</span>
                         </div>
                       </div>
-
-                      {isSugBaggi && (
-                        <div className="bg-emerald-50 border border-emerald-100 p-3 rounded-xl flex flex-col gap-2">
-                          <span className="text-[10px] font-black uppercase text-emerald-700 tracking-wider">Costo sugerido: $13.990</span>
-                          <span className="text-xs font-medium text-emerald-800/80">Encontramos "Baggy Bordo" en un pedido anterior. Coincidencia probable.</span>
-                          <button 
-                            onClick={() => handleSaveCost(item, 1399000)}
-                            className="bg-emerald-600 text-white font-bold text-xs py-2 rounded-lg mt-1"
-                          >
-                            Usar $13.990
-                          </button>
-                        </div>
-                      )}
 
                       <div className="flex flex-col gap-1">
                         <label className="text-[11px] uppercase tracking-wider font-bold text-ofit-text-soft">Costo Unitario</label>
