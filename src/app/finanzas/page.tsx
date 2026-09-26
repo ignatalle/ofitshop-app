@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Loader2, ArrowUpCircle, ArrowDownCircle, Wallet, X, MinusCircle, ArrowRightLeft, Trash2 } from 'lucide-react';
-import { calculateAccountBalance, calculateTotalCash, isInternalTransfer, isCashReconciliation } from '@/lib/finance';
+import { calculateAccountBalance, calculateTotalCash, isInternalTransfer, isCashReconciliation, isOpeningBalance } from '@/lib/finance';
 
 interface Transaction {
   id: string;
@@ -50,7 +50,9 @@ export default function FinanzasPage() {
   const balanceVirtual = calculateAccountBalance(transactions, 'VIRTUAL');
   const balanceCents = calculateTotalCash(transactions);
 
-  const realTransactions = transactions.filter(t => !isInternalTransfer(t));
+  const realTransactions = transactions.filter(
+    t => !isInternalTransfer(t) && !isCashReconciliation(t) && !isOpeningBalance(t)
+  );
   const totalIncomeCents = realTransactions.filter(t => t.type === 'INGRESO').reduce((acc, t) => acc + t.amount, 0);
   const totalExpenseCents = realTransactions.filter(t => t.type === 'EGRESO').reduce((acc, t) => acc + t.amount, 0);
 
