@@ -35,7 +35,7 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 - [ ] Cambios de estado y entrega.
 - [ ] Gastos, transferencias y retiros.
 - [ ] Compras pendientes y costos pendientes.
-- [ ] Edición/eliminación de pedidos e ítems.
+- [x] Edición/eliminación de pedidos e ítems — bloqueadas operaciones que romperían Caja/abonos; precios recalculan subtotal y total.
 - [ ] WhatsApp y datos incompletos de clientes.
 
 ## Fase 4 — Dashboard y métricas
@@ -72,3 +72,11 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 7. Clientes oculta el botón de WhatsApp si no hay teléfono, sin explicar por qué; el flujo debe mostrar una acción para completar el dato.
 
 Estado: auditoría en curso. Matemática base corregida y etapa transaccional activa: Nuevo Pedido y Abonos ya usan RPC PostgreSQL atómicas.
+
+
+### Hallazgos corregidos — edición histórica
+- Se eliminó la edición manual destructiva de "Total cobrado" desde la ficha de pedido; los nuevos cobros pasan por el flujo atómico de abonos.
+- Ya no se permite bajar el total de un pedido por debajo de lo ya abonado.
+- Cambiar precio recalcula también subtotal y total, evitando snapshots incoherentes.
+- Costos/cantidades con salida de Caja o compra CONSEGUIDO quedan bloqueados para impedir divergencia entre CMV y Caja.
+- Pedidos con movimientos financieros no pueden borrarse directamente.
