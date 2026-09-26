@@ -95,7 +95,7 @@ function CustomerProfileCard({
     if (!customer.phone) return '#';
     let text = `¡Hola ${customer.name}! 👋 Te escribo de Outfit Shop para pasarte el detalle de tus compras pendientes:\n\n`;
 
-    const pendingOrders = pendientes.filter((o: any) => (o.total_amount - o.advance_payment) > 0);
+    const pendingOrders = pendientes.filter((o: any) => calculateOrderBalance(o) > 0);
     
     pendingOrders.forEach((order: any) => {
       const orderDate = new Date(order.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -112,7 +112,7 @@ function CustomerProfileCard({
 
       const subtotal = order.total_amount;
       const abono = order.advance_payment;
-      const pendiente = subtotal - abono;
+      const pendiente = calculateOrderBalance(order);
 
       text += `Subtotal: $${(subtotal / 100).toLocaleString('es-AR')} | Abonaste: $${(abono / 100).toLocaleString('es-AR')} | Pendiente: $${(pendiente / 100).toLocaleString('es-AR')}\n\n`;
     });
@@ -151,23 +151,75 @@ function CustomerProfileCard({
   };
 
   const handleSaveItemEdit = async (order: any, itemIndex: number) => {
+    const originalItem = order.items?.[itemIndex];
+    if (!originalItem) return;
+
+    const parsedCostPesos = Number(editItemCost);
+    const parsedPricePesos = Number(editItemPrice);
+    const parsedQuantity = Math.max(1, Math.floor(Number(editItemQuantity) || 1));
+
+    if (!Number.isFinite(parsedCostPesos) || parsedCostPesos < 0) {
+      alert('Ingresá un costo válido.');
+      return;
+    }
+    if (!Number.isFinite(parsedPricePesos) || parsedPricePesos <= 0) {
+      alert('El precio de venta debe ser mayor a $0.');
+      return;
+    }
+
+    const parsedCost = Math.round(parsedCostPesos * 100);
+    const parsedPrice = Math.round(parsedPricePesos * 100);
+    const originalQty = getItemQuantity(originalItem);
+    const originalCost = getItemUnitCostCents(originalItem, productsMap);
+    const changesFinancialCost = parsedCost !== originalCost || parsedQuantity !== originalQty;
+
+    if (changesFinancialCost && (originalItem.costPaid === true || originalItem.needsPurchase === false)) {
+      alert('Ese costo ya impactó en Caja. No se puede cambiar costo/cantidad desde la ficha porque desincronizaría Finanzas.');
+      return;
+    }
+
+    if (changesFinancialCost && originalItem.id) {
+      const { data: purchaseState, error: purchaseError } = await supabase
+        .from('pending_purchases')
+        .select('status')
+        .eq('order_id', order.id)
+        .eq('item_id', originalItem.id)
+        .maybeSingle();
+
+      if (purchaseError) {
+        alert('No se pudo verificar el estado financiero de la compra: ' + purchaseError.message);
+        return;
+      }
+
+      if (purchaseState?.status === 'CONSEGUIDO') {
+        alert('Esta compra ya fue pagada. No se puede cambiar costo/cantidad desde la ficha.');
+        return;
+      }
+    }
+
     setIsSavingItem(true);
     try {
       const newItems = [...order.items];
-      const parsedCost = Math.max(0, parseFloat(editItemCost) || 0) * 100;
-      const parsedPrice = Math.max(0, parseFloat(editItemPrice) || 0) * 100;
-      const parsedQuantity = Math.max(1, parseInt(editItemQuantity) || 1);
 
       newItems[itemIndex] = {
         ...newItems[itemIndex],
-        productName: editItemName || 'Producto',
+        productName: editItemName.trim() || 'Producto',
         wholesaleCost: parsedCost,
         unitPrice: parsedPrice,
         quantity: parsedQuantity,
         subtotal: parsedPrice * parsedQuantity
       };
 
-      const newTotal = newItems.reduce((acc, it) => acc + (it.subtotal || 0), 0);
+      const newTotal = newItems.reduce((acc, it) => {
+        const qty = getItemQuantity(it);
+        const unitPrice = Math.max(0, Number(it.unitPrice) || 0);
+        return acc + unitPrice * qty;
+      }, 0);
+
+      if (newTotal < (order.advance_payment || 0)) {
+        alert('No podés bajar el total por debajo de lo que la clienta ya abonó.');
+        return;
+      }
 
       const { error } = await supabase
         .from('orders')
@@ -176,7 +228,7 @@ function CustomerProfileCard({
 
       if (error) throw error;
 
-      setOrders((prev: any[]) => prev.map(o => 
+      setOrders((prev: any[]) => prev.map(o =>
         o.id === order.id ? { ...o, items: newItems, total_amount: newTotal } : o
       ));
       setEditingItem(null);
@@ -188,24 +240,66 @@ function CustomerProfileCard({
   };
 
   const handleDeleteItem = async (order: any, itemIndex: number) => {
+    const targetItem = order.items?.[itemIndex];
+    if (!targetItem) return;
+
+    if (targetItem.costPaid === true || targetItem.needsPurchase === false) {
+      alert('Esta prenda ya tuvo salida de Caja. No se puede eliminar sin una reversión financiera.');
+      return;
+    }
+
+    if (targetItem.id) {
+      const { data: purchaseState, error: purchaseError } = await supabase
+        .from('pending_purchases')
+        .select('status')
+        .eq('order_id', order.id)
+        .eq('item_id', targetItem.id)
+        .maybeSingle();
+
+      if (purchaseError) {
+        alert('No se pudo verificar el estado de la compra: ' + purchaseError.message);
+        return;
+      }
+      if (purchaseState?.status === 'CONSEGUIDO') {
+        alert('Esta compra ya fue pagada y registrada. No se puede eliminar la prenda directamente.');
+        return;
+      }
+    }
+
     if (!window.confirm('¿Seguro que querés eliminar este artículo del pedido?')) return;
+
     setIsSavingItem(true);
     try {
       const newItems = [...order.items];
       newItems.splice(itemIndex, 1);
-      
+
       if (newItems.length === 0) {
-        const { error } = await supabase
-          .from('orders')
-          .delete()
-          .eq('id', order.id);
-        
+        const { count, error: countError } = await supabase
+          .from('transactions')
+          .select('id', { count: 'exact', head: true })
+          .eq('order_id', order.id);
+
+        if (countError) throw countError;
+        if ((count || 0) > 0 || (order.advance_payment || 0) > 0) {
+          alert('No se puede eliminar el último artículo porque el pedido tiene movimientos financieros.');
+          return;
+        }
+
+        const { error } = await supabase.from('orders').delete().eq('id', order.id);
         if (error) throw error;
-        
         setOrders((prev: any[]) => prev.filter(o => o.id !== order.id));
       } else {
-        const newTotal = newItems.reduce((acc, it) => acc + (it.subtotal || 0), 0);
-        
+        const newTotal = newItems.reduce((acc, it) => {
+          const qty = getItemQuantity(it);
+          const unitPrice = Math.max(0, Number(it.unitPrice) || 0);
+          return acc + unitPrice * qty;
+        }, 0);
+
+        if (newTotal < (order.advance_payment || 0)) {
+          alert('No podés eliminar esta prenda porque el nuevo total quedaría por debajo de lo ya abonado.');
+          return;
+        }
+
         const { error } = await supabase
           .from('orders')
           .update({ items: newItems, total_amount: newTotal })
@@ -213,7 +307,7 @@ function CustomerProfileCard({
 
         if (error) throw error;
 
-        setOrders((prev: any[]) => prev.map(o => 
+        setOrders((prev: any[]) => prev.map(o =>
           o.id === order.id ? { ...o, items: newItems, total_amount: newTotal } : o
         ));
       }
@@ -225,7 +319,23 @@ function CustomerProfileCard({
   };
 
   const handleDeleteOrder = async (order: any) => {
-    if (!window.confirm('¿Seguro que querés eliminar el pedido COMPLETO? Esta acción no se puede deshacer.')) return;
+    const { count, error: countError } = await supabase
+      .from('transactions')
+      .select('id', { count: 'exact', head: true })
+      .eq('order_id', order.id);
+
+    if (countError) {
+      alert('No se pudo verificar el historial financiero: ' + countError.message);
+      return;
+    }
+
+    if ((count || 0) > 0 || (order.advance_payment || 0) > 0) {
+      alert('Este pedido tiene movimientos financieros. Para proteger Caja e historial no se puede eliminar directamente.');
+      return;
+    }
+
+    if (!window.confirm('¿Seguro que querés eliminar este pedido sin movimientos financieros?')) return;
+
     setIsSavingItem(true);
     try {
       const { error } = await supabase.from('orders').delete().eq('id', order.id);
@@ -243,7 +353,7 @@ function CustomerProfileCard({
   };
 
   const renderOrderTicket = (order: any, isCollapsedByDefault: boolean) => {
-    const pending = order.total_amount - order.advance_payment;
+    const pending = calculateOrderBalance(order);
     const hasMissingCost = order.items && order.items.some((it: any) => (!it.wholesaleCost || it.wholesaleCost === 0) && !it.productId);
     const isOrderExpanded = isCollapsedByDefault ? expandedOrders[order.id] : true;
 
