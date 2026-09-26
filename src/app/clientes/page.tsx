@@ -765,12 +765,9 @@ function ClientesContent() {
   };
 
   const getCustomerDebt = (customerId: string) => {
-    const customerOrders = orders.filter(o => o.customer_id === customerId);
-    let debt = 0;
-    customerOrders.forEach(o => {
-      debt += (o.total_amount - o.advance_payment);
-    });
-    return debt;
+    return orders
+      .filter(o => o.customer_id === customerId)
+      .reduce((debt, order) => debt + calculateOrderBalance(order), 0);
   };
 
   const handleAbonarGlobal = (customerId: string, customerName: string) => {
@@ -802,7 +799,7 @@ function ClientesContent() {
       setIsSubmitting(true);
       
       const pendingOrders = orders
-        .filter(o => o.customer_id === abonoCustomer.id && o.total_amount > o.advance_payment)
+        .filter(o => o.customer_id === abonoCustomer.id && isValidSale(o) && calculateOrderBalance(o) > 0)
         .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
       let remainingPayment = abonadoCents;
@@ -811,7 +808,7 @@ function ClientesContent() {
       for (const order of pendingOrders) {
         if (remainingPayment <= 0) break;
 
-        const orderDebt = order.total_amount - order.advance_payment;
+        const orderDebt = calculateOrderBalance(order);
         const amountToApply = Math.min(orderDebt, remainingPayment);
         const newAdvancePayment = order.advance_payment + amountToApply;
         
