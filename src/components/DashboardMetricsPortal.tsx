@@ -25,6 +25,7 @@ type Order = {
   items: any;
   status: string;
   created_at: string;
+  order_id?: string | null;
 };
 
 type Transaction = {
@@ -109,7 +110,7 @@ export default function DashboardMetricsPortal() {
     (async () => {
       const [ordersRes, txRes, productsRes] = await Promise.all([
         supabase.from('orders').select('id,customer_id,total_amount,advance_payment,items,status,created_at'),
-        supabase.from('transactions').select('id,type,amount,description,cuenta,created_at'),
+        supabase.from('transactions').select('id,type,amount,description,cuenta,created_at,order_id'),
         supabase.from('products').select('id,cost_price'),
       ]);
 
