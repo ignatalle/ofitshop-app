@@ -860,14 +860,21 @@ function ClientesContent() {
 
   const handleDeleteCustomer = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este cliente y TODAS sus ventas?')) return;
+
+    const hasOrderHistory = orders.some(o => o.customer_id === id);
+    const hasLegacySales = sales.some(s => s.customer_id === id);
+
+    if (hasOrderHistory || hasLegacySales) {
+      alert('Este cliente tiene historial de compras. Para proteger pedidos, deuda y Finanzas no se puede eliminar; podés editar sus datos.');
+      return;
+    }
+
+    if (!window.confirm('¿Eliminar este cliente sin historial? Esta acción no se puede deshacer.')) return;
 
     try {
       const { error } = await supabase.from('customers').delete().eq('id', id);
       if (error) throw error;
       setCustomers(customers.filter(customer => customer.id !== id));
-      setSales(sales.filter(s => s.customer_id !== id));
-      setOrders(orders.filter(o => o.customer_id !== id));
       if (editingId === id) cancelEditCustomer();
     } catch (error: any) {
       alert('Error al eliminar el cliente: ' + error.message);
