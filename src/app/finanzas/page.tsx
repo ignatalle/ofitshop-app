@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Loader2, ArrowUpCircle, ArrowDownCircle, Wallet, X, MinusCircle, ArrowRightLeft, Trash2 } from 'lucide-react';
-import { calculateAccountBalance, calculateTotalCash, isInternalTransfer, isCashReconciliation, isOpeningBalance } from '@/lib/finance';
+import { calculateAccountBalance, calculateTotalCash, isInternalTransfer, isCashReconciliation, isOpeningBalance, parsePesosToCents } from '@/lib/finance';
 
 interface Transaction {
   id: string;
@@ -62,13 +62,11 @@ export default function FinanzasPage() {
 
   const handleTransferSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsedTransfer = Number(transferAmount);
-    if (!Number.isFinite(parsedTransfer) || parsedTransfer <= 0) {
+    const amountCents = parsePesosToCents(transferAmount);
+    if (amountCents === null || amountCents <= 0) {
       alert('Ingresá un monto a mover mayor a $0.');
       return;
     }
-
-    const amountCents = Math.round(parsedTransfer * 100);
     const availableCents = calculateAccountBalance(transactions, transferOrigin);
     if (amountCents > availableCents) {
       alert(`No hay saldo suficiente en ${transferOrigin === 'EFECTIVO' ? 'Efectivo' : 'Virtual'}. Disponible: ${(Math.max(0, availableCents) / 100).toLocaleString('es-AR')}`);
@@ -110,8 +108,8 @@ export default function FinanzasPage() {
     e.preventDefault();
     if (!description.trim()) return;
 
-    const parsedAmount = Number(amount);
-    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+    const amountCents = parsePesosToCents(amount);
+    if (amountCents === null || amountCents <= 0) {
       alert('Ingresá un monto de gasto mayor a $0.');
       return;
     }
@@ -129,7 +127,7 @@ export default function FinanzasPage() {
 
       const newTransaction = {
         type: 'EGRESO',
-        amount: Math.round(parsedAmount * 100),
+        amount: amountCents,
         description: finalDescription,
         cuenta: cuenta
       };
