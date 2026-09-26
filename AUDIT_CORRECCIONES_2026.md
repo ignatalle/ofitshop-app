@@ -40,7 +40,7 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 
 ## Fase 4 — Dashboard y métricas
 - [x] Asegurar que cada KPI tenga una definición única.
-- [ ] Alinear períodos de métricas y gráficos.
+- [x] Alinear períodos de métricas y gráficos — tarjetas son del mes; gráficos se etiquetan explícitamente como últimos 14 días y aclaran que no deben coincidir.
 - [x] Verificar Ventas vs Cobros y excluir movimientos no-cliente.
 - [ ] Revisar ticket promedio, pedidos, deuda y ganancia.
 
@@ -59,7 +59,7 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 - [x] CI en cada push a main.
 - [x] Lint + TypeScript + build en CI.
 - [x] Integrar pruebas financieras al CI.
-- [ ] Eliminar hacks estructurales y portales DOM frágiles.
+- [x] Eliminar hacks estructurales y portales DOM frágiles — métricas del Dashboard ahora renderizan directamente en page.tsx y reutilizan los datos ya cargados.
 - [~] Revisar warnings y errores antes de cerrar auditoría — lint histórico detectado; TypeScript/tests/build siguen siendo bloqueantes.
 
 ## Hallazgos iniciales
@@ -114,3 +114,10 @@ Estado: auditoría en curso. Matemática base corregida y etapa transaccional ac
 - Botones móviles tienen objetivo táctil mínimo de 44px; icon-only con title/aria-label también ancho mínimo.
 - El navegador cambia theme-color según Clásico/Premium Dark para integrar mejor barra superior/PWA.
 - Sigue pendiente la verificación visual final en 320/360/375/390/412/430 px; el código ya tiene las salvaguardas base.
+
+
+### Refactor estructural — Dashboard
+- Se eliminó DashboardMetricsPortal, createPortal, MutationObserver y la búsqueda de nodos por selectores CSS.
+- Las métricas se renderizan directamente después del saludo en el árbol React.
+- El componente reutiliza orders/transactions/productsMap ya cargados por el Dashboard; se eliminaron consultas Supabase duplicadas.
+- Se removieron reglas CSS de order usadas únicamente para forzar la posición del portal.
