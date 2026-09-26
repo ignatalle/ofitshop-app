@@ -33,12 +33,6 @@ export default function FichaPedidoPage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Payment states
-  const [clientPayment, setClientPayment] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('EFECTIVO');
-  const [cuenta, setCuenta] = useState<'EFECTIVO' | 'VIRTUAL'>('VIRTUAL');
-  const [hasCommission, setHasCommission] = useState(false);
-  const [realIncome, setRealIncome] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Status state
@@ -87,142 +81,12 @@ export default function FichaPedidoPage() {
       setOrder(orderData);
       setCustomer(customerData);
       setOrderStatus(orderData.status);
-      
-      // Initialize payment state
-      if (orderData.advance_payment > 0) {
-        setClientPayment((orderData.advance_payment / 100).toString());
-      } else {
-        setClientPayment('');
-      }
-
-      // Check for existing commission transaction
-      const { data: txs } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('order_id', orderId);
-        
-      if (txs) {
-        const inicialTx = txs.find(t => t.type === 'INGRESO' && t.description.includes('Pago inicial pedido'));
-        if (inicialTx) {
-          if (inicialTx.description.includes('(TRANSFERENCIA)')) setPaymentMethod('TRANSFERENCIA');
-          else if (inicialTx.description.includes('(TARJETA)')) setPaymentMethod('TARJETA');
-          else setPaymentMethod('EFECTIVO');
-          
-          if (inicialTx.cuenta) setCuenta(inicialTx.cuenta);
-        }
-
-        const comisionTx = txs.find(t => t.type === 'EGRESO' && t.description.includes('Comisión'));
-        if (comisionTx) {
-          setHasCommission(true);
-          const advance = orderData.advance_payment || 0;
-          const rIncome = advance - comisionTx.amount;
-          setRealIncome((rIncome / 100).toString());
-        } else {
-          setHasCommission(false);
-          setRealIncome('');
-        }
-      }
 
     } catch (error: any) {
       alert("Error al cargar el pedido: " + error.message);
       router.push('/pedidos');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleUpdatePayment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!order) return;
-
-    try {
-      setIsSubmitting(true);
-      
-      const advanceCents = clientPayment ? Math.round(parseFloat(clientPayment) * 100) : 0;
-      
-      // Update order advance payment
-      const { error: updateError } = await supabase
-        .from('orders')
-        .update({ advance_payment: advanceCents })
-        .eq('id', order.id);
-        
-      if (updateError) throw updateError;
-      
-      setOrder({ ...order, advance_payment: advanceCents });
-
-      // Sincronizar transacción inicial
-      const { data: existingTx } = await supabase
-        .from('transactions')
-        .select('id')
-        .eq('order_id', order.id)
-        .like('description', 'Pago inicial pedido:%')
-        .limit(1);
-
-      if (advanceCents > 0) {
-        if (existingTx && existingTx.length > 0) {
-          await supabase.from('transactions').update({ 
-            amount: advanceCents,
-            description: `Pago inicial pedido (${paymentMethod}): ${customer?.name || 'Cliente'}`,
-            cuenta: cuenta
-          }).eq('id', existingTx[0].id);
-        } else {
-          const transaction = {
-            order_id: order.id,
-            type: 'INGRESO',
-            amount: advanceCents,
-            description: `Pago inicial pedido (${paymentMethod}): ${customer?.name || 'Cliente'}`,
-            cuenta: cuenta
-          };
-          await supabase.from('transactions').insert([transaction]);
-        }
-      } else {
-        if (existingTx && existingTx.length > 0) {
-          await supabase.from('transactions').delete().eq('id', existingTx[0].id);
-        }
-      }
-
-      // Sincronizar transacción de comisión
-      const { data: existingComisionTx } = await supabase
-        .from('transactions')
-        .select('id')
-        .eq('order_id', order.id)
-        .like('description', 'Comisión de tarjeta%')
-        .limit(1);
-
-      if (advanceCents > 0 && hasCommission && realIncome) {
-        const realIncomeCents = Math.round(parseFloat(realIncome) * 100);
-        const comisionCents = advanceCents - realIncomeCents;
-        
-        if (comisionCents > 0) {
-          if (existingComisionTx && existingComisionTx.length > 0) {
-            await supabase.from('transactions').update({ amount: comisionCents, cuenta: cuenta }).eq('id', existingComisionTx[0].id);
-          } else {
-            const comisionTx = {
-              order_id: order.id,
-              type: 'EGRESO',
-              amount: comisionCents,
-              description: `Comisión de tarjeta (Pedido automático)`,
-              cuenta: cuenta
-            };
-            await supabase.from('transactions').insert([comisionTx]);
-          }
-        } else {
-          if (existingComisionTx && existingComisionTx.length > 0) {
-            await supabase.from('transactions').delete().eq('id', existingComisionTx[0].id);
-          }
-        }
-      } else {
-        if (existingComisionTx && existingComisionTx.length > 0) {
-          await supabase.from('transactions').delete().eq('id', existingComisionTx[0].id);
-        }
-      }
-
-      alert("¡Pagos y finanzas actualizados exitosamente!");
-      
-    } catch (error: any) {
-      alert("Error al actualizar pagos: " + error.message);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -248,11 +112,42 @@ export default function FichaPedidoPage() {
 
   const handleSaveCost = async (index: number) => {
     if (!order || !order.items) return;
-    
+
+    const originalItem = order.items[index];
+    const parsedCost = Number(tempCostValue);
+    if (!Number.isFinite(parsedCost) || parsedCost < 0) {
+      alert('Ingresá un costo válido.');
+      return;
+    }
+
+    if (originalItem?.costPaid === true || originalItem?.needsPurchase === false) {
+      alert('Este costo ya impactó en Caja. No se puede cambiar desde el pedido porque desincronizaría Finanzas.');
+      return;
+    }
+
+    if (originalItem?.id) {
+      const { data: purchaseState, error: purchaseError } = await supabase
+        .from('pending_purchases')
+        .select('status')
+        .eq('order_id', order.id)
+        .eq('item_id', originalItem.id)
+        .maybeSingle();
+
+      if (purchaseError) {
+        alert('No se pudo verificar el estado financiero de la compra: ' + purchaseError.message);
+        return;
+      }
+
+      if (purchaseState?.status === 'CONSEGUIDO') {
+        alert('Esta compra ya fue pagada y registrada en Caja. No se puede modificar el costo desde el pedido.');
+        return;
+      }
+    }
+
     try {
       const newItems = [...order.items];
-      const newCostCents = tempCostValue ? Math.round(parseFloat(tempCostValue) * 100) : 0;
-      
+      const newCostCents = Math.round(parsedCost * 100);
+
       newItems[index] = {
         ...newItems[index],
         wholesaleCost: newCostCents
@@ -264,7 +159,7 @@ export default function FichaPedidoPage() {
       setOrder({ ...order, items: newItems });
       setEditingCostIndex(null);
     } catch (error: any) {
-      alert("Error al actualizar costo: " + error.message);
+      alert('Error al actualizar costo: ' + error.message);
     }
   };
 
@@ -275,48 +170,75 @@ export default function FichaPedidoPage() {
 
   const handleSavePrice = async (index: number) => {
     if (!order || !order.items) return;
-    
+
+    const parsedPrice = Number(tempPriceValue);
+    if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+      alert('El precio de venta debe ser mayor a $0.');
+      return;
+    }
+
     try {
       const newItems = [...order.items];
-      const newPriceCents = tempPriceValue ? Math.round(parseFloat(tempPriceValue) * 100) : 0;
-      
+      const newPriceCents = Math.round(parsedPrice * 100);
+      const quantity = Math.max(1, Number(newItems[index].quantity) || 1);
+
       newItems[index] = {
         ...newItems[index],
-        unitPrice: newPriceCents
+        unitPrice: newPriceCents,
+        subtotal: newPriceCents * quantity,
       };
 
-      // Recalcular total del pedido iterando sobre los items
       const newTotalCents = newItems.reduce((sum, currentItem) => {
-        return sum + (currentItem.unitPrice * currentItem.quantity);
+        const qty = Math.max(1, Number(currentItem.quantity) || 1);
+        const unitPrice = Math.max(0, Number(currentItem.unitPrice) || 0);
+        return sum + (unitPrice * qty);
       }, 0);
 
-      // Actualizar en base de datos items y total
+      if (newTotalCents < order.advance_payment) {
+        alert('No podés bajar el total por debajo de lo que la clienta ya abonó.');
+        return;
+      }
+
       const { error } = await supabase.from('orders')
         .update({ items: newItems, total_amount: newTotalCents })
         .eq('id', order.id);
-        
+
       if (error) throw error;
 
-      // Actualizar UI optimistamente
       setOrder({ ...order, items: newItems, total_amount: newTotalCents });
       setEditingPriceIndex(null);
     } catch (error: any) {
-      alert("Error al actualizar precio: " + error.message);
+      alert('Error al actualizar precio: ' + error.message);
     }
   };
 
   const handleDeleteOrder = async () => {
     if (!order) return;
-    if (!window.confirm("¿Seguro que querés eliminar este pedido? Se borrarán también las transacciones de caja asociadas.")) return;
-    
+
+    const { count, error: countError } = await supabase
+      .from('transactions')
+      .select('id', { count: 'exact', head: true })
+      .eq('order_id', order.id);
+
+    if (countError) {
+      alert('No se pudo verificar el historial financiero: ' + countError.message);
+      return;
+    }
+
+    if ((count || 0) > 0 || order.advance_payment > 0) {
+      alert('Este pedido tiene movimientos financieros. Para proteger Caja e historial no se puede eliminar directamente.');
+      return;
+    }
+
+    if (!window.confirm('¿Seguro que querés eliminar este pedido sin movimientos financieros?')) return;
+
     try {
       setIsSubmitting(true);
       const { error } = await supabase.from('orders').delete().eq('id', order.id);
       if (error) throw error;
-      
       router.push('/pedidos');
     } catch (error: any) {
-      alert("Error al eliminar: " + error.message);
+      alert('Error al eliminar: ' + error.message);
       setIsSubmitting(false);
     }
   };
@@ -338,7 +260,7 @@ export default function FichaPedidoPage() {
     }).format(d);
   };
 
-  const balance = order.total_amount - order.advance_payment;
+  const balance = Math.max(0, order.total_amount - order.advance_payment);
 
   return (
     <div className="p-4 flex flex-col gap-6 max-w-lg mx-auto w-full pb-24">
@@ -504,96 +426,18 @@ export default function FichaPedidoPage() {
           </div>
         </div>
 
-        <form onSubmit={handleUpdatePayment} className="flex flex-col gap-4">
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className="input-label mb-1.5">
-                💰 Total cobrado (Seña / Total)
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ofit-text-soft">
-                  <DollarSign size={16} />
-                </span>
-                <input
-                  type="number" min="0" step="0.01" placeholder="0.00"
-                  value={clientPayment} onChange={(e) => setClientPayment(e.target.value)}
-                  className="input-field !pl-10 font-semibold"
-                />
-              </div>
-            </div>
-
-            <div className="flex-1">
-              <label className="input-label mb-1.5">Medio de Pago</label>
-              <select
-                value={paymentMethod}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setPaymentMethod(val);
-                  if (val === 'EFECTIVO') setCuenta('EFECTIVO');
-                  else setCuenta('VIRTUAL');
-                }}
-                className="input-field font-semibold text-sm cursor-pointer"
-              >
-                <option value="EFECTIVO">💵 Efectivo</option>
-                <option value="TRANSFERENCIA">🏦 Transferencia</option>
-                <option value="TARJETA">💳 Tarjeta</option>
-              </select>
-            </div>
-          </div>
-
-
-
-          <div className="flex flex-col gap-2">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={hasCommission}
-                onChange={(e) => setHasCommission(e.target.checked)}
-                className="w-4 h-4 rounded text-ofit-pink focus:ring-ofit-pink border-gray-300"
-              />
-              <span className="text-sm font-semibold text-ofit-text">💳 Me cobraron comisión de plataforma</span>
-            </label>
-
-            {hasCommission && (
-              <div className="mt-1 ml-6 relative animate-in fade-in slide-in-from-top-1">
-                 <label className="block text-xs font-semibold text-ofit-text-soft mb-1">
-                   Plata real que te llegó al banco/app
-                 </label>
-                 <div className="relative">
-                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ofit-text-soft text-sm font-bold">
-                     $
-                   </span>
-                   <input
-                     type="number" min="0" step="0.01" placeholder="0.00"
-                     value={realIncome} onChange={(e) => setRealIncome(e.target.value)}
-                     className="input-field !pl-8 h-10 font-semibold"
-                   />
-                 </div>
-                 {(() => {
-                   const cPay = parseFloat(clientPayment) || 0;
-                   const rInc = parseFloat(realIncome) || 0;
-                   if (realIncome === '') return null;
-                   if (rInc > cPay) {
-                     return <p className="text-xs font-bold text-[#A44848] mt-1.5">❌ El ingreso real no puede ser mayor al pago del cliente.</p>;
-                   }
-                   if (cPay > rInc) {
-                     return <p className="text-xs font-bold text-[#A44848] opacity-90 mt-1.5">⚠️ Comisión descontada: -${(cPay - rInc).toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>;
-                   }
-                   return null;
-                 })()}
-              </div>
-            )}
-          </div>
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full h-11 font-bold text-white rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 btn-primary mt-2"
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-ofit-text-soft leading-relaxed">
+            Los cobros ya no se editan manualmente desde el pedido. Cada nuevo abono se registra de forma atómica para que deuda y Caja siempre coincidan.
+          </p>
+          <Link
+            href={`/clientes?expand=${order.customer_id}`}
+            className="w-full min-h-11 px-4 btn-primary rounded-xl font-bold flex items-center justify-center gap-2"
           >
-            {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <DollarSign size={18} />}
-            {isSubmitting ? 'Guardando...' : 'Actualizar Finanzas'}
-          </button>
-        </form>
+            <DollarSign size={18} />
+            Registrar abono desde la ficha
+          </Link>
+        </div>
       </div>
       
       {/* Danger Zone */}
