@@ -335,8 +335,6 @@ function NuevoPedidoContent() {
 
     try {
       setIsSubmitting(true);
-      const warnings: string[] = [];
-
       const itemsWithSuppliers = await Promise.all(
         cleanItems.map(async (item) => {
           const supplier = await getOrCreateSupplier(item.supplierName);
@@ -349,79 +347,26 @@ function NuevoPedidoContent() {
       );
 
       const advanceCents = validatedAdvanceCents;
-      const total = itemsWithSuppliers.reduce((acc, item) => acc + item.subtotal, 0);
       const details = itemsWithSuppliers.map((item) => `${item.quantity}x ${item.productName}`).join(', ');
 
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .insert([{
-          customer_id: selectedCustomerId,
-          details,
-          items: itemsWithSuppliers,
-          total_amount: total,
-          advance_payment: advanceCents,
-          status: 'PENDIENTE',
-        }])
-        .select();
+      const commissionCents = hasCommission
+        ? Math.max(0, advanceCents - validatedRealIncomeCents)
+        : 0;
+
+      const { data: orderId, error: orderError } = await supabase.rpc('create_order_atomic', {
+        p_customer_id: selectedCustomerId,
+        p_items: itemsWithSuppliers,
+        p_details: details,
+        p_advance_payment: advanceCents,
+        p_payment_method: paymentMethod,
+        p_cuenta: cuenta,
+        p_commission: commissionCents,
+      });
+
       if (orderError) throw orderError;
-      const orderId = orderData?.[0]?.id;
       if (!orderId) throw new Error('El pedido no devolvió un id válido.');
 
-      if (advanceCents > 0) {
-        const { error } = await supabase.from('transactions').insert([{
-          order_id: orderId,
-          type: 'INGRESO',
-          amount: advanceCents,
-          description: `Pago inicial pedido (${paymentMethod}): ${customers.find((c) => c.id === selectedCustomerId)?.name || 'Cliente'}`,
-          cuenta,
-        }]);
-        if (error) warnings.push('No se pudo registrar el pago inicial en Finanzas.');
-
-        if (hasCommission) {
-          const commission = advanceCents - validatedRealIncomeCents;
-          if (commission > 0) {
-            const { error: commissionError } = await supabase.from('transactions').insert([{
-              order_id: orderId,
-              type: 'EGRESO',
-              amount: commission,
-              description: '[COMISION] Comisión de tarjeta',
-              cuenta,
-            }]);
-            if (commissionError) warnings.push('No se pudo registrar la comisión en Finanzas.');
-          }
-        }
-      }
-
-      const pending = itemsWithSuppliers
-        .filter((item) => item.needsPurchase)
-        .map((item) => ({
-          order_id: orderId,
-          item_id: item.id,
-          product_id: item.productId,
-          supplier_id: item.supplierId,
-          customer_id: selectedCustomerId,
-          product_name: item.productName,
-          supplier_name: item.supplierName,
-          quantity: item.quantity,
-          color: item.color,
-          size: item.size,
-          cost_price: item.wholesaleCost > 0 ? item.wholesaleCost : null,
-          status: 'PENDIENTE',
-          updated_at: new Date().toISOString(),
-        }));
-
-      if (pending.length) {
-        const { error } = await supabase
-          .from('pending_purchases')
-          .upsert(pending, { onConflict: 'order_id,item_id' });
-        if (error) warnings.push('No se pudo sincronizar Compras Pendientes.');
-      }
-
-      if (warnings.length) {
-        alert(`Pedido creado, pero revisá:\n• ${warnings.join('\n• ')}`);
-      } else {
-        alert('¡Pedido creado correctamente!');
-      }
+      alert('¡Pedido creado correctamente!');
       router.push(`/clientes?expand=${selectedCustomerId}`);
     } catch (error: any) {
       alert('Error al crear pedido: ' + error.message);
