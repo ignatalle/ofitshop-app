@@ -797,46 +797,14 @@ function ClientesContent() {
 
     try {
       setIsSubmitting(true);
-      
-      const pendingOrders = orders
-        .filter(o => o.customer_id === abonoCustomer.id && isValidSale(o) && calculateOrderBalance(o) > 0)
-        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
-      let remainingPayment = abonadoCents;
-      const updatedOrdersLocal = [...orders];
+      const { error: paymentError } = await supabase.rpc('apply_customer_payment_atomic', {
+        p_customer_id: abonoCustomer.id,
+        p_amount: abonadoCents,
+        p_cuenta: abonoAccount,
+      });
 
-      for (const order of pendingOrders) {
-        if (remainingPayment <= 0) break;
-
-        const orderDebt = calculateOrderBalance(order);
-        const amountToApply = Math.min(orderDebt, remainingPayment);
-        const newAdvancePayment = order.advance_payment + amountToApply;
-        
-        const { error: orderError } = await supabase
-          .from('orders')
-          .update({ advance_payment: newAdvancePayment })
-          .eq('id', order.id);
-
-        if (orderError) throw orderError;
-
-        const transaction = {
-          order_id: order.id,
-          type: 'INGRESO',
-          amount: amountToApply,
-          cuenta: abonoAccount,
-          description: `Abono a cuenta de ${abonoCustomer.name} (aplicado a encargo)`
-        };
-        
-        const { error: txError } = await supabase.from('transactions').insert([transaction]);
-        if (txError) console.error("Error al registrar el pago en finanzas:", txError);
-
-        const orderIndex = updatedOrdersLocal.findIndex(o => o.id === order.id);
-        if (orderIndex >= 0) {
-          updatedOrdersLocal[orderIndex] = { ...order, advance_payment: newAdvancePayment };
-        }
-
-        remainingPayment -= amountToApply;
-      }
+      if (paymentError) throw paymentError;
 
       await fetchData();
       setIsAbonoModalOpen(false);
