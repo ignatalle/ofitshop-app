@@ -46,13 +46,13 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 
 ## Fase 5 — iPhone / Android
 - [ ] 320, 360, 375, 390, 412 y 430 px.
-- [ ] Safe areas.
+- [x] Safe areas — viewport-fit=cover, layout y overlays respetan env(safe-area-inset-*).
 - [ ] Teclado móvil.
-- [ ] Inputs >= 16px.
-- [ ] Touch targets >= 44px.
+- [x] Inputs >= 16px — regla transversal móvil evita zoom automático de iOS.
+- [x] Touch targets >= 44px — botones móviles tienen mínimo 44px; controles principales de estado 48px.
 - [ ] Modales con acciones siempre visibles.
-- [ ] Sin scroll horizontal.
-- [ ] Bottom nav no tapa contenido.
+- [~] Sin scroll horizontal — salvaguarda global + shells por ruta aplicados; falta prueba visual final por anchos.
+- [x] Bottom nav no tapa contenido — main y shells reservan espacio con safe-area; modales críticos suben sobre la navegación.
 - [ ] Tema Clásico y Premium Dark.
 
 ## Fase 6 — Calidad de código y despliegue
@@ -106,3 +106,11 @@ Estado: auditoría en curso. Matemática base corregida y etapa transaccional ac
 - Estado financiero en el listado usa calculateOrderBalance/isValidSale, no una comparación paralela.
 - Fechas de Pedidos se muestran explícitamente con timezone Argentina y no dependen del huso horario configurado en el teléfono.
 - Los controles principales de estado tienen objetivo táctil mínimo de 48 px para iPhone/Android.
+
+
+### Auditoría móvil transversal
+- Se agregó fallback 100vh + 100dvh para Safari/iOS y WebView Android.
+- Inputs móviles permanecen en 16px para evitar zoom al enfocar en iPhone.
+- Botones móviles tienen objetivo táctil mínimo de 44px; icon-only con title/aria-label también ancho mínimo.
+- El navegador cambia theme-color según Clásico/Premium Dark para integrar mejor barra superior/PWA.
+- Sigue pendiente la verificación visual final en 320/360/375/390/412/430 px; el código ya tiene las salvaguardas base.
