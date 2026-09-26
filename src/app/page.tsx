@@ -187,7 +187,7 @@ export default function DashboardPage() {
   }
 
   // 5. Pedidos Recientes
-  const pedidosRecientes = orders.slice(0, 5);
+  const pedidosRecientes = orders.filter(isValidSale).slice(0, 5);
   const customerMap = new Map(customers.map(c => [c.id, c.name]));
 
   if (loading) {
@@ -421,7 +421,7 @@ export default function DashboardPage() {
         {pedidosRecientes.length > 0 ? (
           <div className="flex flex-col gap-2">
             {pedidosRecientes.map(order => {
-              const saldo = order.total_amount - order.advance_payment;
+              const saldo = Math.max(0, order.total_amount - order.advance_payment);
               return (
                 <Link key={order.id} href={`/pedidos/${order.id}`}>
                   <div className="card p-4 sm:p-5 border-none shadow-sm flex items-center justify-between gap-4 hover:shadow-md transition-shadow cursor-pointer">
