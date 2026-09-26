@@ -32,5 +32,8 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
+      - name: Financial invariants
+        run: npm run test:finance
+
       - name: Build
         run: npm run build
