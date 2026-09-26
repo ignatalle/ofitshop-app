@@ -12,6 +12,7 @@ import {
   Pencil,
 } from 'lucide-react';
 import Link from 'next/link';
+import { parsePesosToCents } from '@/lib/finance';
 
 interface PendingPurchase {
   id: string;
@@ -112,8 +113,7 @@ export default function ComprasPendientesPage() {
     const purchase = purchases.find((p) => p.id === resolvingId);
     if (!purchase || purchase.status !== 'PENDIENTE') return;
 
-    const parsedCost = Number(resolveCost);
-    const newCostCents = Number.isFinite(parsedCost) ? Math.round(parsedCost * 100) : 0;
+    const newCostCents = parsePesosToCents(resolveCost) ?? 0;
     if (newCostCents <= 0) return alert('Ingresá un costo real por unidad mayor a $0.');
 
     try {
@@ -179,7 +179,7 @@ export default function ComprasPendientesPage() {
   };
 
   const resolvingPurchase = purchases.find((p) => p.id === resolvingId);
-  const resolvingUnitCostCents = Math.max(0, Math.round((Number(resolveCost) || 0) * 100));
+  const resolvingUnitCostCents = Math.max(0, parsePesosToCents(resolveCost) ?? 0);
   const resolvingTotalCostCents = resolvingPurchase ? resolvingUnitCostCents * Math.max(1, resolvingPurchase.quantity || 1) : 0;
 
   return (
