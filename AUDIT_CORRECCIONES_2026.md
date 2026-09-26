@@ -15,12 +15,12 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 - Timezone: America/Argentina/Buenos_Aires.
 
 ## Fase 1 — Matemática y finanzas
-- [ ] Verificar unidad monetaria y eliminar ambigüedad pesos/centavos.
+- [~] Verificar unidad monetaria y eliminar ambigüedad pesos/centavos — montos internos formalizados en centavos y entradas financieras usan parser central; falta contraste final con datos reales.
 - [~] Auditar ventas, CMV, comisiones, gastos operativos, caja y deuda — fórmulas base revisadas; falta contraste final con datos reales de Supabase.
 - [x] Auditar pagos parciales, sobrepagos, anulaciones y pedidos cancelados.
 - [ ] Revisar clasificación de ingresos para que "Cobros" no incluya ingresos que no sean pagos de clientes.
 - [x] Revisar costos faltantes e histórico de costos — Costos Pendientes queda reservado a históricos; compras actuales se resuelven con Caja en Compras Pendientes.
-- [ ] Agregar pruebas para todos los invariantes.
+- [~] Agregar pruebas para todos los invariantes — suite cubre caja, deuda, cancelados, sobrepagos, cobros, saldos iniciales y conversión pesos/centavos; faltan casos DB/RPC end-to-end.
 
 ## Fase 2 — Datos y estructura
 - [ ] Auditar orders/items, transactions, customers, products, pending_purchases y suppliers.
@@ -133,3 +133,10 @@ Estado: auditoría en curso. Matemática base corregida y etapa transaccional ac
 - Marcar una compra como CONSEGUIDO actualiza snapshot histórico + pending_purchases + salida de Caja dentro de una sola transacción.
 - Asignar/cambiar proveedor ahora usa assign_pending_purchase_supplier_atomic y mantiene pedido + compra pendiente sincronizados.
 - El frontend dejó de crear/buscar proveedor y actualizar pending_purchases en pasos separados.
+
+
+### Normalización monetaria
+- Se agregó parsePesosToCents como conversión central para entradas financieras.
+- Acepta pesos enteros, decimales con punto/coma y formato argentino con separador de miles.
+- Abonos, gastos, transferencias, compras y edición de pedidos usan centavos enteros antes de persistir.
+- Costos Pendientes históricos conserva centavos en vez de truncarlos con parseInt.
