@@ -18,9 +18,14 @@ export default async function CostosPendientesPage() {
     .from('transactions')
     .select('*');
 
+  const { data: purchaseStatesData } = await supabase
+    .from('pending_purchases')
+    .select('order_id, item_id, status');
+
   const orders = ordersData || [];
   const products = productsData || [];
   const transactions = txData || [];
+  const purchaseStates = purchaseStatesData || [];
 
   const now = getArgentinaDate(new Date().toISOString());
   const currentMonth = now.getMonth();
@@ -32,6 +37,7 @@ export default async function CostosPendientesPage() {
         initialOrders={orders} 
         products={products}
         transactions={transactions}
+        purchaseStates={purchaseStates}
         currentMonth={currentMonth}
         currentYear={currentYear}
       />
