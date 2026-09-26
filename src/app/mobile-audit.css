@@ -9,12 +9,16 @@
   }
 
   body {
+    min-height: 100vh;
     min-height: 100dvh;
   }
 
   main {
     width: 100%;
     max-width: 100vw;
+    min-height: 100vh;
+    min-height: 100dvh;
+    scroll-padding-bottom: calc(7rem + env(safe-area-inset-bottom));
   }
 
   /* Evita que headers internos sticky se escondan detrás de la barra superior global */
@@ -43,11 +47,28 @@
     font-size: 16px !important;
   }
 
-  /* Mejor respuesta táctil en dispositivos touch */
+  /* Mejor respuesta táctil en iPhone/Android */
   main button,
   main a {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Objetivo táctil mínimo. Los botones con sólo icono reciben además ancho
+     suficiente para no exigir precisión con el dedo. */
+  main button {
+    min-height: 44px;
+  }
+
+  main button[aria-label],
+  main button[title] {
+    min-width: 44px;
+  }
+
+  /* Checkboxes/radios nativos no deben crecer por las reglas anteriores. */
+  main input[type="checkbox"],
+  main input[type="radio"] {
+    min-height: auto !important;
   }
 
   /* Montos y textos extensos no rompen el ancho de la pantalla */
@@ -76,5 +97,21 @@
   main [class*="px-6"] {
     padding-left: 14px;
     padding-right: 14px;
+  }
+}
+
+
+/* Safari iOS antiguo sin soporte de dvh conserva una altura útil con vh;
+   navegadores modernos usan la segunda declaración en dvh. */
+@supports not (height: 100dvh) {
+  @media (max-width: 640px) {
+    body,
+    main {
+      min-height: 100vh;
+    }
+
+    main .fixed.inset-0 {
+      height: 100vh;
+    }
   }
 }
