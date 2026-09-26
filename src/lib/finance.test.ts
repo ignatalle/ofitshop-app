@@ -4,7 +4,7 @@ import {
   isPersonalWithdrawal, isMerchandisePurchase, isCashReconciliation, calculateTotalCash, calculateAccountBalance, 
   calculateReceivables, calculateDebtorCustomers, calculateSales, calculateCOGS, calculateOperatingExpenses, 
   calculateCommissions, calculateNetProfit, calculateDistribution,
-  getOrderFinancialStatus, calculateOrderBalance, isCustomerPayment, isOpeningBalance, parsePesosToCents
+  getOrderFinancialStatus, calculateOrderBalance, isCustomerPayment, isOpeningBalance, parsePesosToCents, countHistoricalPendingCosts
 } from './finance';
 
 // Mock data builder helpers
@@ -147,6 +147,15 @@ function runTests() {
   assert.strictEqual(parsePesosToCents('15.000'), 1500000, 'Caso 20: miles argentino');
   assert.strictEqual(parsePesosToCents('15.000,50'), 1500050, 'Caso 20: miles + decimales');
   assert.strictEqual(parsePesosToCents(''), null, 'Caso 20: vacío es inválido');
+
+  // Caso 21: una compra operativa activa no es un "costo histórico pendiente"
+  const activePurchaseOrder = makeOrder('purchase-order', 'c-purchase', 50000, 0, 'PENDIENTE', [
+    { id: 'purchase-item', wholesaleCost: 0, quantity: 2, needsPurchase: true }
+  ]);
+  const activeKeys = new Set(['purchase-order:purchase-item']);
+  const pendingHistorical = countHistoricalPendingCosts([activePurchaseOrder], {}, activeKeys);
+  assert.strictEqual(pendingHistorical.pendingItemsCount, 0, 'Caso 21: compra activa no aparece como histórico');
+  assert.strictEqual(pendingHistorical.pendingUnitsCount, 0, 'Caso 21: compra activa no suma unidades históricas');
 
   // TEST MÁS IMPORTANTE AHORA: DÍA COMPLETO DE CAMI
   const startEfectivo = makeTx('startE', 'INGRESO', 7500000, 'Start Efectivo', 'EFECTIVO');
