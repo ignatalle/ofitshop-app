@@ -16,7 +16,7 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 
 ## Fase 1 — Matemática y finanzas
 - [ ] Verificar unidad monetaria y eliminar ambigüedad pesos/centavos.
-- [ ] Auditar ventas, CMV, comisiones, gastos operativos, caja y deuda.
+- [~] Auditar ventas, CMV, comisiones, gastos operativos, caja y deuda — fórmulas base revisadas; falta contraste final con datos reales de Supabase.
 - [x] Auditar pagos parciales, sobrepagos, anulaciones y pedidos cancelados.
 - [ ] Revisar clasificación de ingresos para que "Cobros" no incluya ingresos que no sean pagos de clientes.
 - [x] Revisar costos faltantes e histórico de costos — Costos Pendientes queda reservado a históricos; compras actuales se resuelven con Caja en Compras Pendientes.
@@ -121,3 +121,8 @@ Estado: auditoría en curso. Matemática base corregida y etapa transaccional ac
 - Las métricas se renderizan directamente después del saludo en el árbol React.
 - El componente reutiliza orders/transactions/productsMap ya cargados por el Dashboard; se eliminaron consultas Supabase duplicadas.
 - Se removieron reglas CSS de order usadas únicamente para forzar la posición del portal.
+
+
+### Hallazgo corregido — saldos iniciales
+- Un saldo/ingreso inicial sigue formando parte de Caja, pero ya no se interpreta como Cobro de clientes.
+- Las tarjetas Ingresos/Egresos de Finanzas excluyen transferencias internas, conciliaciones y saldos iniciales para mostrar actividad real y no movimientos de configuración.
