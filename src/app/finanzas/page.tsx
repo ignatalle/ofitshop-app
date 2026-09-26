@@ -12,6 +12,7 @@ interface Transaction {
   description: string;
   cuenta: 'EFECTIVO' | 'VIRTUAL';
   created_at: string;
+  order_id?: string | null;
 }
 
 export default function FinanzasPage() {
@@ -59,10 +60,21 @@ export default function FinanzasPage() {
 
   const handleTransferSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!transferAmount) return;
+    const parsedTransfer = Number(transferAmount);
+    if (!Number.isFinite(parsedTransfer) || parsedTransfer <= 0) {
+      alert('Ingresá un monto a mover mayor a $0.');
+      return;
+    }
+
+    const amountCents = Math.round(parsedTransfer * 100);
+    const availableCents = calculateAccountBalance(transactions, transferOrigin);
+    if (amountCents > availableCents) {
+      alert(`No hay saldo suficiente en ${transferOrigin === 'EFECTIVO' ? 'Efectivo' : 'Virtual'}. Disponible: ${(Math.max(0, availableCents) / 100).toLocaleString('es-AR')}`);
+      return;
+    }
+
     try {
       setIsSubmitting(true);
-      const amountCents = Math.round(parseFloat(transferAmount) * 100);
       const transferDest = transferOrigin === 'VIRTUAL' ? 'EFECTIVO' : 'VIRTUAL';
       
       const outTx = {
@@ -94,7 +106,13 @@ export default function FinanzasPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || !description.trim()) return;
+    if (!description.trim()) return;
+
+    const parsedAmount = Number(amount);
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      alert('Ingresá un monto de gasto mayor a $0.');
+      return;
+    }
 
     try {
       setIsSubmitting(true);
@@ -109,7 +127,7 @@ export default function FinanzasPage() {
 
       const newTransaction = {
         type: 'EGRESO',
-        amount: Math.round(parseFloat(amount) * 100),
+        amount: Math.round(parsedAmount * 100),
         description: finalDescription,
         cuenta: cuenta
       };
@@ -140,18 +158,29 @@ export default function FinanzasPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('¿Estás seguro de eliminar este movimiento? (Esta acción no se puede deshacer)')) return;
+  const handleDelete = async (transaction: Transaction) => {
+    if (transaction.order_id) {
+      alert('Este movimiento pertenece a un pedido. No se puede eliminar desde Finanzas porque desincronizaría Caja, deuda o costos.');
+      return;
+    }
+
+    if (isInternalTransfer(transaction)) {
+      alert('Una transferencia tiene dos movimientos vinculados. No se puede borrar una sola parte desde Finanzas.');
+      return;
+    }
+
+    if (!window.confirm('¿Estás seguro de eliminar este movimiento manual? Esta acción no se puede deshacer.')) return;
 
     try {
       const { error } = await supabase
         .from('transactions')
         .delete()
-        .eq('id', id);
+        .eq('id', transaction.id)
+        .is('order_id', null);
 
       if (error) throw error;
 
-      setTransactions(transactions.filter(t => t.id !== id));
+      setTransactions(transactions.filter(t => t.id !== transaction.id));
     } catch (error: any) {
       alert('Error al eliminar movimiento: ' + error.message);
     }
@@ -305,7 +334,7 @@ export default function FinanzasPage() {
                   </div>
 
                   <button 
-                    onClick={() => handleDelete(transaction.id)}
+                    onClick={() => handleDelete(transaction)}
                     className="absolute top-2 right-2 text-ofit-text-soft hover:text-[#A44848] active:text-[#A44848] transition-colors p-1"
                     aria-label="Eliminar"
                   >
@@ -482,7 +511,7 @@ export default function FinanzasPage() {
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ofit-text-soft font-bold">$</span>
                   <input
-                    required type="number" min="0" step="0.01"
+                    required type="number" min="0.01" step="0.01"
                     value={transferAmount} onChange={(e) => setTransferAmount(e.target.value)}
                     className="input-field !pl-8 font-semibold" placeholder="0.00"
                   />
