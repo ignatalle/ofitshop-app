@@ -74,6 +74,16 @@ export const isCashReconciliation = (tx: Transaction): boolean => {
   return d.includes('[AJUSTE]') || d.includes('AJUSTE DE BALANCE') || d.includes('CONCILIACION DE CAJA') || d.includes('CONCILIACIÓN DE CAJA');
 };
 
+export const isOpeningBalance = (tx: Transaction): boolean => {
+  const d = tx.description.toLowerCase();
+  return (
+    d.includes('saldo inicial') ||
+    d.includes('ingreso inicial') ||
+    d.includes('balance inicial') ||
+    d.includes('caja inicial')
+  );
+};
+
 export const isPersonalWithdrawal = (tx: Transaction): boolean => {
   if (tx.type !== 'EGRESO') return false;
   if (isCashReconciliation(tx)) return false;
@@ -125,13 +135,9 @@ export const isCustomerPayment = (tx: Transaction): boolean => {
 
   // Compatibilidad con movimientos históricos previos a order_id.
   // Evitamos contar saldos/ajustes iniciales como "cobros" del negocio.
+  if (isOpeningBalance(tx)) return false;
+
   const d = tx.description.toLowerCase();
-  if (
-    d.includes('saldo inicial') ||
-    d.includes('ingreso inicial') ||
-    d.includes('balance inicial') ||
-    d.includes('caja inicial')
-  ) return false;
 
   return (
     d.includes('pago inicial pedido') ||
