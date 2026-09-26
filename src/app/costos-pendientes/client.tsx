@@ -6,7 +6,7 @@ import { ArrowLeft, CheckCircle2, ChevronRight, Loader2, AlertCircle } from 'luc
 import Link from 'next/link';
 import { 
   isValidSale, parseOrderItems, getItemUnitCostCents, getItemQuantity, isItemPendingCost,
-  calculateSales, calculateCOGS, calculateOperatingExpenses, calculateCommissions, calculateNetProfit
+  calculateSales, calculateCOGS, calculateOperatingExpenses, calculateCommissions, calculateNetProfit, parsePesosToCents
 } from '@/lib/finance';
 
 interface PendingItem {
@@ -348,7 +348,7 @@ export default function CostosPendientesClient({
                 {group.items.map((item) => {
                   const uniqueId = `${item.orderId}-${item.itemIndex}`;
                   const inputVal = inputValues[uniqueId] || '';
-                  const numVal = parseInt(inputVal, 10) || 0;
+                  const numValCents = Math.max(0, parsePesosToCents(inputVal) ?? 0);
                   const isSaving = loadingItemId === uniqueId;
 
                   return (
@@ -372,15 +372,18 @@ export default function CostosPendientesClient({
                           <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-400">$</span>
                           <input 
                             type="number"
+                            min="0"
+                            step="0.01"
+                            inputMode="decimal"
                             value={inputVal}
                             onChange={(e) => handleInputChange(uniqueId, e.target.value)}
                             placeholder="0"
                             className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-8 pr-4 font-bold text-ofit-navy focus:outline-none focus:border-ofit-navy transition-colors text-lg"
                           />
                         </div>
-                        {numVal > 0 && (
+                        {numValCents > 0 && (
                           <div className="text-xs font-bold text-ofit-pink mt-1 ml-1 animate-fade-in">
-                            {item.qty} {item.qty === 1 ? 'unidad' : 'unidades'} × ${(numVal).toLocaleString('es-AR')} = ${(numVal * item.qty).toLocaleString('es-AR')} total
+                            {item.qty} {item.qty === 1 ? 'unidad' : 'unidades'} × ${(numValCents / 100).toLocaleString('es-AR')} = ${((numValCents * item.qty) / 100).toLocaleString('es-AR')} total
                           </div>
                         )}
                       </div>
@@ -388,8 +391,8 @@ export default function CostosPendientesClient({
                       <div className="flex flex-col gap-2 mt-2">
                         <div className="flex gap-2">
                           <button 
-                            disabled={numVal <= 0}
-                            onClick={() => handleSaveCost(item, numVal * 100)}
+                            disabled={numValCents <= 0}
+                            onClick={() => handleSaveCost(item, numValCents)}
                             className="flex-1 bg-ofit-navy text-white font-bold py-3.5 rounded-xl disabled:opacity-50 flex items-center justify-center gap-2 transition-all active:scale-95"
                           >
                             Guardar y siguiente <ChevronRight size={16} />
