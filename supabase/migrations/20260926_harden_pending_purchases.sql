@@ -191,7 +191,7 @@ BEGIN
     INTO v_supplier_id, v_supplier_saved_name
     FROM public.suppliers s
     WHERE LOWER(BTRIM(s.name)) = LOWER(v_clean_name)
-    ORDER BY s.created_at NULLS LAST, s.id
+    ORDER BY s.id
     LIMIT 1;
 
     IF NOT FOUND THEN
