@@ -42,7 +42,7 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 - [x] Asegurar que cada KPI tenga una definición única.
 - [x] Alinear períodos de métricas y gráficos — tarjetas son del mes; gráficos se etiquetan explícitamente como últimos 14 días y aclaran que no deben coincidir.
 - [x] Verificar Ventas vs Cobros y excluir movimientos no-cliente.
-- [ ] Revisar ticket promedio, pedidos, deuda y ganancia.
+- [~] Revisar ticket promedio, pedidos, deuda y ganancia — fórmulas coherentes; Dashboard ahora separa compras activas de costos históricos; falta contraste final con datos reales.
 
 ## Fase 5 — iPhone / Android
 - [ ] 320, 360, 375, 390, 412 y 430 px.
@@ -140,3 +140,9 @@ Estado: auditoría en curso. Matemática base corregida y etapa transaccional ac
 - Acepta pesos enteros, decimales con punto/coma y formato argentino con separador de miles.
 - Abonos, gastos, transferencias, compras y edición de pedidos usan centavos enteros antes de persistir.
 - Costos Pendientes históricos conserva centavos en vez de truncarlos con parseInt.
+
+
+### Dashboard — compras vs costos
+- Compras Pendientes activas ya no se cuentan como "costos históricos pendientes".
+- Inicio muestra una alerta separada para prendas que faltan comprar y otra para históricos sin costo.
+- Esto evita enviar a Cami a Costos Pendientes cuando la tarea correcta está en Compras Pendientes.
