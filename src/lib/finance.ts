@@ -350,20 +350,29 @@ export const calculateCOGS = (orders: Order[], productsMap: Record<string, numbe
   return { cogs, hasIncompleteCosts, pendingItemsCount, incompleteItemsCount: pendingItemsCount }; // Keep incompleteItemsCount temporarily for backwards compatibility if needed, but we will rename it in page.tsx
 };
 
-export const countHistoricalPendingCosts = (orders: Order[], productsMap: Record<string, number>): { pendingItemsCount: number, pendingUnitsCount: number } => {
+export const countHistoricalPendingCosts = (
+  orders: Order[],
+  productsMap: Record<string, number>,
+  activePurchaseKeys: Set<string> = new Set()
+): { pendingItemsCount: number, pendingUnitsCount: number } => {
   let pendingItemsCount = 0;
   let pendingUnitsCount = 0;
+
   for (const o of orders) {
-    if (isValidSale(o)) {
-      const items = parseOrderItems(o);
-      for (const item of items) {
-        if (isItemPendingCost(item, productsMap)) {
-          pendingItemsCount++;
-          pendingUnitsCount += getItemQuantity(item);
-        }
+    if (!isValidSale(o)) continue;
+
+    const items = parseOrderItems(o);
+    for (const item of items) {
+      const itemId = typeof item?.id === 'string' ? item.id : '';
+      if (itemId && activePurchaseKeys.has(`${o.id}:${itemId}`)) continue;
+
+      if (isItemPendingCost(item, productsMap)) {
+        pendingItemsCount++;
+        pendingUnitsCount += getItemQuantity(item);
       }
     }
   }
+
   return { pendingItemsCount, pendingUnitsCount };
 };
 
