@@ -18,7 +18,7 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 - [~] Verificar unidad monetaria y eliminar ambigüedad pesos/centavos — montos internos formalizados en centavos y entradas financieras usan parser central; falta contraste final con datos reales.
 - [~] Auditar ventas, CMV, comisiones, gastos operativos, caja y deuda — fórmulas base revisadas; falta contraste final con datos reales de Supabase.
 - [x] Auditar pagos parciales, sobrepagos, anulaciones y pedidos cancelados.
-- [ ] Revisar clasificación de ingresos para que "Cobros" no incluya ingresos que no sean pagos de clientes.
+- [~] Revisar clasificación de ingresos para que "Cobros" no incluya ingresos que no sean pagos de clientes — código prioriza categoría estructurada; migración transaction_categories preparada y pendiente de aplicar.
 - [x] Revisar costos faltantes e histórico de costos — Costos Pendientes queda reservado a históricos; compras actuales se resuelven con Caja en Compras Pendientes.
 - [~] Agregar pruebas para todos los invariantes — suite cubre caja, deuda, cancelados, sobrepagos, cobros, saldos iniciales y conversión pesos/centavos; faltan casos DB/RPC end-to-end.
 
@@ -26,7 +26,7 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 - [ ] Auditar orders/items, transactions, customers, products, pending_purchases y suppliers.
 - [x] Revisar migraciones, triggers y RPC — pedido, abonos y Compras Pendientes usan RPC atómicas; hardening aplicado en Supabase.
 - [~] Detectar duplicaciones de lógica entre páginas — parser monetario centralizado en finanzas/pedidos/clientes/compras/productos; sigue pendiente extraer lógica repetida de proveedores.
-- [ ] Reducir dependencias de textos/descripciones para clasificar movimientos.
+- [~] Reducir dependencias de textos/descripciones para clasificar movimientos — Transaction.category implementado en código con fallback histórico; falta aplicar migración en Supabase.
 - [ ] Revisar RLS/permisos antes de cualquier tienda pública.
 
 ## Fase 3 — Flujos funcionales
@@ -153,3 +153,10 @@ Estado: auditoría en curso. Matemática base corregida y etapa transaccional ac
 - Precio de venta debe ser > 0; costo y mayorista no pueden ser negativos.
 - Stock debe ser entero >= 0 antes de persistir, aunque el navegador no respete min/step.
 - Inputs monetarios usan step=0.01/inputMode=decimal y stock usa inputMode=numeric para teclado móvil.
+
+
+### Clasificación estructurada de transacciones
+- finance.ts prioriza Transaction.category y conserva fallback por descripción para movimientos históricos.
+- Se preparó 20260928_transaction_categories.sql para agregar category, clasificar inserts automáticamente y backfillear historial.
+- Categorías: cobro cliente, comisión, mercadería, transferencia interna, gasto operativo, retiro personal, conciliación, saldo inicial y otros ingresos.
+- La migración todavía debe ejecutarse en Supabase antes de dar este punto por cerrado.
