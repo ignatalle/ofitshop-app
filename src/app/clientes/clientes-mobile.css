@@ -95,3 +95,74 @@
     font-size: 0.78rem;
   }
 }
+
+
+/* Abonos: bottom sheet/full-screen móvil resistente al teclado virtual. */
+@media (max-width: 640px) {
+  .clientes-mobile .clientes-abono-overlay {
+    align-items: stretch !important;
+    justify-content: stretch !important;
+    padding: 0 !important;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden !important;
+    z-index: 9999 !important;
+  }
+
+  .clientes-mobile .clientes-abono-modal {
+    width: 100vw !important;
+    max-width: none !important;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none !important;
+    border-radius: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .clientes-mobile .clientes-abono-header {
+    flex: 0 0 auto;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding-top: calc(14px + env(safe-area-inset-top)) !important;
+    background: var(--bg-card) !important;
+  }
+
+  .clientes-mobile .clientes-abono-form {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom)) !important;
+    scroll-padding-bottom: 88px;
+  }
+
+  .clientes-mobile .clientes-abono-form input,
+  .clientes-mobile .clientes-abono-form select,
+  .clientes-mobile .clientes-abono-form textarea {
+    font-size: 16px !important;
+    min-height: 48px;
+  }
+
+  .clientes-mobile .clientes-abono-submit {
+    position: sticky;
+    bottom: 0;
+    z-index: 25;
+    min-height: 52px;
+    margin-left: -20px !important;
+    margin-right: -20px !important;
+    margin-bottom: calc(-1rem - env(safe-area-inset-bottom)) !important;
+    width: calc(100% + 40px) !important;
+    border-radius: 0 !important;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+    box-shadow: 0 -10px 24px rgba(0,0,0,.10);
+  }
+}
+
+html[data-theme="luxe"] .clientes-mobile .clientes-abono-modal,
+html[data-theme="luxe"] .clientes-mobile .clientes-abono-header {
+  background: var(--bg-card) !important;
+}
