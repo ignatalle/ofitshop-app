@@ -6,7 +6,19 @@ export interface Transaction {
   cuenta: 'EFECTIVO' | 'VIRTUAL';
   created_at: string;
   order_id?: string | null;
+  category?: TransactionCategory | null;
 }
+
+export type TransactionCategory =
+  | 'CUSTOMER_PAYMENT'
+  | 'COMMISSION'
+  | 'MERCHANDISE'
+  | 'INTERNAL_TRANSFER'
+  | 'OPERATING_EXPENSE'
+  | 'PERSONAL_WITHDRAWAL'
+  | 'RECONCILIATION'
+  | 'OPENING_BALANCE'
+  | 'OTHER_INCOME';
 
 export interface Order {
   id: string;
@@ -102,16 +114,19 @@ export const parsePesosToCents = (value: string | number): number | null => {
 // ----------------------------------------------------------------------
 
 export const isInternalTransfer = (tx: Transaction): boolean => {
+  if (tx.category === 'INTERNAL_TRANSFER') return true;
   const d = tx.description.toLowerCase();
   return d.includes('transferencia hacia') || d.includes('transferencia desde');
 };
 
 export const isCashReconciliation = (tx: Transaction): boolean => {
+  if (tx.category === 'RECONCILIATION') return true;
   const d = tx.description.toUpperCase();
   return d.includes('[AJUSTE]') || d.includes('AJUSTE DE BALANCE') || d.includes('CONCILIACION DE CAJA') || d.includes('CONCILIACIÓN DE CAJA');
 };
 
 export const isOpeningBalance = (tx: Transaction): boolean => {
+  if (tx.category === 'OPENING_BALANCE') return true;
   const d = tx.description.toLowerCase();
   return (
     d.includes('saldo inicial') ||
@@ -122,6 +137,7 @@ export const isOpeningBalance = (tx: Transaction): boolean => {
 };
 
 export const isPersonalWithdrawal = (tx: Transaction): boolean => {
+  if (tx.category === 'PERSONAL_WITHDRAWAL') return true;
   if (tx.type !== 'EGRESO') return false;
   if (isCashReconciliation(tx)) return false;
   
@@ -133,12 +149,14 @@ export const isPersonalWithdrawal = (tx: Transaction): boolean => {
 };
 
 export const isCommission = (tx: Transaction): boolean => {
+  if (tx.category === 'COMMISSION') return true;
   if (tx.type !== 'EGRESO') return false;
   const d = tx.description.toLowerCase();
   return d.includes('comisión') || d.includes('comision');
 };
 
 export const isMerchandisePurchase = (tx: Transaction): boolean => {
+  if (tx.category === 'MERCHANDISE') return true;
   if (tx.type !== 'EGRESO') return false;
   // TODO: Asumir categoría de mercadería o inferir de descripción
   // Actualmente en Finanzas/Modal se guardan prefijos o descripciones.
@@ -151,6 +169,7 @@ export const isMerchandisePurchase = (tx: Transaction): boolean => {
  * Gasto operativo: Aquel gasto real de caja que SÍ debe afectar la rentabilidad.
  */
 export const isOperatingExpense = (tx: Transaction): boolean => {
+  if (tx.category) return tx.category === 'OPERATING_EXPENSE';
   if (tx.type !== 'EGRESO') return false;
   if (isInternalTransfer(tx)) return false;
   if (isCashReconciliation(tx)) return false;
@@ -163,6 +182,7 @@ export const isOperatingExpense = (tx: Transaction): boolean => {
 };
 
 export const isCustomerPayment = (tx: Transaction): boolean => {
+  if (tx.category) return tx.category === 'CUSTOMER_PAYMENT';
   if (tx.type !== 'INGRESO') return false;
   if (isInternalTransfer(tx)) return false;
   if (isCashReconciliation(tx)) return false;
