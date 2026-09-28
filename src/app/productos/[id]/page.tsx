@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { getItemUnitCostCents } from '@/lib/finance';
+import { getItemUnitCostCents, parsePesosToCents } from '@/lib/finance';
 import { ChevronLeft, Camera, Loader2, Image as ImageIcon, ChevronDown, DollarSign, Share2, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -103,12 +103,6 @@ export default function EditarProductoPage() {
     }
   };
 
-  const parseCurrency = (val: string) => {
-    if (!val) return null;
-    const num = parseFloat(val.replace(/[^0-9.-]+/g, ''));
-    return isNaN(num) ? 0 : Math.round(num * 100);
-  };
-
   const getOrCreateSupplier = async (sName: string) => {
     if (!sName.trim()) return null;
     const cleanName = sName.trim();
@@ -139,7 +133,16 @@ export default function EditarProductoPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return alert('El nombre es obligatorio.');
-    if (!retailPrice) return alert('El precio de venta es obligatorio.');
+
+    const retailPriceCents = parsePesosToCents(retailPrice);
+    const costPriceCents = costPrice.trim() ? parsePesosToCents(costPrice) : null;
+    const wholesalePriceCents = wholesalePrice.trim() ? parsePesosToCents(wholesalePrice) : null;
+    const parsedStock = Number(stock);
+
+    if (retailPriceCents === null || retailPriceCents <= 0) return alert('El precio de venta debe ser mayor a $0.');
+    if (costPriceCents !== null && costPriceCents < 0) return alert('El costo no puede ser negativo.');
+    if (wholesalePriceCents !== null && wholesalePriceCents < 0) return alert('El precio mayorista no puede ser negativo.');
+    if (!Number.isInteger(parsedStock) || parsedStock < 0) return alert('El stock debe ser un número entero mayor o igual a 0.');
 
     try {
       setLoading(true);
@@ -147,10 +150,10 @@ export default function EditarProductoPage() {
 
       const updateData = {
         name: name.trim(),
-        retail_price: parseCurrency(retailPrice),
-        cost_price: costPrice ? parseCurrency(costPrice) : null,
-        wholesale_price: wholesalePrice ? parseCurrency(wholesalePrice) : null,
-        stock_quantity: parseInt(stock) || 0,
+        retail_price: retailPriceCents,
+        cost_price: costPriceCents,
+        wholesale_price: wholesalePriceCents,
+        stock_quantity: parsedStock,
         is_visible: isVisible,
         show_price: showPrice,
         image_url: imageUrl || null,
@@ -177,8 +180,8 @@ export default function EditarProductoPage() {
     let text = `✨ ${name}\n`;
 
     if (showPrice) {
-      const priceNum = parseFloat(retailPrice || '0');
-      text += `$ ${priceNum.toLocaleString('es-AR')}\nDisponible en Outfit Shop 💕`;
+      const priceCents = parsePesosToCents(retailPrice) ?? 0;
+      text += `$ ${(priceCents / 100).toLocaleString('es-AR')}\nDisponible en Outfit Shop 💕`;
     } else {
       text += `Consultanos por precio 💕\nOutfit Shop`;
     }
@@ -326,7 +329,7 @@ export default function EditarProductoPage() {
             <label className="text-sm font-bold text-gray-700">Precio Venta *</label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
-              <input type="number" value={retailPrice} onChange={e => setRetailPrice(e.target.value)} placeholder="0" required className="w-full bg-white border border-gray-300 rounded-xl pl-8 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink transition-all font-black text-ofit-text text-base" />
+              <input type="number" min="0.01" step="0.01" inputMode="decimal" value={retailPrice} onChange={e => setRetailPrice(e.target.value)} placeholder="0" required className="w-full bg-white border border-gray-300 rounded-xl pl-8 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink transition-all font-black text-ofit-text text-base" />
             </div>
           </div>
 
@@ -334,7 +337,7 @@ export default function EditarProductoPage() {
             <label className="text-sm font-bold text-gray-700 flex items-center justify-between">Costo <span className="text-[10px] font-normal text-gray-400 bg-gray-100 px-2 py-0.5 rounded">Opcional</span></label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
-              <input type="number" value={costPrice} onChange={e => setCostPrice(e.target.value)} placeholder="0" className="w-full bg-white border border-gray-300 rounded-xl pl-8 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink transition-all font-bold text-ofit-text text-base" />
+              <input type="number" min="0" step="0.01" inputMode="decimal" value={costPrice} onChange={e => setCostPrice(e.target.value)} placeholder="0" className="w-full bg-white border border-gray-300 rounded-xl pl-8 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink transition-all font-bold text-ofit-text text-base" />
             </div>
           </div>
         </div>
@@ -355,7 +358,7 @@ export default function EditarProductoPage() {
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
             <label className="text-sm font-bold text-gray-700">¿Cuántas tenés? (Stock)</label>
-            <input type="number" value={stock} onChange={e => setStock(e.target.value)} min="0" className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink transition-all font-bold text-ofit-text text-base text-center" />
+            <input type="number" value={stock} onChange={e => setStock(e.target.value)} min="0" step="1" inputMode="numeric" className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink transition-all font-bold text-ofit-text text-base text-center" />
           </div>
           <div className="flex flex-col gap-2">
             <label className="text-sm font-bold text-gray-700">Estado</label>
@@ -377,7 +380,7 @@ export default function EditarProductoPage() {
                 <label className="text-sm font-bold text-gray-700">Precio Mayorista</label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
-                  <input type="number" value={wholesalePrice} onChange={e => setWholesalePrice(e.target.value)} placeholder="0" className="w-full bg-gray-50 border border-gray-300 rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 transition-all font-bold text-gray-700" />
+                  <input type="number" min="0" step="0.01" inputMode="decimal" value={wholesalePrice} onChange={e => setWholesalePrice(e.target.value)} placeholder="0" className="w-full bg-gray-50 border border-gray-300 rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 transition-all font-bold text-gray-700" />
                 </div>
               </div>
 
