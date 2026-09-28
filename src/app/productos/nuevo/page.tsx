@@ -91,17 +91,26 @@ export default function NuevoProductoPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return alert('El nombre es obligatorio.');
-    if (!retailPrice) return alert('El precio de venta es obligatorio.');
+
+    const retailPriceCents = parsePesosToCents(retailPrice);
+    const costPriceCents = costPrice.trim() ? parsePesosToCents(costPrice) : null;
+    const wholesalePriceCents = wholesalePrice.trim() ? parsePesosToCents(wholesalePrice) : null;
+    const parsedStock = Number(stock);
+
+    if (retailPriceCents === null || retailPriceCents <= 0) return alert('El precio de venta debe ser mayor a $0.');
+    if (costPriceCents !== null && costPriceCents < 0) return alert('El costo no puede ser negativo.');
+    if (wholesalePriceCents !== null && wholesalePriceCents < 0) return alert('El precio mayorista no puede ser negativo.');
+    if (!Number.isInteger(parsedStock) || parsedStock < 0) return alert('El stock debe ser un número entero mayor o igual a 0.');
 
     try {
       setLoading(true);
       const supplierId = await getOrCreateSupplier(supplierName);
       const newProduct = {
         name: name.trim(),
-        retail_price: parseCurrency(retailPrice),
-        cost_price: costPrice ? parseCurrency(costPrice) : null,
-        wholesale_price: wholesalePrice ? parseCurrency(wholesalePrice) : null,
-        stock_quantity: parseInt(stock) || 0,
+        retail_price: retailPriceCents,
+        cost_price: costPriceCents,
+        wholesale_price: wholesalePriceCents,
+        stock_quantity: parsedStock,
         is_visible: isVisible,
         show_price: showPrice,
         image_url: imageUrl || null,
