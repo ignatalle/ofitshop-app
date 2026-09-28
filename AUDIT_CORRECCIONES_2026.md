@@ -25,7 +25,7 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 ## Fase 2 — Datos y estructura
 - [ ] Auditar orders/items, transactions, customers, products, pending_purchases y suppliers.
 - [x] Revisar migraciones, triggers y RPC — pedido, abonos y Compras Pendientes usan RPC atómicas; hardening aplicado en Supabase.
-- [ ] Detectar duplicaciones de lógica entre páginas.
+- [~] Detectar duplicaciones de lógica entre páginas — parser monetario centralizado en finanzas/pedidos/clientes/compras/productos; sigue pendiente extraer lógica repetida de proveedores.
 - [ ] Reducir dependencias de textos/descripciones para clasificar movimientos.
 - [ ] Revisar RLS/permisos antes de cualquier tienda pública.
 
@@ -146,3 +146,10 @@ Estado: auditoría en curso. Matemática base corregida y etapa transaccional ac
 - Compras Pendientes activas ya no se cuentan como "costos históricos pendientes".
 - Inicio muestra una alerta separada para prendas que faltan comprar y otra para históricos sin costo.
 - Esto evita enviar a Cami a Costos Pendientes cuando la tarea correcta está en Compras Pendientes.
+
+
+### Productos — validación monetaria y stock
+- Alta y edición de productos usan parsePesosToCents; se eliminó parseCurrency duplicado.
+- Precio de venta debe ser > 0; costo y mayorista no pueden ser negativos.
+- Stock debe ser entero >= 0 antes de persistir, aunque el navegador no respete min/step.
+- Inputs monetarios usan step=0.01/inputMode=decimal y stock usa inputMode=numeric para teclado móvil.
