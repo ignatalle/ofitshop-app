@@ -1098,15 +1098,15 @@ function ClientesContent() {
           MODAL DE ABONO
           ------------------------------------------------------ */}
       {isAbonoModalOpen && abonoCustomer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden flex flex-col animate-slide-up">
-            <div className="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+        <div className="clientes-abono-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="clientes-abono-modal bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden flex flex-col animate-slide-up">
+            <div className="clientes-abono-header px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
               <h3 className="font-bold text-ofit-text">Abonar a la Cuenta</h3>
               <button onClick={() => setIsAbonoModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1">
                 <X size={20} />
               </button>
             </div>
-            <form onSubmit={confirmAbono} className="p-5 flex flex-col gap-4">
+            <form onSubmit={confirmAbono} className="clientes-abono-form p-5 flex flex-col gap-4">
               <div className="bg-red-50 text-red-800 p-3 rounded-xl flex justify-between items-center font-bold">
                 <span className="text-sm">Deuda total:</span>
                 <span>${(abonoCustomer.debt / 100).toLocaleString('es-AR')}</span>
@@ -1118,7 +1118,9 @@ function ClientesContent() {
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
                   <input
                     type="number"
-                    min="1"
+                    min="0.01"
+                    step="0.01"
+                    inputMode="decimal"
                     max={abonoCustomer.debt / 100}
                     required
                     value={abonoAmount}
@@ -1160,7 +1162,7 @@ function ClientesContent() {
               <button
                 type="submit"
                 disabled={isSubmitting || !abonoAmount}
-                className="w-full mt-2 bg-ofit-pink hover:bg-ofit-pink-hover text-white py-3 rounded-xl font-bold text-sm transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
+                className="clientes-abono-submit w-full mt-2 bg-ofit-pink hover:bg-ofit-pink-hover text-white py-3 rounded-xl font-bold text-sm transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
               >
                 {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <DollarSign size={18} />}
                 Confirmar Abono
