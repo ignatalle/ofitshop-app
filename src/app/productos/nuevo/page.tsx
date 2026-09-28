@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { parsePesosToCents } from '@/lib/finance';
 import { ChevronLeft, Camera, Loader2, Image as ImageIcon, ChevronDown, AlertCircle, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 
@@ -66,12 +67,6 @@ export default function NuevoProductoPage() {
     } finally {
       setUploadingImage(false);
     }
-  };
-
-  const parseCurrency = (val: string) => {
-    if (!val) return null;
-    const num = parseFloat(val.replace(/[^0-9.-]+/g, ''));
-    return isNaN(num) ? 0 : Math.round(num * 100);
   };
 
   const getOrCreateSupplier = async (sName: string) => {
@@ -181,11 +176,11 @@ export default function NuevoProductoPage() {
         <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3 sm:gap-4">
           <div className="flex flex-col gap-2 min-w-0">
             <label className="text-sm font-bold text-gray-700">Precio Venta *</label>
-            <div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span><input type="number" value={retailPrice} onChange={e => setRetailPrice(e.target.value)} placeholder="0" required className="w-full min-w-0 bg-white border border-gray-300 rounded-xl pl-8 pr-3 py-3.5 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink transition-all font-black text-ofit-text text-base" /></div>
+            <div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span><input type="number" min="0.01" step="0.01" inputMode="decimal" value={retailPrice} onChange={e => setRetailPrice(e.target.value)} placeholder="0" required className="w-full min-w-0 bg-white border border-gray-300 rounded-xl pl-8 pr-3 py-3.5 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink transition-all font-black text-ofit-text text-base" /></div>
           </div>
           <div className="flex flex-col gap-2 min-w-0">
             <label className="text-sm font-bold text-gray-700 flex items-center justify-between gap-2">Costo <span className="text-[10px] font-normal text-gray-400 bg-gray-100 px-2 py-0.5 rounded">Opcional</span></label>
-            <div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span><input type="number" value={costPrice} onChange={e => setCostPrice(e.target.value)} placeholder="0" className="w-full min-w-0 bg-white border border-gray-300 rounded-xl pl-8 pr-3 py-3.5 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink transition-all font-bold text-ofit-text text-base" /></div>
+            <div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span><input type="number" min="0" step="0.01" inputMode="decimal" value={costPrice} onChange={e => setCostPrice(e.target.value)} placeholder="0" className="w-full min-w-0 bg-white border border-gray-300 rounded-xl pl-8 pr-3 py-3.5 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink transition-all font-bold text-ofit-text text-base" /></div>
           </div>
         </div>
 
@@ -212,7 +207,7 @@ export default function NuevoProductoPage() {
         <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3 sm:gap-4">
           <div className="flex flex-col gap-2 min-w-0">
             <label className="text-sm font-bold text-gray-700">¿Cuántas tenés? (Stock)</label>
-            <input type="number" value={stock} onChange={e => setStock(e.target.value)} min="0" className="w-full min-w-0 bg-white border border-gray-300 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink transition-all font-bold text-ofit-text text-base text-center" />
+            <input type="number" value={stock} onChange={e => setStock(e.target.value)} min="0" step="1" inputMode="numeric" className="w-full min-w-0 bg-white border border-gray-300 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink transition-all font-bold text-ofit-text text-base text-center" />
           </div>
           <div className="flex flex-col gap-2 min-w-0">
             <label className="text-sm font-bold text-gray-700">Estado</label>
@@ -232,7 +227,7 @@ export default function NuevoProductoPage() {
             <div className="flex flex-col gap-4 mt-4 animate-fade-in bg-white p-3 sm:p-4 rounded-2xl border border-gray-200 shadow-sm min-w-0">
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-bold text-gray-700">Precio Mayorista</label>
-                <div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span><input type="number" value={wholesalePrice} onChange={e => setWholesalePrice(e.target.value)} placeholder="0" className="w-full min-w-0 bg-gray-50 border border-gray-300 rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 transition-all font-bold text-gray-700" /></div>
+                <div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span><input type="number" min="0" step="0.01" inputMode="decimal" value={wholesalePrice} onChange={e => setWholesalePrice(e.target.value)} placeholder="0" className="w-full min-w-0 bg-gray-50 border border-gray-300 rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-ofit-pink/20 transition-all font-bold text-gray-700" /></div>
               </div>
 
               <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3 sm:gap-4">
