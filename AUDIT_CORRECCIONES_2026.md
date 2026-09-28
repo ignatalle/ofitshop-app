@@ -27,7 +27,7 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 - [x] Revisar migraciones, triggers y RPC — pedido, abonos y Compras Pendientes usan RPC atómicas; hardening aplicado en Supabase.
 - [~] Detectar duplicaciones de lógica entre páginas — parser monetario centralizado en finanzas/pedidos/clientes/compras/productos; sigue pendiente extraer lógica repetida de proveedores.
 - [~] Reducir dependencias de textos/descripciones para clasificar movimientos — Transaction.category implementado en código con fallback histórico; falta aplicar migración en Supabase.
-- [ ] Revisar RLS/permisos antes de cualquier tienda pública.
+- [~] Revisar RLS/permisos antes de cualquier tienda pública — riesgo anon documentado; no endurecer hasta implementar Auth porque rompería el backoffice actual.
 
 ## Fase 3 — Flujos funcionales
 - [x] Nuevo pedido / Carga rápida — RPC aplicada y frontend conectado de forma atómica.
@@ -160,3 +160,10 @@ Estado: auditoría en curso. Matemática base corregida y etapa transaccional ac
 - Se preparó 20260928_transaction_categories.sql para agregar category, clasificar inserts automáticamente y backfillear historial.
 - Categorías: cobro cliente, comisión, mercadería, transferencia interna, gasto operativo, retiro personal, conciliación, saldo inicial y otros ingresos.
 - La migración todavía debe ejecutarse en Supabase antes de dar este punto por cerrado.
+
+
+### Seguridad / RLS
+- El backoffice actual usa anon key en cliente y no tiene Supabase Auth.
+- pending_purchases mantiene una policy temporal FOR ALL para anon y RPC financieras tienen EXECUTE para anon.
+- No se endurecieron permisos todavía porque rompería los flujos actuales.
+- SECURITY_AUDIT_2026.md deja el plan de migración a Auth + RLS antes de una exposición pública real.
