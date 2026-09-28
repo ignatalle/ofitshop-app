@@ -157,6 +157,13 @@ function runTests() {
   assert.strictEqual(pendingHistorical.pendingItemsCount, 0, 'Caso 21: compra activa no aparece como histórico');
   assert.strictEqual(pendingHistorical.pendingUnitsCount, 0, 'Caso 21: compra activa no suma unidades históricas');
 
+  // Caso 22: categorías estructuradas tienen prioridad sobre textos ambiguos
+  const structuredPayment = { ...makeTx('cat-pay', 'INGRESO', 10000, 'texto libre', 'VIRTUAL'), category: 'CUSTOMER_PAYMENT' as const };
+  const structuredExpense = { ...makeTx('cat-exp', 'EGRESO', 5000, 'Compra mercadería que en realidad es operativo', 'EFECTIVO'), category: 'OPERATING_EXPENSE' as const };
+  assert.strictEqual(isCustomerPayment(structuredPayment), true, 'Caso 22: categoría CUSTOMER_PAYMENT manda');
+  assert.strictEqual(isMerchandisePurchase(structuredExpense), true, 'Caso 22 fallback lexical todavía reconoce texto para compatibilidad');
+  assert.strictEqual(calculateOperatingExpenses([structuredExpense], new Date().getMonth(), new Date().getFullYear()), 5000, 'Caso 22: categoría OPERATING_EXPENSE manda en rentabilidad');
+
   // TEST MÁS IMPORTANTE AHORA: DÍA COMPLETO DE CAMI
   const startEfectivo = makeTx('startE', 'INGRESO', 7500000, 'Start Efectivo', 'EFECTIVO');
   const startVirtual = makeTx('startV', 'INGRESO', 5164171, 'Start Virtual', 'VIRTUAL');
