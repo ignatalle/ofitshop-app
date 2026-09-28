@@ -114,19 +114,19 @@ export const parsePesosToCents = (value: string | number): number | null => {
 // ----------------------------------------------------------------------
 
 export const isInternalTransfer = (tx: Transaction): boolean => {
-  if (tx.category === 'INTERNAL_TRANSFER') return true;
+  if (tx.category) return tx.category === 'INTERNAL_TRANSFER';
   const d = tx.description.toLowerCase();
   return d.includes('transferencia hacia') || d.includes('transferencia desde');
 };
 
 export const isCashReconciliation = (tx: Transaction): boolean => {
-  if (tx.category === 'RECONCILIATION') return true;
+  if (tx.category) return tx.category === 'RECONCILIATION';
   const d = tx.description.toUpperCase();
   return d.includes('[AJUSTE]') || d.includes('AJUSTE DE BALANCE') || d.includes('CONCILIACION DE CAJA') || d.includes('CONCILIACIÓN DE CAJA');
 };
 
 export const isOpeningBalance = (tx: Transaction): boolean => {
-  if (tx.category === 'OPENING_BALANCE') return true;
+  if (tx.category) return tx.category === 'OPENING_BALANCE';
   const d = tx.description.toLowerCase();
   return (
     d.includes('saldo inicial') ||
@@ -137,7 +137,7 @@ export const isOpeningBalance = (tx: Transaction): boolean => {
 };
 
 export const isPersonalWithdrawal = (tx: Transaction): boolean => {
-  if (tx.category === 'PERSONAL_WITHDRAWAL') return true;
+  if (tx.category) return tx.category === 'PERSONAL_WITHDRAWAL';
   if (tx.type !== 'EGRESO') return false;
   if (isCashReconciliation(tx)) return false;
   
@@ -149,14 +149,14 @@ export const isPersonalWithdrawal = (tx: Transaction): boolean => {
 };
 
 export const isCommission = (tx: Transaction): boolean => {
-  if (tx.category === 'COMMISSION') return true;
+  if (tx.category) return tx.category === 'COMMISSION';
   if (tx.type !== 'EGRESO') return false;
   const d = tx.description.toLowerCase();
   return d.includes('comisión') || d.includes('comision');
 };
 
 export const isMerchandisePurchase = (tx: Transaction): boolean => {
-  if (tx.category === 'MERCHANDISE') return true;
+  if (tx.category) return tx.category === 'MERCHANDISE';
   if (tx.type !== 'EGRESO') return false;
   // TODO: Asumir categoría de mercadería o inferir de descripción
   // Actualmente en Finanzas/Modal se guardan prefijos o descripciones.
