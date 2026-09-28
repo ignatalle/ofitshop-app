@@ -47,10 +47,10 @@ Objetivo: dejar Outfit Shop estable, matemáticamente consistente y usable en iP
 ## Fase 5 — iPhone / Android
 - [ ] 320, 360, 375, 390, 412 y 430 px.
 - [x] Safe areas — viewport-fit=cover, layout y overlays respetan env(safe-area-inset-*).
-- [ ] Teclado móvil.
+- [~] Teclado móvil — inputs >=16px y modales de Finanzas/Abonos usan 100dvh + scroll interno; falta prueba física final iOS/Android.
 - [x] Inputs >= 16px — regla transversal móvil evita zoom automático de iOS.
 - [x] Touch targets >= 44px — botones móviles tienen mínimo 44px; controles principales de estado 48px.
-- [ ] Modales con acciones siempre visibles.
+- [~] Modales con acciones siempre visibles — Finanzas, Compras Pendientes y Abonos usan footer/CTA accesible con safe-area; falta prueba física final.
 - [~] Sin scroll horizontal — salvaguarda global + shells por ruta aplicados; falta prueba visual final por anchos.
 - [x] Bottom nav no tapa contenido — main y shells reservan espacio con safe-area; modales críticos suben sobre la navegación.
 - [ ] Tema Clásico y Premium Dark.
