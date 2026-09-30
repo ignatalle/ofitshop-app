@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Phone, AtSign, Loader2, Mail, FileText, Trash2, Pencil, ChevronDown, ChevronUp, DollarSign, CheckCircle2, History, MessageCircle, Plus, Check, X, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
@@ -804,7 +804,7 @@ function ClientesContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const cancelEditCustomer = () => {
+  const resetCustomerForm = () => {
     setName('');
     setType('MINORISTA');
     setEmail('');
@@ -812,6 +812,16 @@ function ClientesContent() {
     setInstagram('');
     setNotes('');
     setEditingId(null);
+  };
+
+  const openNewCustomerForm = () => {
+    resetCustomerForm();
+    setIsFormOpen(true);
+  };
+
+  const cancelEditCustomer = () => {
+    resetCustomerForm();
+    setIsFormOpen(false);
   };
 
   const handleSubmitCustomer = async (e: React.FormEvent) => {
@@ -956,11 +966,96 @@ function ClientesContent() {
 
   return (
     <div className="p-4 flex flex-col gap-6 max-w-lg mx-auto w-full">
-      <div className="pt-2">
+      <div className="pt-2 flex items-center justify-between gap-3">
         <h1 className="text-2xl font-bold tracking-tight text-ofit-text mb-1">
           Fichas de Clientes
         </h1>
+        <button
+          type="button"
+          onClick={openNewCustomerForm}
+          className="min-h-11 px-4 rounded-xl bg-ofit-pink text-white font-bold flex items-center justify-center gap-2 shadow-sm"
+        >
+          <Plus size={18} />
+          Nuevo cliente
+        </button>
       </div>
+
+      {isFormOpen && !editingId && (
+        <div className="clientes-new-overlay fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+          <div className="clientes-new-modal w-full sm:max-w-sm rounded-t-[28px] sm:rounded-2xl bg-white shadow-2xl overflow-hidden">
+            <div className="clientes-new-header flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <h2 className="text-xl font-black text-ofit-text">Nuevo Cliente</h2>
+              <button
+                type="button"
+                onClick={cancelEditCustomer}
+                className="min-w-11 min-h-11 rounded-full flex items-center justify-center text-ofit-text-soft hover:bg-gray-100"
+                aria-label="Cerrar nuevo cliente"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitCustomer} className="clientes-new-form p-5 flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="new-customer-name" className="text-sm font-bold text-ofit-text">
+                  Nombre <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="new-customer-name"
+                  type="text"
+                  required
+                  autoComplete="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Nombre y apellido"
+                  className="w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-ofit-text outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="new-customer-phone" className="text-sm font-bold text-ofit-text">
+                  WhatsApp <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="new-customer-phone"
+                  type="tel"
+                  required
+                  inputMode="tel"
+                  autoComplete="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Ej. 3804 123456"
+                  className="w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-ofit-text outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="new-customer-type" className="text-sm font-bold text-ofit-text">
+                  Tipo
+                </label>
+                <select
+                  id="new-customer-type"
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-ofit-text font-semibold outline-none focus:ring-2 focus:ring-ofit-pink/20 focus:border-ofit-pink"
+                >
+                  <option value="MINORISTA">Minorista</option>
+                  <option value="MAYORISTA">Mayorista</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting || !name.trim() || !phone.trim()}
+                className="clientes-new-submit w-full min-h-12 rounded-xl bg-ofit-pink text-white font-black text-base flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : null}
+                {isSubmitting ? 'Guardando...' : 'Guardar cliente'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* ------------------------------------------------------
           FORMULARIO SUPERIOR DE CLIENTES (Crear/Editar)
