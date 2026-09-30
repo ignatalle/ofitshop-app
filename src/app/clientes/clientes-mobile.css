@@ -166,3 +166,69 @@ html[data-theme="luxe"] .clientes-mobile .clientes-abono-modal,
 html[data-theme="luxe"] .clientes-mobile .clientes-abono-header {
   background: var(--bg-card) !important;
 }
+
+
+/* Nuevo cliente: formulario explícito y estable en móvil.
+   El nombre no depende de orden/nth-child ni de hacks de formularios viejos. */
+@media (max-width: 640px) {
+  .clientes-mobile .clientes-new-overlay {
+    height: 100vh;
+    height: 100dvh;
+    padding-top: env(safe-area-inset-top) !important;
+    z-index: 9999 !important;
+  }
+
+  .clientes-mobile .clientes-new-modal {
+    max-height: calc(100dvh - env(safe-area-inset-top));
+    overflow: hidden !important;
+    padding-bottom: 0 !important;
+  }
+
+  .clientes-mobile .clientes-new-header {
+    flex: 0 0 auto;
+  }
+
+  .clientes-mobile .clientes-new-form {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom)) !important;
+  }
+
+  .clientes-mobile .clientes-new-form input,
+  .clientes-mobile .clientes-new-form select {
+    min-height: 48px;
+    font-size: 16px !important;
+  }
+
+  .clientes-mobile .clientes-new-submit {
+    min-height: 52px;
+  }
+}
+
+html[data-theme="luxe"] .clientes-mobile .clientes-new-modal {
+  background:
+    radial-gradient(circle at 90% 0%, rgba(242,166,193,.08), transparent 12rem),
+    linear-gradient(180deg, #21131d 0%, #140f15 100%) !important;
+  border: 1px solid rgba(232,207,145,.28) !important;
+}
+
+html[data-theme="luxe"] .clientes-mobile .clientes-new-header {
+  background: rgba(28,19,27,.98) !important;
+  border-bottom-color: rgba(232,207,145,.16) !important;
+}
+
+html[data-theme="luxe"] .clientes-mobile .clientes-new-form input,
+html[data-theme="luxe"] .clientes-mobile .clientes-new-form select {
+  background: linear-gradient(180deg, rgba(31,22,29,.98), rgba(23,17,23,.98)) !important;
+  color: #fff8fb !important;
+  border-color: rgba(232,207,145,.28) !important;
+}
+
+html[data-theme="luxe"] .clientes-mobile .clientes-new-form input::placeholder {
+  color: #a9939e !important;
+}
+
+html[data-theme="luxe"] .clientes-mobile .clientes-new-submit {
+  background: linear-gradient(135deg, #f0a0bd 0%, #dc6f99 55%, #bd4d79 100%) !important;
+  color: white !important;
+}
