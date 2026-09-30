@@ -167,3 +167,9 @@ Estado: auditoría en curso. Matemática base corregida y etapa transaccional ac
 - pending_purchases mantiene una policy temporal FOR ALL para anon y RPC financieras tienen EXECUTE para anon.
 - No se endurecieron permisos todavía porque rompería los flujos actuales.
 - SECURITY_AUDIT_2026.md deja el plan de migración a Auth + RLS antes de una exposición pública real.
+
+
+### Regresión corregida — Nuevo Cliente
+- En móvil se detectó un flujo donde el modal mostraba WhatsApp/Tipo pero no permitía ingresar Nombre.
+- Se restauró un formulario explícito de Nuevo Cliente con Nombre obligatorio, WhatsApp obligatorio y Tipo.
+- El modal usa clases propias y safe-area, evitando depender de selectores genéricos que puedan ocultar/reordenar campos.
