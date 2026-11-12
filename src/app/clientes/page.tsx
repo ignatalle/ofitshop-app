@@ -525,7 +525,7 @@ function CustomerProfileCard({
   };
 
   return (
-    <div className={`bg-white rounded-2xl shadow-sm border transition-all overflow-hidden ${
+    <div data-customer-id={customer.id} className={`bg-white rounded-2xl shadow-sm border transition-all overflow-hidden ${
       isExpanded ? 'border-ofit-border ring-2 ring-blue-50' : 'border-gray-100 hover:border-blue-100'
     }`}>
       {/* Tarjeta Principal (Clickable) */}
