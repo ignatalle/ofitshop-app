@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { findCustomerWithPhone, duplicateCustomerMessage } from '@/lib/customerIdentity';
 import { Phone, AtSign, Loader2, Mail, FileText, Trash2, Pencil, ChevronDown, ChevronUp, DollarSign, CheckCircle2, History, MessageCircle, Plus, Check, X, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { getItemUnitCostCents, getItemQuantity, isValidSale, calculateOrderBalance, parsePesosToCents } from '@/lib/finance';
@@ -863,6 +864,11 @@ function ClientesContent() {
 
     try {
       setIsSubmitting(true);
+      const existing = await findCustomerWithPhone(phone, editingId);
+      if (existing) {
+        alert(duplicateCustomerMessage(existing.name));
+        return;
+      }
       const customerData = {
         name: name.trim(),
         type,

@@ -18,6 +18,7 @@ import {
   X,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { findCustomerWithPhone, duplicateCustomerMessage } from '@/lib/customerIdentity';
 
 interface Customer {
   id: string;
@@ -266,6 +267,16 @@ function NuevoPedidoContent() {
     if (!newCustomerName.trim() || !newCustomerPhone.trim()) return;
     try {
       setIsSubmittingCustomer(true);
+      const existing = await findCustomerWithPhone(newCustomerPhone);
+      if (existing) {
+        alert(duplicateCustomerMessage(existing.name));
+        // Do not silently assign an order to one of several historic duplicates.
+        // The operator must choose the correct existing customer in the list.
+        setIsCustomerModalOpen(false);
+        setNewCustomerName('');
+        setNewCustomerPhone('');
+        return;
+      }
       const { data, error } = await supabase
         .from('customers')
         .insert([{ name: newCustomerName.trim(), phone: newCustomerPhone.trim(), type: newCustomerType }])
