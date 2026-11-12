@@ -270,7 +270,8 @@ function NuevoPedidoContent() {
       const existing = await findCustomerWithPhone(newCustomerPhone);
       if (existing) {
         alert(duplicateCustomerMessage(existing.name));
-        setSelectedCustomerId(existing.id);
+        // Do not silently assign an order to one of several historic duplicates.
+        // The operator must choose the correct existing customer in the list.
         setIsCustomerModalOpen(false);
         setNewCustomerName('');
         setNewCustomerPhone('');
