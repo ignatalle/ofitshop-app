@@ -723,6 +723,25 @@ function CustomerProfileCard({
   );
 }
 
+// Supabase/PostgREST caps rows per request (often 1,000). Load every page so
+// older customers and orders remain visible in accounts receivable.
+async function fetchAllCustomerPageRows(table: 'customers' | 'orders') {
+  const pageSize = 1000;
+  const rows: any[] = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase
+      .from(table)
+      .select('*')
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .range(offset, offset + pageSize - 1);
+    if (error) throw error;
+    rows.push(...(data || []));
+    if (!data || data.length < pageSize) break;
+  }
+  return rows;
+}
+
 function ClientesContent() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
@@ -755,17 +774,27 @@ function ClientesContent() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [customersResponse, salesResponse, ordersResponse, productsResponse] = await Promise.all([
-        supabase.from('customers').select('*').order('created_at', { ascending: false }),
+      const [allCustomers, salesResponse, allOrders, productsResponse, linkedCustomerResponse] = await Promise.all([
+        fetchAllCustomerPageRows('customers'),
         supabase.from('sales').select('*').order('created_at', { ascending: false }),
-        supabase.from('orders').select('*').order('created_at', { ascending: false }),
-        supabase.from('products').select('id, cost_price')
+        fetchAllCustomerPageRows('orders'),
+        supabase.from('products').select('id, cost_price'),
+        // A direct link from an order must resolve the customer independently of pagination.
+        expandParam
+          ? supabase.from('customers').select('*').eq('id', expandParam).maybeSingle()
+          : Promise.resolve({ data: null, error: null })
       ]);
 
-      if (customersResponse.error) throw customersResponse.error;
       if (salesResponse.error) throw salesResponse.error;
-      if (ordersResponse.error) throw ordersResponse.error;
       if (productsResponse.error) throw productsResponse.error;
+      if (linkedCustomerResponse.error) throw linkedCustomerResponse.error;
+      if (expandParam && !linkedCustomerResponse.data) {
+        throw new Error('No se encontró la ficha asociada al pedido. Verificá el cliente vinculado.');
+      }
+      const customerById = new Map(allCustomers.map(customer => [customer.id, customer]));
+      if (linkedCustomerResponse.data) {
+        customerById.set(linkedCustomerResponse.data.id, linkedCustomerResponse.data);
+      }
 
       const pMap: Record<string, number> = {};
       if (productsResponse.data) {
@@ -775,9 +804,9 @@ function ClientesContent() {
       }
       setProductsMap(pMap);
 
-      setCustomers(customersResponse.data || []);
+      setCustomers(Array.from(customerById.values()));
       setSales(salesResponse.data || []);
-      setOrders(ordersResponse.data || []);
+      setOrders(allOrders);
     } catch (error: any) {
       alert('Error al cargar los datos: ' + error.message);
     } finally {
