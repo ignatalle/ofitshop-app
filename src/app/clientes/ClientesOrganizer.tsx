@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { calculateOrderBalance } from '@/lib/finance';
 
 type StatusFilter = 'TODOS' | 'DEBEN' | 'AL_DIA';
 type SortMode = 'MAYOR_DEUDA' | 'AZ' | 'MENOR_DEUDA' | 'RECIENTE';
@@ -38,7 +39,7 @@ export default function ClientesOrganizer() {
         setLoading(true);
         const [customersRes, ordersRes] = await Promise.all([
           supabase.from('customers').select('id,name,phone,instagram,created_at'),
-          supabase.from('orders').select('customer_id,total_amount,advance_payment')
+          supabase.from('orders').select('customer_id,total_amount,advance_payment,status')
         ]);
 
         if (customersRes.error) throw customersRes.error;
@@ -46,7 +47,7 @@ export default function ClientesOrganizer() {
 
         const debtByCustomer = new Map<string, number>();
         for (const order of ordersRes.data || []) {
-          const debt = Math.max(0, Number(order.total_amount || 0) - Number(order.advance_payment || 0));
+          const debt = calculateOrderBalance({ ...order, id: '', created_at: '' });
           debtByCustomer.set(order.customer_id, (debtByCustomer.get(order.customer_id) || 0) + debt);
         }
 
@@ -101,22 +102,16 @@ export default function ClientesOrganizer() {
     const root = document.querySelector('.clientes-mobile');
     if (!root) return;
 
-    const allByName = new Map(customers.map(customer => [normalize(customer.name), customer]));
     const visibleIndex = new Map(visibleCustomers.map((customer, index) => [customer.id, index]));
 
+    // Names and phone numbers are not unique. Match the actual card record ID.
     const apply = () => {
-      const headings = Array.from(root.querySelectorAll('h3'));
-
-      for (const heading of headings) {
-        const name = (heading.textContent || '').trim();
-        const customer = allByName.get(normalize(name));
-        if (!customer) continue;
-
-        const card = heading.closest('.bg-white.rounded-2xl.shadow-sm.border.transition-all.overflow-hidden') as HTMLElement | null;
-        if (!card) continue;
-
+      const cards = root.querySelectorAll<HTMLElement>('[data-customer-id]');
+      for (const card of cards) {
+        const customerId = card.dataset.customerId;
+        if (!customerId) continue;
         card.dataset.clientFilterCard = 'true';
-        const order = visibleIndex.get(customer.id);
+        const order = visibleIndex.get(customerId);
         card.hidden = order === undefined;
         card.style.order = order === undefined ? '9999' : String(order);
       }
