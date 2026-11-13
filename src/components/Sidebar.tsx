@@ -32,6 +32,7 @@ export default function Sidebar() {
     { name: 'Carga Rápida', href: '/pedidos/nuevo', icon: Calculator },
     { name: 'Mi Catálogo', href: '/productos', icon: Package },
     { name: 'Compras Pendientes', href: '/compras-pendientes', icon: ShoppingBag },
+    { name: 'Stock Disponible', href: '/stock', icon: Package },
     { name: 'Finanzas', href: '/finanzas', icon: Wallet },
     { name: 'Ajustes', href: '/ajustes', icon: Settings },
   ];
