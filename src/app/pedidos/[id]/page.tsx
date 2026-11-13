@@ -449,6 +449,11 @@ export default function FichaPedidoPage() {
         </div>
       </div>
       
+      {/* Return an item while preserving financial history */}
+      <Link href={`/pedidos/${order.id}/devolver`} className="w-full min-h-12 px-4 rounded-xl bg-amber-100 text-amber-900 font-bold flex items-center justify-center gap-2">
+        <PackageOpen size={18} /> Registrar devolución / pasar a stock
+      </Link>
+
       {/* Danger Zone */}
       <div className="flex justify-center mt-4">
          <button 
