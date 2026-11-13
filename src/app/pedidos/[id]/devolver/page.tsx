@@ -42,6 +42,7 @@ export default function DevolverPedidoPage() {
     const { error: rpcError } = await supabase.rpc('register_order_return', {
       p_order_id: order.id,
       p_item_index: Number(selected),
+      p_expected_item_id: String(item.id || ''),
       p_reason: reason.trim(),
       p_disposition: disposition,
     });
