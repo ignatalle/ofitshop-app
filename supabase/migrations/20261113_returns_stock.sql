@@ -79,6 +79,9 @@ begin
   end if;
 
   v_item := v_items -> p_item_index;
+  if coalesce(v_item->>'id','') = '' then
+    raise exception 'Esta prenda histórica no tiene identificador; requiere revisión manual';
+  end if;
   if coalesce(v_item->>'id','') <> coalesce(p_expected_item_id,'') then
     raise exception 'La lista cambió desde que abriste el pedido: actualizá y reintentá';
   end if;
