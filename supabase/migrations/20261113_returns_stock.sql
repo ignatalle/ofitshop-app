@@ -5,7 +5,7 @@ create table if not exists public.order_returns (
   id uuid primary key default gen_random_uuid(),
   order_id uuid not null references public.orders(id) on delete restrict,
   customer_id uuid not null references public.customers(id) on delete restrict,
-  item_index integer not null check(item_index >= 0),
+  item_index integer not null,
   item_snapshot jsonb not null,
   quantity integer not null check(quantity > 0),
   refund_value bigint not null check(refund_value >= 0),
@@ -13,7 +13,7 @@ create table if not exists public.order_returns (
   reason text not null check(length(trim(reason)) between 3 and 500),
   disposition text not null check(disposition in ('STOCK', 'NO_APTO')),
   created_at timestamptz not null default now(),
-  unique (order_id, item_index)
+  constraint nonnegative_item_index check (item_index >= 0)
 );
 
 create table if not exists public.returned_stock (
@@ -39,6 +39,7 @@ create index if not exists order_returns_customer_idx on public.order_returns (c
 create or replace function public.register_order_return(
   p_order_id uuid,
   p_item_index integer,
+  p_expected_item_id text,
   p_reason text,
   p_disposition text
 ) returns uuid
@@ -78,6 +79,9 @@ begin
   end if;
 
   v_item := v_items -> p_item_index;
+  if coalesce(v_item->>'id','') <> coalesce(p_expected_item_id,'') then
+    raise exception 'La lista cambió desde que abriste el pedido: actualizá y reintentá';
+  end if;
   v_qty := greatest(1, coalesce(nullif(v_item->>'quantity','')::integer, 1));
   v_price := coalesce(nullif(v_item->>'unitPrice','')::bigint, 0);
   v_amount := v_qty * v_price;
@@ -96,7 +100,8 @@ begin
   end if;
 
   v_new_total := v_order.total_amount - v_amount;
-  v_credit := greatest(0, coalesce(v_order.advance_payment,0) - v_new_total);
+  v_credit := greatest(0, coalesce(v_order.advance_payment,0) - v_new_total)
+            - greatest(0, coalesce(v_order.advance_payment,0) - v_order.total_amount);
   v_stock_name := coalesce(nullif(trim(v_item->>'productName'),''), nullif(trim(v_item->>'description'),''), 'Prenda sin nombre');
 
   insert into public.order_returns
@@ -152,6 +157,6 @@ end;
 $$;
 
 grant select, insert on public.order_returns to anon, authenticated;
-grant select, insert, update on public.returned_stock to anon, authenticated;
-grant execute on function public.register_order_return(uuid, integer, text, text) to anon, authenticated;
+grant select, insert on public.returned_stock to anon, authenticated;
+grant execute on function public.register_order_return(uuid, integer, text, text, text) to anon, authenticated;
 grant execute on function public.mark_returned_stock_sold(uuid, uuid) to anon, authenticated;
